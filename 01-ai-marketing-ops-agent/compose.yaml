@@ -1,0 +1,56 @@
+services:
+  marketing-panel:
+    build:
+      context: .
+      dockerfile: Dockerfile.mock
+    command:
+      - uvicorn
+      - marketing_ops_agent.mock_services.marketing_panel:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+    ports:
+      - "8000:8000"
+
+  campaign-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.mock
+    command:
+      - uvicorn
+      - marketing_ops_agent.mock_services.campaign_api:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+    ports:
+      - "8001:8000"
+
+  analytics-graphql-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.mock
+    command:
+      - uvicorn
+      - marketing_ops_agent.mock_services.analytics_graphql_api:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+    ports:
+      - "8002:8000"
+
+  project-management-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.mock
+    command:
+      - uvicorn
+      - marketing_ops_agent.mock_services.project_management_api:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+    ports:
+      - "8003:8000"
