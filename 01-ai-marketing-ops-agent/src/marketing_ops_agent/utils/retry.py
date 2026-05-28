@@ -15,6 +15,11 @@ class RetryConfig:
     backoff_factor: float = 2.0
 
     def __post_init__(self) -> None:
+        """Validate retry configuration bounds.
+
+        Raises:
+            ValueError: If attempts, delays or backoff factor are invalid.
+        """
         if self.max_attempts < 1:
             raise ValueError("max_attempts must be at least 1")
         if self.initial_delay_seconds < 0:

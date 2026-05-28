@@ -28,30 +28,50 @@ EXPECTED_CAMPAIGN_CELL_COUNT = 8
 class LocatorLike(Protocol):
     """Minimal locator protocol used by the scraper and tests."""
 
-    async def count(self) -> int: ...
+    async def count(self) -> int:
+        """Return the number of matched DOM nodes."""
+        ...
 
-    async def all(self) -> list["LocatorLike"]: ...
+    async def all(self) -> list["LocatorLike"]:
+        """Return locator handles for all matched DOM nodes."""
+        ...
 
-    async def inner_text(self) -> str: ...
+    async def inner_text(self) -> str:
+        """Return text content for a matched DOM node."""
+        ...
 
-    def locator(self, selector: str) -> "LocatorLike": ...
+    def locator(self, selector: str) -> "LocatorLike":
+        """Return a nested locator for the provided selector."""
+        ...
 
 
 class PageLike(Protocol):
     """Minimal Playwright page protocol used by the scraper."""
 
     @property
-    def url(self) -> str: ...
+    def url(self) -> str:
+        """Return the current page URL."""
+        ...
 
-    async def goto(self, url: str, *, wait_until: str, timeout: float) -> object: ...
+    async def goto(self, url: str, *, wait_until: str, timeout: float) -> object:
+        """Navigate the browser page to a URL."""
+        ...
 
-    async def fill(self, selector: str, value: str) -> None: ...
+    async def fill(self, selector: str, value: str) -> None:
+        """Fill a form field matched by selector."""
+        ...
 
-    async def click(self, selector: str) -> None: ...
+    async def click(self, selector: str) -> None:
+        """Click an element matched by selector."""
+        ...
 
-    async def wait_for_url(self, url: str, *, timeout: float) -> None: ...
+    async def wait_for_url(self, url: str, *, timeout: float) -> None:
+        """Wait until the page URL matches the expected pattern."""
+        ...
 
-    def locator(self, selector: str) -> LocatorLike: ...
+    def locator(self, selector: str) -> LocatorLike:
+        """Return a locator for DOM nodes matching selector."""
+        ...
 
 
 class MarketingPanelCredentials(BaseModel):
@@ -65,6 +85,15 @@ class MarketingPanelCredentials(BaseModel):
 
     @classmethod
     def from_config(cls, config: AppConfig | None = None) -> "MarketingPanelCredentials":
+        """Build mock panel credentials from application configuration.
+
+        Args:
+            config: Optional configuration object; environment defaults are used
+                when omitted.
+
+        Returns:
+            Validated marketing panel credentials.
+        """
         resolved_config = config or load_config()
         return cls(
             username=resolved_config.marketing_panel_username,
@@ -90,6 +119,17 @@ class ScrapedCampaignRow(BaseModel):
     @field_validator("campaign_id", "name")
     @classmethod
     def strip_required_text(cls, value: str) -> str:
+        """Trim required text fields and reject blank values.
+
+        Args:
+            value: Raw field value.
+
+        Returns:
+            Stripped non-empty value.
+
+        Raises:
+            ValueError: If the stripped value is blank.
+        """
         stripped = value.strip()
         if not stripped:
             raise ValueError("value must not be blank")
@@ -143,6 +183,16 @@ class PlaywrightMarketingPanelScraper:
         page: PageLike | None = None,
         config: AppConfig | None = None,
     ) -> None:
+        """Initialize the scraper with browser, credential and timeout settings.
+
+        Args:
+            base_url: Optional mock panel base URL.
+            credentials: Optional explicit panel credentials.
+            timeout_seconds: Optional browser operation timeout.
+            headless: Whether Playwright should launch Chromium headless.
+            page: Optional injected page used by tests.
+            config: Optional application configuration.
+        """
         resolved_config = config or load_config()
         self._base_url = (base_url or resolved_config.marketing_panel_base_url).rstrip("/")
         self._credentials = credentials or MarketingPanelCredentials.from_config(resolved_config)
@@ -151,6 +201,7 @@ class PlaywrightMarketingPanelScraper:
         self._page = page
 
     async def __aenter__(self) -> Self:
+        """Enter the async context manager without opening a browser yet."""
         return self
 
     async def __aexit__(
@@ -159,6 +210,11 @@ class PlaywrightMarketingPanelScraper:
         exc: BaseException | None,
         traceback: TracebackType | None,
     ) -> None:
+        """Exit the async context manager.
+
+        The scraper opens and closes Playwright browsers inside
+        `scrape_campaign_rows`, so there is no persistent resource to close here.
+        """
         return None
 
     async def scrape_campaign_rows(self) -> list[ScrapedCampaignRow]:
@@ -225,6 +281,18 @@ class PlaywrightMarketingPanelScraper:
         return rows
 
     async def _scrape_row(self, row_locator: LocatorLike, row_index: int) -> ScrapedCampaignRow:
+        """Scrape and validate one campaign table row.
+
+        Args:
+            row_locator: Locator for a dashboard table row.
+            row_index: One-based row index used in error messages.
+
+        Returns:
+            Validated scraped campaign row.
+
+        Raises:
+            MalformedCampaignRowError: If the row has invalid cell content.
+        """
         cell_locators = await row_locator.locator(CAMPAIGN_CELL_SELECTOR).all()
         cells = [(await cell.inner_text()).strip() for cell in cell_locators]
 
@@ -234,12 +302,22 @@ class PlaywrightMarketingPanelScraper:
             raise MalformedCampaignRowError(f"Malformed campaign row {row_index}: {exc}") from exc
 
     def _url(self, path: str) -> str:
+        """Build an absolute mock panel URL from a relative path.
+
+        Args:
+            path: Relative path with or without a leading slash.
+
+        Returns:
+            Absolute URL under the configured panel base URL.
+        """
         return f"{self._base_url}{path if path.startswith('/') else f'/{path}'}"
 
 
 def _parse_int(value: str) -> int:
+    """Parse an integer from dashboard text that may contain separators."""
     return int(value.strip().replace(",", ""))
 
 
 def _parse_float(value: str) -> float:
+    """Parse a float from dashboard text that may contain separators."""
     return float(value.strip().replace(",", ""))

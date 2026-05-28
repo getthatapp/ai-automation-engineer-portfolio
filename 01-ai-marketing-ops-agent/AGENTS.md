@@ -36,6 +36,20 @@ Included now:
 - Do not hardcode secrets.
 - Keep generated logs, reports, caches and `.env` out of git.
 
+## Docstring rules
+
+Every function, method and class created or modified by Codex must include a
+clear Google-style docstring. A useful docstring should explain what the
+function or class does, important arguments, return value, raised exceptions
+when relevant, and meaningful side effects such as file writes, JSONL
+persistence, API calls, browser automation, report generation, workflow
+orchestration, LLM provider calls or mock provider behavior. Docstrings should
+be concise and useful; they must not merely repeat the function or class name.
+For simple Pydantic models and enums, add class docstrings where they improve
+clarity, but do not over-document obvious fields. For private helpers, add
+docstrings when the function contains non-trivial behavior, validation logic,
+branching rules, external calls or side effects.
+
 ## Commands
 
 ```bash

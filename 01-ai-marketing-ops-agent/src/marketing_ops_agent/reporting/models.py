@@ -16,6 +16,17 @@ class ReportMetadata(BaseModel):
     @field_validator("title")
     @classmethod
     def strip_title(cls, value: str) -> str:
+        """Trim report titles and reject blank values.
+
+        Args:
+            value: Raw title.
+
+        Returns:
+            Stripped non-empty title.
+
+        Raises:
+            ValueError: If the stripped title is blank.
+        """
         stripped = value.strip()
         if not stripped:
             raise ValueError("title must not be blank")

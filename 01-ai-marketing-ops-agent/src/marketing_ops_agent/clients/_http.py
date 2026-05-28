@@ -28,6 +28,15 @@ class AsyncHttpServiceClient:
         http_client: httpx.AsyncClient | None = None,
         config: AppConfig | None = None,
     ) -> None:
+        """Initialize shared HTTP client behavior.
+
+        Args:
+            base_url: Base URL used for relative request paths.
+            timeout_seconds: Per-call timeout override.
+            retry_config: Retry policy for timeout, transport and 5xx failures.
+            http_client: Optional injected `httpx.AsyncClient` for tests.
+            config: Optional application configuration.
+        """
         resolved_config = config or load_config()
         self._base_url = base_url.rstrip("/")
         self._timeout_seconds = timeout_seconds or resolved_config.request_timeout_seconds
@@ -36,6 +45,7 @@ class AsyncHttpServiceClient:
         self._owns_http_client = http_client is None
 
     async def __aenter__(self) -> Self:
+        """Enter the async client context."""
         return self
 
     async def __aexit__(
@@ -44,6 +54,7 @@ class AsyncHttpServiceClient:
         exc: BaseException | None,
         traceback: TracebackType | None,
     ) -> None:
+        """Exit the async client context and close owned HTTP resources."""
         await self.aclose()
 
     async def aclose(self) -> None:
@@ -59,7 +70,20 @@ class AsyncHttpServiceClient:
         *,
         json_body: object | None = None,
     ) -> object:
-        """Send a request and return decoded JSON."""
+        """Send an HTTP request with retry and return decoded JSON.
+
+        Args:
+            method: HTTP method.
+            path: Relative or absolute request path.
+            json_body: Optional JSON request body.
+
+        Returns:
+            Decoded JSON response body.
+
+        Raises:
+            ServiceDecodeError: If the response body is not valid JSON.
+            ServiceClientError: If the request fails after retries.
+        """
 
         response = await retry_async(
             lambda: self._send(method, path, json_body=json_body),
@@ -77,6 +101,22 @@ class AsyncHttpServiceClient:
             raise ServiceDecodeError("Service returned invalid JSON") from exc
 
     async def _send(self, method: str, path: str, *, json_body: object | None) -> httpx.Response:
+        """Send one HTTP request and translate transport/HTTP failures.
+
+        Args:
+            method: HTTP method.
+            path: Relative or absolute request path.
+            json_body: Optional JSON request body.
+
+        Returns:
+            Successful HTTP response.
+
+        Raises:
+            ServiceTimeoutError: If the call times out.
+            ServiceConnectionError: If transport fails.
+            RetryableServiceResponseError: If a 5xx response is returned.
+            ServiceResponseError: If a 4xx response is returned.
+        """
         url = self._build_url(path)
         try:
             response = await self._http_client.request(
@@ -97,6 +137,14 @@ class AsyncHttpServiceClient:
         return response
 
     def _build_url(self, path: str) -> str:
+        """Build a request URL from a relative or absolute path.
+
+        Args:
+            path: Relative path or absolute URL.
+
+        Returns:
+            Absolute request URL.
+        """
         if path.startswith("http://") or path.startswith("https://"):
             return path
         normalized_path = path if path.startswith("/") else f"/{path}"

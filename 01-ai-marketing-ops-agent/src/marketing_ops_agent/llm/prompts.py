@@ -14,7 +14,16 @@ MAX_REPORT_SUMMARY_CHARS = 4_000
 
 
 def build_interpretation_prompt(request: LLMInterpretationRequest) -> str:
-    """Build a provider-agnostic prompt from validated deterministic objects only."""
+    """Build a provider-agnostic prompt from validated deterministic objects only.
+
+    Args:
+        request: Validated snapshots, findings, report summary and optional run
+            record.
+
+    Returns:
+        Prompt text containing safety rules and a sanitized deterministic JSON
+        payload.
+    """
 
     payload = {
         "prompt_version": PROMPT_VERSION,
@@ -57,6 +66,15 @@ def build_interpretation_prompt(request: LLMInterpretationRequest) -> str:
 
 
 def _snapshot_payload(snapshot: CampaignSnapshot) -> dict[str, Any]:
+    """Convert a campaign snapshot into prompt-safe deterministic data.
+
+    Args:
+        snapshot: Validated campaign snapshot.
+
+    Returns:
+        JSON-serializable snapshot payload with missing sources marked
+        explicitly.
+    """
     return {
         "campaign_id": snapshot.campaign_id,
         "campaign_name": snapshot.scraped_row.name,
@@ -103,6 +121,14 @@ def _snapshot_payload(snapshot: CampaignSnapshot) -> dict[str, Any]:
 
 
 def _finding_payload(finding: AnomalyFinding) -> dict[str, Any]:
+    """Convert a deterministic finding into prompt-safe data.
+
+    Args:
+        finding: Deterministic anomaly finding.
+
+    Returns:
+        JSON-serializable finding payload preserving evidence and review flags.
+    """
     return {
         "campaign_id": finding.campaign_id,
         "anomaly_type": finding.anomaly_type.value,
@@ -115,6 +141,14 @@ def _finding_payload(finding: AnomalyFinding) -> dict[str, Any]:
 
 
 def _workflow_run_payload(record: WorkflowRunRecord) -> dict[str, Any]:
+    """Convert a workflow run record into prompt-safe summary data.
+
+    Args:
+        record: Persisted workflow run record.
+
+    Returns:
+        JSON-serializable run summary without raw source payloads.
+    """
     return {
         "run_id": record.run_id,
         "workflow_name": record.workflow_name,
@@ -135,6 +169,14 @@ def _workflow_run_payload(record: WorkflowRunRecord) -> dict[str, Any]:
 
 
 def _sanitize_value(value: object) -> object:
+    """Recursively sanitize strings inside JSON-compatible values.
+
+    Args:
+        value: Value to sanitize.
+
+    Returns:
+        Sanitized value with credential-like strings redacted.
+    """
     if isinstance(value, str):
         return _sanitize_text(value)
     if isinstance(value, Mapping):
@@ -145,4 +187,12 @@ def _sanitize_value(value: object) -> object:
 
 
 def _sanitize_text(value: str) -> str:
+    """Redact credential-like text and remove null bytes.
+
+    Args:
+        value: Raw text that may include inline secrets.
+
+    Returns:
+        Sanitized text for prompt inclusion.
+    """
     return sanitize_observability_text(value).replace("\x00", "")

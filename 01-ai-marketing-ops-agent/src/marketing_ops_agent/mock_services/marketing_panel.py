@@ -26,10 +26,22 @@ def create_app() -> FastAPI:
 
     @app.get("/login", response_class=HTMLResponse)
     async def login_page() -> str:
+        """Return the mock panel login HTML page."""
         return _render_login_page()
 
     @app.post("/login")
     async def login(request: Request) -> Response:
+        """Validate mock credentials and set a local session cookie.
+
+        Args:
+            request: Incoming form post request.
+
+        Returns:
+            Redirect response on success or login page with an error on failure.
+
+        Side Effects:
+            Sets a mock session cookie for valid credentials.
+        """
         form = _parse_form_body(await request.body())
         username = form.get("username", "")
         password = form.get("password", "")
@@ -53,6 +65,14 @@ def create_app() -> FastAPI:
 
     @app.get("/dashboard", response_class=HTMLResponse)
     async def dashboard(request: Request) -> Response:
+        """Return the dashboard HTML when the mock session cookie is present.
+
+        Args:
+            request: Incoming browser request.
+
+        Returns:
+            Dashboard HTML response or redirect to login.
+        """
         if request.cookies.get(SESSION_COOKIE_NAME) != SESSION_COOKIE_VALUE:
             return RedirectResponse(url="/login", status_code=303)
         return HTMLResponse(_render_dashboard())
@@ -61,11 +81,27 @@ def create_app() -> FastAPI:
 
 
 def _parse_form_body(body: bytes) -> dict[str, str]:
+    """Parse URL-encoded login form data into single-value fields.
+
+    Args:
+        body: Raw request body bytes.
+
+    Returns:
+        Mapping of form field names to first submitted value.
+    """
     parsed = parse_qs(body.decode("utf-8"), keep_blank_values=True)
     return {key: values[0] for key, values in parsed.items()}
 
 
 def _render_login_page(error: str | None = None) -> str:
+    """Render the login page HTML for the mock panel.
+
+    Args:
+        error: Optional escaped error message to show above the form.
+
+    Returns:
+        Complete HTML document string.
+    """
     error_html = f'<p class="error">{escape(error)}</p>' if error else ""
     return f"""
 <!doctype html>
@@ -117,6 +153,11 @@ def _render_login_page(error: str | None = None) -> str:
 
 
 def _render_dashboard() -> str:
+    """Render campaign table HTML for the mock dashboard.
+
+    Returns:
+        Complete HTML document string containing deterministic campaign rows.
+    """
     rows = "\n".join(
         f"""
         <tr data-campaign-id="{escape(campaign.campaign_id)}">

@@ -87,6 +87,18 @@ def load_config() -> AppConfig:
 
 
 def _get_float_env(name: str, default: float) -> float:
+    """Read a float environment variable with validation.
+
+    Args:
+        name: Environment variable name.
+        default: Value returned when the variable is unset or empty.
+
+    Returns:
+        Parsed float value.
+
+    Raises:
+        ValueError: If the environment value is not a valid float.
+    """
     raw_value = os.getenv(name)
     if raw_value is None or raw_value == "":
         return default
@@ -97,6 +109,18 @@ def _get_float_env(name: str, default: float) -> float:
 
 
 def _get_int_env(name: str, default: int) -> int:
+    """Read an integer environment variable with validation.
+
+    Args:
+        name: Environment variable name.
+        default: Value returned when the variable is unset or empty.
+
+    Returns:
+        Parsed integer value.
+
+    Raises:
+        ValueError: If the environment value is not a valid integer.
+    """
     raw_value = os.getenv(name)
     if raw_value is None or raw_value == "":
         return default
@@ -107,6 +131,18 @@ def _get_int_env(name: str, default: int) -> int:
 
 
 def _get_bool_env(name: str, default: bool) -> bool:
+    """Read a boolean environment variable with validation.
+
+    Args:
+        name: Environment variable name.
+        default: Value returned when the variable is unset or empty.
+
+    Returns:
+        Parsed boolean value.
+
+    Raises:
+        ValueError: If the environment value is not a recognized boolean.
+    """
     raw_value = os.getenv(name)
     if raw_value is None or raw_value == "":
         return default

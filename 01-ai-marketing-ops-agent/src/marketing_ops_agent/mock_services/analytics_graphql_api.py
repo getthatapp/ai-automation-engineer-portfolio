@@ -17,6 +17,17 @@ def create_app() -> FastAPI:
 
     @app.post("/graphql")
     async def graphql(request: GraphQLRequest) -> dict[str, object]:
+        """Handle supported mock GraphQL campaign metrics queries.
+
+        Args:
+            request: Validated GraphQL request body.
+
+        Returns:
+            GraphQL-style response data for one campaign or all campaigns.
+
+        Raises:
+            HTTPException: If the query is unsupported or missing campaign ID.
+        """
         if "campaignMetrics" in request.query:
             campaign_id = _extract_campaign_id(request)
             campaign = get_campaign(campaign_id)
@@ -38,6 +49,17 @@ def create_app() -> FastAPI:
 
 
 def _extract_campaign_id(request: GraphQLRequest) -> str:
+    """Extract campaign ID from GraphQL variables or inline query text.
+
+    Args:
+        request: Validated GraphQL request body.
+
+    Returns:
+        Campaign ID requested by the query.
+
+    Raises:
+        HTTPException: If no campaign ID is available.
+    """
     if request.variables and "campaignId" in request.variables:
         return request.variables["campaignId"]
 

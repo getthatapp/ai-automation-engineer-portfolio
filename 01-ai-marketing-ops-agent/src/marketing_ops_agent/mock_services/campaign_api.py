@@ -14,10 +14,22 @@ def create_app() -> FastAPI:
 
     @app.get("/api/campaigns", response_model=list[CampaignSummary])
     async def get_campaigns() -> list[CampaignSummary]:
+        """Return all mock campaign summaries."""
         return [CampaignSummary.from_campaign(campaign) for campaign in list_campaigns()]
 
     @app.get("/api/campaigns/{campaign_id}", response_model=Campaign)
     async def get_campaign_by_id(campaign_id: str) -> Campaign:
+        """Return one mock campaign by ID.
+
+        Args:
+            campaign_id: Campaign identifier from the route path.
+
+        Returns:
+            Matching campaign.
+
+        Raises:
+            HTTPException: If the campaign does not exist.
+        """
         campaign = get_campaign(campaign_id)
         if campaign is None:
             raise HTTPException(status_code=404, detail="Campaign not found")

@@ -76,6 +76,15 @@ class MarkdownReportWriter:
         snapshots: Sequence[CampaignSnapshot],
         findings: Sequence[AnomalyFinding],
     ) -> str:
+        """Render high-level counts and health summary.
+
+        Args:
+            snapshots: Sorted campaign snapshots.
+            findings: Sorted deterministic findings.
+
+        Returns:
+            Markdown executive summary section.
+        """
         severity_counts = Counter(finding.severity for finding in findings)
         healthy_campaigns = [
             snapshot
@@ -107,6 +116,15 @@ class MarkdownReportWriter:
         snapshots: Sequence[CampaignSnapshot],
         findings: Sequence[AnomalyFinding],
     ) -> str:
+        """Render the campaign health overview table.
+
+        Args:
+            snapshots: Sorted campaign snapshots.
+            findings: Sorted deterministic findings.
+
+        Returns:
+            Markdown section with one row per campaign.
+        """
         rows: list[list[str]] = []
         for snapshot in snapshots:
             campaign_findings = findings_for_campaign(findings, snapshot.campaign_id)
@@ -151,6 +169,16 @@ class MarkdownReportWriter:
         findings: Sequence[AnomalyFinding],
         severity: AnomalySeverity,
     ) -> str:
+        """Render findings for one severity level.
+
+        Args:
+            title: Markdown section title.
+            findings: Sorted deterministic findings.
+            severity: Severity to include.
+
+        Returns:
+            Markdown findings section.
+        """
         matching_findings = [finding for finding in findings if finding.severity == severity]
         lines = [heading(2, title)]
         if not matching_findings:
@@ -165,6 +193,15 @@ class MarkdownReportWriter:
         snapshots: Sequence[CampaignSnapshot],
         findings: Sequence[AnomalyFinding],
     ) -> str:
+        """Render data quality flags, notes and related findings.
+
+        Args:
+            snapshots: Sorted campaign snapshots.
+            findings: Sorted deterministic findings.
+
+        Returns:
+            Markdown data quality section.
+        """
         data_quality_findings = [
             finding for finding in findings if finding.anomaly_type in DATA_QUALITY_ANOMALY_TYPES
         ]
@@ -206,6 +243,15 @@ class MarkdownReportWriter:
         snapshots: Sequence[CampaignSnapshot],
         findings: Sequence[AnomalyFinding],
     ) -> str:
+        """Render campaigns that require human review.
+
+        Args:
+            snapshots: Sorted campaign snapshots.
+            findings: Sorted deterministic findings.
+
+        Returns:
+            Markdown human review section.
+        """
         review_campaign_ids = sorted(_campaign_ids_requiring_review(snapshots, findings))
         lines = [heading(2, "Human Review Required")]
         if not review_campaign_ids:
@@ -218,6 +264,14 @@ class MarkdownReportWriter:
         return "\n".join(lines)
 
     def _render_snapshot_table(self, snapshots: Sequence[CampaignSnapshot]) -> str:
+        """Render the campaign snapshot table.
+
+        Args:
+            snapshots: Sorted campaign snapshots.
+
+        Returns:
+            Markdown table with panel, API and data quality values.
+        """
         rows = [
             [
                 snapshot.campaign_id,
@@ -277,6 +331,14 @@ class MarkdownReportWriter:
         )
 
     def _render_recommended_actions(self, findings: Sequence[AnomalyFinding]) -> str:
+        """Render deterministic recommended actions from findings.
+
+        Args:
+            findings: Sorted deterministic findings.
+
+        Returns:
+            Markdown recommendations section with duplicate actions suppressed.
+        """
         lines = [heading(2, "Deterministic Recommended Actions")]
         if not findings:
             lines.append(bullet("No deterministic action required; continue monitoring."))
@@ -293,6 +355,14 @@ class MarkdownReportWriter:
         return "\n".join(lines)
 
     def _render_limitations(self, snapshots: Sequence[CampaignSnapshot]) -> str:
+        """Render limitations and missing-source summary.
+
+        Args:
+            snapshots: Sorted campaign snapshots.
+
+        Returns:
+            Markdown limitations section.
+        """
         missing_metadata = [
             snapshot.campaign_id for snapshot in snapshots if snapshot.campaign_metadata is None
         ]
@@ -362,6 +432,7 @@ def _is_healthy_campaign(
     snapshot: CampaignSnapshot,
     campaign_findings: Sequence[AnomalyFinding],
 ) -> bool:
+    """Return whether a campaign has no findings, flags or review requirement."""
     return (
         not campaign_findings
         and not snapshot.data_quality_flags
@@ -373,6 +444,7 @@ def _campaign_status(
     snapshot: CampaignSnapshot,
     campaign_findings: Sequence[AnomalyFinding],
 ) -> str:
+    """Derive a deterministic display status for a campaign."""
     if snapshot.requires_human_review or any(
         finding.requires_human_review for finding in campaign_findings
     ):
@@ -389,6 +461,7 @@ def _campaign_status(
 
 
 def _render_finding(finding: AnomalyFinding) -> str:
+    """Render one deterministic finding as a Markdown bullet."""
     evidence = _format_evidence(finding)
     review = "yes" if finding.requires_human_review else "no"
     return bullet(
@@ -399,6 +472,7 @@ def _render_finding(finding: AnomalyFinding) -> str:
 
 
 def _format_evidence(finding: AnomalyFinding) -> str:
+    """Format sorted source evidence for a finding."""
     if not finding.source_evidence:
         return "none"
     return "; ".join(
@@ -408,6 +482,7 @@ def _format_evidence(finding: AnomalyFinding) -> str:
 
 
 def _format_evidence_value(value: str | int | float | bool | None) -> str:
+    """Format one source evidence value for inline Markdown."""
     if value is None:
         return "missing"
     if isinstance(value, bool):
@@ -421,6 +496,7 @@ def _campaign_ids_requiring_review(
     snapshots: Sequence[CampaignSnapshot],
     findings: Sequence[AnomalyFinding],
 ) -> set[str]:
+    """Collect campaign IDs with snapshot or finding review requirements."""
     campaign_ids = {
         snapshot.campaign_id for snapshot in snapshots if snapshot.requires_human_review
     }
@@ -435,6 +511,7 @@ def _human_review_reasons(
     snapshots: Sequence[CampaignSnapshot],
     findings: Sequence[AnomalyFinding],
 ) -> list[str]:
+    """Return deterministic human-review reasons for one campaign."""
     reasons: list[str] = []
     for snapshot in snapshots:
         if snapshot.campaign_id == campaign_id and snapshot.requires_human_review:
@@ -448,6 +525,7 @@ def _human_review_reasons(
 
 
 def _action_for_finding(finding: AnomalyFinding) -> str:
+    """Map a deterministic finding to a conservative action sentence."""
     if finding.requires_human_review:
         return "pause automated follow-up until a human reviews the cited evidence."
     if finding.anomaly_type is AnomalyType.CPA_ABOVE_THRESHOLD:
@@ -469,30 +547,36 @@ def _action_for_finding(finding: AnomalyFinding) -> str:
 
 
 def _format_flags(flags: Sequence[DataQualityFlag]) -> str:
+    """Format data quality flags for Markdown output."""
     if not flags:
         return "none"
     return ", ".join(flag.value for flag in flags)
 
 
 def _format_campaign_list(campaign_ids: Sequence[str]) -> str:
+    """Format campaign IDs as sorted inline-code values."""
     if not campaign_ids:
         return "none"
     return ", ".join(f"`{campaign_id}`" for campaign_id in sorted(campaign_ids))
 
 
 def _format_optional_number(value: float | None) -> str:
+    """Format an optional numeric metric, preserving missing values."""
     if value is None:
         return "missing"
     return _format_number(value)
 
 
 def _format_number(value: float) -> str:
+    """Format a numeric metric with two decimal places."""
     return f"{value:.2f}"
 
 
 def _format_bool(value: bool) -> str:
+    """Format a boolean as yes or no for stakeholder reports."""
     return "yes" if value else "no"
 
 
 def _escape_inline(value: str) -> str:
+    """Escape inline Markdown-sensitive text used in report bullets."""
     return value.replace("`", "'").replace("\n", " ")

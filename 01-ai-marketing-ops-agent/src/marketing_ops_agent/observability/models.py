@@ -44,6 +44,17 @@ class WorkflowRunRecord(BaseModel):
     @field_validator("run_id", "workflow_name")
     @classmethod
     def strip_required_text(cls, value: str) -> str:
+        """Trim required run text fields and reject blank values.
+
+        Args:
+            value: Raw text value.
+
+        Returns:
+            Stripped non-empty value.
+
+        Raises:
+            ValueError: If the stripped value is blank.
+        """
         stripped = value.strip()
         if not stripped:
             raise ValueError("value must not be blank")
@@ -52,6 +63,17 @@ class WorkflowRunRecord(BaseModel):
     @field_validator("created_task_ids")
     @classmethod
     def strip_task_ids(cls, value: tuple[str, ...]) -> tuple[str, ...]:
+        """Trim task IDs and reject blank entries.
+
+        Args:
+            value: Raw task IDs.
+
+        Returns:
+            Stripped task IDs.
+
+        Raises:
+            ValueError: If any task ID is blank after trimming.
+        """
         stripped_values = tuple(task_id.strip() for task_id in value)
         if any(not task_id for task_id in stripped_values):
             raise ValueError("created_task_ids must not contain blank values")
@@ -60,6 +82,17 @@ class WorkflowRunRecord(BaseModel):
     @field_validator("started_at", "finished_at")
     @classmethod
     def normalize_datetime(cls, value: datetime) -> datetime:
+        """Normalize workflow timestamps to UTC.
+
+        Args:
+            value: Timezone-aware datetime.
+
+        Returns:
+            UTC-normalized datetime.
+
+        Raises:
+            ValueError: If the timestamp is naive.
+        """
         if value.tzinfo is None:
             raise ValueError("workflow run timestamps must be timezone-aware")
         return value.astimezone(UTC)
@@ -67,6 +100,14 @@ class WorkflowRunRecord(BaseModel):
     @field_validator("failure_type", "failure_message")
     @classmethod
     def sanitize_failure_text(cls, value: str | None) -> str | None:
+        """Normalize and redact persisted failure text.
+
+        Args:
+            value: Optional failure type or message.
+
+        Returns:
+            Redacted text, or `None` when blank.
+        """
         if value is None:
             return None
         stripped = value.strip()
@@ -77,6 +118,14 @@ class WorkflowRunRecord(BaseModel):
     @field_validator("data_quality_summary")
     @classmethod
     def validate_quality_summary(cls, value: dict[str, int]) -> dict[str, int]:
+        """Normalize data quality summary counts.
+
+        Args:
+            value: Raw flag count mapping.
+
+        Returns:
+            Sorted mapping with blank keys and non-positive counts removed.
+        """
         return {
             key.strip(): count
             for key, count in sorted(value.items())

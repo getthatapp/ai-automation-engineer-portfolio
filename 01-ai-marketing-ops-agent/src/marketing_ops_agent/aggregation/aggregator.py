@@ -16,13 +16,31 @@ from marketing_ops_agent.models import Campaign
 class CampaignMetadataClient(Protocol):
     """Client contract needed for campaign metadata aggregation."""
 
-    async def get_campaign(self, campaign_id: str) -> Campaign: ...
+    async def get_campaign(self, campaign_id: str) -> Campaign:
+        """Return campaign metadata for one campaign ID.
+
+        Args:
+            campaign_id: Campaign identifier from the scraped panel row.
+
+        Returns:
+            Validated campaign metadata from the Campaign REST API boundary.
+        """
+        ...
 
 
 class CampaignAnalyticsClient(Protocol):
     """Client contract needed for campaign analytics aggregation."""
 
-    async def get_campaign_metrics(self, campaign_id: str) -> AnalyticsCampaignMetrics: ...
+    async def get_campaign_metrics(self, campaign_id: str) -> AnalyticsCampaignMetrics:
+        """Return analytics metrics for one campaign ID.
+
+        Args:
+            campaign_id: Campaign identifier from the scraped panel row.
+
+        Returns:
+            Validated metrics from the Analytics GraphQL boundary.
+        """
+        ...
 
 
 class CampaignAggregator:
@@ -36,6 +54,14 @@ class CampaignAggregator:
         stale_after: timedelta = timedelta(hours=24),
         money_tolerance: float = 0.01,
     ) -> None:
+        """Initialize the aggregator with API client boundaries and tolerances.
+
+        Args:
+            campaign_client: Client used to fetch Campaign REST API metadata.
+            analytics_client: Client used to fetch Analytics GraphQL metrics.
+            stale_after: Maximum accepted age for campaign metadata.
+            money_tolerance: Absolute tolerance when comparing money values.
+        """
         self._campaign_client = campaign_client
         self._analytics_client = analytics_client
         self._stale_after = stale_after
@@ -88,6 +114,14 @@ class CampaignAggregator:
         self,
         campaign_id: str,
     ) -> tuple[Campaign | None, str | None]:
+        """Fetch campaign metadata while preserving service errors as notes.
+
+        Args:
+            campaign_id: Campaign identifier to request.
+
+        Returns:
+            Tuple of optional campaign metadata and optional error text.
+        """
         try:
             return await self._campaign_client.get_campaign(campaign_id), None
         except ServiceClientError as exc:
@@ -97,6 +131,14 @@ class CampaignAggregator:
         self,
         campaign_id: str,
     ) -> tuple[AnalyticsCampaignMetrics | None, str | None]:
+        """Fetch analytics metrics while preserving service errors as notes.
+
+        Args:
+            campaign_id: Campaign identifier to request.
+
+        Returns:
+            Tuple of optional analytics metrics and optional error text.
+        """
         try:
             return await self._analytics_client.get_campaign_metrics(campaign_id), None
         except ServiceClientError as exc:
@@ -112,6 +154,19 @@ class CampaignAggregator:
         analytics_error: str | None,
         reference_time: datetime,
     ) -> tuple[list[DataQualityFlag], list[str]]:
+        """Evaluate missing data, staleness and metric mismatches for a row.
+
+        Args:
+            row: Validated panel row.
+            campaign_metadata: Optional Campaign REST API metadata.
+            analytics_metrics: Optional Analytics GraphQL metrics.
+            campaign_error: Error text captured while fetching campaign metadata.
+            analytics_error: Error text captured while fetching analytics metrics.
+            reference_time: Timestamp used for stale data checks.
+
+        Returns:
+            Ordered data quality flags and notes for the campaign snapshot.
+        """
         flags: list[DataQualityFlag] = []
         notes: list[str] = []
 
@@ -183,6 +238,16 @@ class CampaignAggregator:
         campaign_metadata: Campaign | None,
         analytics_metrics: AnalyticsCampaignMetrics | None,
     ) -> bool:
+        """Return whether spend differs across available sources.
+
+        Args:
+            row: Validated panel row.
+            campaign_metadata: Optional Campaign REST API metadata.
+            analytics_metrics: Optional Analytics GraphQL metrics.
+
+        Returns:
+            True when available spend values exceed the money tolerance.
+        """
         values = [row.cost]
         if campaign_metadata is not None:
             values.append(campaign_metadata.metrics.spend)
@@ -196,6 +261,16 @@ class CampaignAggregator:
         campaign_metadata: Campaign | None,
         analytics_metrics: AnalyticsCampaignMetrics | None,
     ) -> bool:
+        """Return whether revenue differs across available sources.
+
+        Args:
+            row: Validated panel row.
+            campaign_metadata: Optional Campaign REST API metadata.
+            analytics_metrics: Optional Analytics GraphQL metrics.
+
+        Returns:
+            True when available revenue values exceed the money tolerance.
+        """
         values = [row.revenue]
         if campaign_metadata is not None:
             values.append(campaign_metadata.metrics.revenue)
@@ -209,6 +284,16 @@ class CampaignAggregator:
         campaign_metadata: Campaign | None,
         analytics_metrics: AnalyticsCampaignMetrics | None,
     ) -> bool:
+        """Return whether conversion counts differ across available sources.
+
+        Args:
+            row: Validated panel row.
+            campaign_metadata: Optional Campaign REST API metadata.
+            analytics_metrics: Optional Analytics GraphQL metrics.
+
+        Returns:
+            True when available conversion values are not identical.
+        """
         values = [row.conversions]
         if campaign_metadata is not None:
             values.append(campaign_metadata.metrics.conversions)
@@ -217,15 +302,40 @@ class CampaignAggregator:
         return len(set(values)) > 1
 
     def _money_values_mismatch(self, values: Sequence[float]) -> bool:
+        """Return whether money values exceed the configured tolerance.
+
+        Args:
+            values: Available money values from deterministic sources.
+
+        Returns:
+            True when the highest and lowest values differ beyond tolerance.
+        """
         return max(values) - min(values) > self._money_tolerance
 
     def _is_stale(self, collected_at: datetime, reference_time: datetime) -> bool:
+        """Return whether metadata is older than the configured freshness window.
+
+        Args:
+            collected_at: Source metadata collection timestamp.
+            reference_time: Workflow reference timestamp.
+
+        Returns:
+            True when the normalized age exceeds `stale_after`.
+        """
         normalized_collected_at = self._normalize_datetime(collected_at)
         normalized_reference_time = self._normalize_datetime(reference_time)
         return normalized_reference_time - normalized_collected_at > self._stale_after
 
     @staticmethod
     def _normalize_datetime(value: datetime) -> datetime:
+        """Normalize a datetime to UTC, treating naive values as UTC.
+
+        Args:
+            value: Datetime to normalize.
+
+        Returns:
+            Timezone-aware UTC datetime.
+        """
         if value.tzinfo is None:
             return value.replace(tzinfo=UTC)
         return value.astimezone(UTC)
@@ -237,18 +347,43 @@ class CampaignAggregator:
         flag: DataQualityFlag,
         note: str,
     ) -> None:
+        """Append a data quality flag and note once.
+
+        Args:
+            flags: Mutable ordered flag collection.
+            notes: Mutable ordered note collection.
+            flag: Flag to add when absent.
+            note: Human-readable quality note paired with the flag.
+        """
         if flag not in flags:
             flags.append(flag)
             notes.append(note)
 
     @staticmethod
     def _format_error_note(error: str | None) -> str:
+        """Format optional service error text for a data quality note.
+
+        Args:
+            error: Optional service error text.
+
+        Returns:
+            Empty string when no error exists, otherwise a prefixed note.
+        """
         if error is None:
             return ""
         return f" Error: {error}"
 
     @staticmethod
     def _validate_unique_campaign_ids(scraped_rows: Sequence[ScrapedCampaignRow]) -> None:
+        """Reject duplicate campaign IDs before aggregation.
+
+        Args:
+            scraped_rows: Panel rows to validate.
+
+        Raises:
+            DuplicateCampaignRowsError: If one or more campaign IDs appear more
+                than once.
+        """
         seen: set[str] = set()
         duplicates: set[str] = set()
         for row in scraped_rows:

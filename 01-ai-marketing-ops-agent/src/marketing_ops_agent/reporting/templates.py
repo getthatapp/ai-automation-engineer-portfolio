@@ -31,4 +31,5 @@ def table(headers: Sequence[str], rows: Sequence[Sequence[str]]) -> str:
 
 
 def _escape_table_cell(value: str) -> str:
+    """Escape Markdown table cell separators and newlines."""
     return value.replace("|", r"\|").replace("\n", " ")

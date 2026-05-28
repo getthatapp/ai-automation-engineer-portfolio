@@ -19,6 +19,14 @@ class CampaignSummary(BaseModel):
 
     @classmethod
     def from_campaign(cls, campaign: Campaign) -> "CampaignSummary":
+        """Build a REST campaign summary from the shared campaign model.
+
+        Args:
+            campaign: Internal campaign fixture model.
+
+        Returns:
+            Mock REST summary schema.
+        """
         return cls(
             campaign_id=campaign.campaign_id,
             name=campaign.name,
@@ -41,6 +49,14 @@ class AnalyticsMetrics(BaseModel):
 
     @classmethod
     def from_campaign(cls, campaign: Campaign) -> "AnalyticsMetrics":
+        """Build GraphQL analytics metrics from the shared campaign model.
+
+        Args:
+            campaign: Internal campaign fixture model.
+
+        Returns:
+            Mock GraphQL metrics schema.
+        """
         return cls(
             campaignId=campaign.campaign_id,
             impressions=campaign.metrics.impressions,

@@ -44,16 +44,25 @@ class DeterministicMockLLMProvider:
         model_name: str = "deterministic-marketing-interpreter",
         include_token_usage: bool = True,
     ) -> None:
+        """Initialize the deterministic mock provider.
+
+        Args:
+            provider_name: Provider label returned in results.
+            model_name: Model label returned in results.
+            include_token_usage: Whether to attach deterministic token usage.
+        """
         self._provider_name = provider_name
         self._model_name = model_name
         self._include_token_usage = include_token_usage
 
     @property
     def provider_name(self) -> str:
+        """Return the provider label used in interpretation results."""
         return self._provider_name
 
     @property
     def model_name(self) -> str:
+        """Return the model label used in interpretation results."""
         return self._model_name
 
     async def interpret(
@@ -62,7 +71,16 @@ class DeterministicMockLLMProvider:
         request: LLMInterpretationRequest,
         prompt: str,
     ) -> LLMInterpretationResult:
-        """Return deterministic structured output without external API calls."""
+        """Return deterministic structured output without external API calls.
+
+        Args:
+            request: Validated deterministic inputs.
+            prompt: Prompt text built from the same inputs.
+
+        Returns:
+            Structured interpretation result derived from findings and quality
+            flags.
+        """
 
         findings = tuple(request.findings)
         snapshots = tuple(request.snapshots)
@@ -118,6 +136,14 @@ class DeterministicMockLLMProvider:
 
 
 def _action_from_finding(finding: AnomalyFinding) -> LLMRecommendedAction:
+    """Build a mock recommended action from a deterministic finding.
+
+    Args:
+        finding: Deterministic anomaly finding.
+
+    Returns:
+        Structured recommendation citing the source anomaly type.
+    """
     return LLMRecommendedAction(
         title=f"Review {finding.anomaly_type.value} for {finding.campaign_id}",
         rationale=(
@@ -136,6 +162,14 @@ def _action_from_finding(finding: AnomalyFinding) -> LLMRecommendedAction:
 
 
 def _estimate_token_usage(prompt: str) -> LLMTokenUsage:
+    """Estimate deterministic token usage for mock-provider tests.
+
+    Args:
+        prompt: Prompt text passed to the provider.
+
+    Returns:
+        Token usage with prompt, completion and total counts.
+    """
     prompt_tokens = max(len(prompt.split()), 1)
     completion_tokens = 80
     return LLMTokenUsage(

@@ -23,6 +23,11 @@ class AnomalyDetector:
     """Evaluate campaign snapshots using deterministic business rules."""
 
     def __init__(self, thresholds: AnomalyThresholds | None = None) -> None:
+        """Initialize the detector with explicit or default thresholds.
+
+        Args:
+            thresholds: Optional deterministic anomaly thresholds.
+        """
         self._thresholds = thresholds or AnomalyThresholds()
 
     def detect(self, snapshots: Sequence[CampaignSnapshot]) -> list[AnomalyFinding]:
@@ -34,6 +39,14 @@ class AnomalyDetector:
         return findings
 
     def _detect_for_snapshot(self, snapshot: CampaignSnapshot) -> list[AnomalyFinding]:
+        """Evaluate performance and data quality rules for one snapshot.
+
+        Args:
+            snapshot: Aggregated campaign snapshot to evaluate.
+
+        Returns:
+            Deterministic anomaly findings for the campaign.
+        """
         findings: list[AnomalyFinding] = []
         evidence = build_source_evidence(snapshot)
         row = snapshot.scraped_row
@@ -108,6 +121,15 @@ class AnomalyDetector:
         snapshot: CampaignSnapshot,
         evidence: dict[str, SourceEvidenceValue],
     ) -> list[AnomalyFinding]:
+        """Convert data quality flags into anomaly findings.
+
+        Args:
+            snapshot: Aggregated campaign snapshot with quality flags.
+            evidence: Source evidence already collected for the snapshot.
+
+        Returns:
+            Findings that preserve data quality flags and review requirements.
+        """
         findings: list[AnomalyFinding] = []
 
         for flag in snapshot.data_quality_flags:

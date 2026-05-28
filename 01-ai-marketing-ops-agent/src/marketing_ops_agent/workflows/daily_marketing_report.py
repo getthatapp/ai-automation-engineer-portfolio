@@ -51,13 +51,28 @@ logger = logging.getLogger(__name__)
 class MarketingPanelScraper(Protocol):
     """Scraper contract needed by the workflow."""
 
-    async def scrape_campaign_rows(self) -> list[ScrapedCampaignRow]: ...
+    async def scrape_campaign_rows(self) -> list[ScrapedCampaignRow]:
+        """Scrape campaign rows from the marketing panel.
+
+        Returns:
+            Validated scraped campaign rows.
+        """
+        ...
 
 
 class CampaignAnomalyDetector(Protocol):
     """Detector contract needed by the workflow."""
 
-    def detect(self, snapshots: Sequence[CampaignSnapshot]) -> list[AnomalyFinding]: ...
+    def detect(self, snapshots: Sequence[CampaignSnapshot]) -> list[AnomalyFinding]:
+        """Detect deterministic anomalies from campaign snapshots.
+
+        Args:
+            snapshots: Aggregated campaign snapshots.
+
+        Returns:
+            Deterministic anomaly findings.
+        """
+        ...
 
 
 class CampaignReportWriter(Protocol):
@@ -68,19 +83,48 @@ class CampaignReportWriter(Protocol):
         snapshots: Sequence[CampaignSnapshot],
         findings: Sequence[AnomalyFinding],
         metadata: ReportMetadata | None = None,
-    ) -> str: ...
+    ) -> str:
+        """Render a deterministic report from snapshots and findings.
+
+        Args:
+            snapshots: Aggregated campaign snapshots.
+            findings: Deterministic anomaly findings.
+            metadata: Optional report metadata.
+
+        Returns:
+            Markdown report text.
+        """
+        ...
 
 
 class TaskCreationClient(Protocol):
     """Project management task client contract needed by the workflow."""
 
-    async def create_task(self, task: ProjectTaskCreate) -> ProjectTask: ...
+    async def create_task(self, task: ProjectTaskCreate) -> ProjectTask:
+        """Create a project management task.
+
+        Args:
+            task: Validated task creation request.
+
+        Returns:
+            Created project task.
+        """
+        ...
 
 
 class WorkflowRunRecorder(Protocol):
     """Persistent recorder contract needed by the workflow."""
 
-    def append(self, record: WorkflowRunRecord) -> None: ...
+    def append(self, record: WorkflowRunRecord) -> None:
+        """Persist one workflow run record.
+
+        Args:
+            record: Validated workflow run record.
+
+        Side Effects:
+            May write to durable local or remote storage.
+        """
+        ...
 
 
 class WorkflowLLMInterpreter(Protocol):
@@ -89,13 +133,28 @@ class WorkflowLLMInterpreter(Protocol):
     async def interpret(
         self,
         request: LLMInterpretationRequest,
-    ) -> LLMInterpretationResult: ...
+    ) -> LLMInterpretationResult:
+        """Interpret deterministic workflow outputs with an optional LLM layer.
+
+        Args:
+            request: Validated LLM interpretation request.
+
+        Returns:
+            Structured LLM interpretation result.
+        """
+        ...
 
 
 class WorkflowExecutionError(Exception):
     """Raised when an unrecoverable workflow step fails."""
 
     def __init__(self, step: str, cause: BaseException) -> None:
+        """Initialize the workflow error with failed step context.
+
+        Args:
+            step: Workflow step name that failed.
+            cause: Original exception raised by the step.
+        """
         self.step = step
         self.cause = cause
         super().__init__(f"Daily marketing report workflow failed during {step}: {cause}")
@@ -118,6 +177,20 @@ class DailyMarketingReportWorkflow:
         reports_dir: Path | str = DEFAULT_REPORTS_DIR,
         clock: Callable[[], datetime] | None = None,
     ) -> None:
+        """Initialize workflow dependencies and local output settings.
+
+        Args:
+            scraper: Browser or fake scraper boundary.
+            campaign_client: Campaign REST API metadata boundary.
+            analytics_client: Analytics GraphQL metrics boundary.
+            detector: Optional anomaly detector override.
+            report_writer: Optional deterministic report writer override.
+            llm_interpreter: Optional non-blocking LLM interpretation boundary.
+            task_client: Optional project management task boundary.
+            run_recorder: Optional workflow run recorder.
+            reports_dir: Directory where Markdown reports are written.
+            clock: Optional clock used for deterministic timestamps.
+        """
         self._scraper = scraper
         self._aggregator = CampaignAggregator(
             campaign_client=campaign_client,
@@ -132,7 +205,20 @@ class DailyMarketingReportWorkflow:
         self._clock = clock or (lambda: datetime.now(UTC))
 
     async def run(self) -> DailyMarketingReportResult:
-        """Run the deterministic workflow and return a typed result."""
+        """Run the deterministic workflow and return a typed result.
+
+        Returns:
+            Auditable workflow result with report path, counts and optional LLM
+            interpretation.
+
+        Raises:
+            WorkflowExecutionError: If an unrecoverable workflow step fails.
+
+        Side Effects:
+            Scrapes the panel, calls mock APIs, writes a Markdown report, may
+            call an LLM interpreter, may create project tasks and may append a
+            JSONL run record.
+        """
 
         started_at = self._normalize_datetime(self._clock())
         run_id = _run_id(started_at)
@@ -206,6 +292,14 @@ class DailyMarketingReportWorkflow:
         return result
 
     async def _scrape_rows(self) -> list[ScrapedCampaignRow]:
+        """Scrape panel rows and wrap scraper failures with workflow context.
+
+        Returns:
+            Validated scraped campaign rows.
+
+        Raises:
+            WorkflowExecutionError: If browser scraping fails.
+        """
         try:
             return await self._scraper.scrape_campaign_rows()
         except Exception as exc:
@@ -216,6 +310,18 @@ class DailyMarketingReportWorkflow:
         scraped_rows: Sequence[ScrapedCampaignRow],
         reference_time: datetime,
     ) -> list[CampaignSnapshot]:
+        """Aggregate scraped rows into campaign snapshots.
+
+        Args:
+            scraped_rows: Rows scraped from the marketing panel.
+            reference_time: Timestamp used for aggregation and stale checks.
+
+        Returns:
+            Aggregated campaign snapshots.
+
+        Raises:
+            WorkflowExecutionError: If aggregation fails.
+        """
         try:
             return await self._aggregator.aggregate(
                 scraped_rows,
@@ -228,6 +334,17 @@ class DailyMarketingReportWorkflow:
         self,
         snapshots: Sequence[CampaignSnapshot],
     ) -> list[AnomalyFinding]:
+        """Detect deterministic findings from snapshots.
+
+        Args:
+            snapshots: Aggregated campaign snapshots.
+
+        Returns:
+            Deterministic anomaly findings.
+
+        Raises:
+            WorkflowExecutionError: If anomaly detection fails.
+        """
         try:
             return self._detector.detect(snapshots)
         except Exception as exc:
@@ -239,6 +356,19 @@ class DailyMarketingReportWorkflow:
         findings: Sequence[AnomalyFinding],
         generated_at: datetime,
     ) -> str:
+        """Render the deterministic Markdown report.
+
+        Args:
+            snapshots: Aggregated campaign snapshots.
+            findings: Deterministic anomaly findings.
+            generated_at: Report generation timestamp.
+
+        Returns:
+            Markdown report text.
+
+        Raises:
+            WorkflowExecutionError: If report rendering fails.
+        """
         metadata = ReportMetadata(generated_at=generated_at)
         try:
             return self._report_writer.write(snapshots, findings, metadata)
@@ -246,6 +376,21 @@ class DailyMarketingReportWorkflow:
             raise WorkflowExecutionError("write_markdown_report", exc) from exc
 
     def _save_report(self, report_markdown: str, generated_at: datetime) -> Path:
+        """Write the deterministic Markdown report to disk.
+
+        Args:
+            report_markdown: Report content to persist.
+            generated_at: Timestamp used to build the report filename.
+
+        Returns:
+            Local report path.
+
+        Raises:
+            WorkflowExecutionError: If the report cannot be written.
+
+        Side Effects:
+            Creates the reports directory and writes a Markdown file.
+        """
         report_path = self._report_path(generated_at)
         try:
             report_path.parent.mkdir(parents=True, exist_ok=True)
@@ -260,6 +405,19 @@ class DailyMarketingReportWorkflow:
         findings: Sequence[AnomalyFinding],
         report_markdown: str,
     ) -> LLMInterpretationResult | None:
+        """Run optional LLM interpretation without blocking the workflow.
+
+        Args:
+            snapshots: Aggregated campaign snapshots.
+            findings: Deterministic anomaly findings.
+            report_markdown: Deterministic report text.
+
+        Returns:
+            LLM interpretation result, or `None` when disabled or failed.
+
+        Side Effects:
+            May call the configured LLM interpreter and logs unexpected errors.
+        """
         if self._llm_interpreter is None:
             return None
 
@@ -278,6 +436,17 @@ class DailyMarketingReportWorkflow:
         self,
         findings: Sequence[AnomalyFinding],
     ) -> tuple[list[ProjectTask], list[str]]:
+        """Create deterministic follow-up tasks for critical/review findings.
+
+        Args:
+            findings: Deterministic anomaly findings.
+
+        Returns:
+            Created tasks and non-fatal task creation error messages.
+
+        Side Effects:
+            May call the project management API.
+        """
         if self._task_client is None:
             return [], []
 
@@ -296,9 +465,18 @@ class DailyMarketingReportWorkflow:
         return created_tasks, errors
 
     def _report_path(self, generated_at: datetime) -> Path:
+        """Build the timestamped Markdown report path."""
         return self._reports_dir / f"{REPORT_FILENAME_PREFIX}-{_timestamp_slug(generated_at)}.md"
 
     def _record_run_safely(self, record: WorkflowRunRecord) -> None:
+        """Persist a workflow run record without changing workflow outcome.
+
+        Args:
+            record: Validated run record to persist.
+
+        Side Effects:
+            May append to JSONL run history and logs persistence failures.
+        """
         if self._run_recorder is None:
             return
         try:
@@ -311,6 +489,7 @@ class DailyMarketingReportWorkflow:
 
     @staticmethod
     def _normalize_datetime(value: datetime) -> datetime:
+        """Normalize a datetime to UTC, treating naive values as UTC."""
         if value.tzinfo is None:
             return value.replace(tzinfo=UTC)
         return value.astimezone(UTC)
@@ -401,10 +580,12 @@ def main() -> None:
 
 
 def _should_create_task(finding: AnomalyFinding) -> bool:
+    """Return whether a finding should create a deterministic task."""
     return finding.severity is AnomalySeverity.CRITICAL or finding.requires_human_review
 
 
 def _task_description(finding: AnomalyFinding) -> str:
+    """Build a deterministic project task description for one finding."""
     lines = [
         f"Campaign: {finding.campaign_id}",
         f"Anomaly type: {finding.anomaly_type.value}",
@@ -421,6 +602,7 @@ def _task_description(finding: AnomalyFinding) -> str:
 
 
 def _format_evidence(finding: AnomalyFinding) -> str:
+    """Format sorted finding evidence for task descriptions."""
     if not finding.source_evidence:
         return "none"
     return "; ".join(
@@ -430,6 +612,7 @@ def _format_evidence(finding: AnomalyFinding) -> str:
 
 
 def _format_evidence_value(value: str | int | float | bool | None) -> str:
+    """Format one evidence value for task descriptions."""
     if value is None:
         return "missing"
     if isinstance(value, bool):
@@ -443,27 +626,32 @@ def _requires_human_review(
     snapshots: Sequence[CampaignSnapshot],
     findings: Sequence[AnomalyFinding],
 ) -> bool:
+    """Return whether any snapshot or finding requires human review."""
     return any(snapshot.requires_human_review for snapshot in snapshots) or any(
         finding.requires_human_review for finding in findings
     )
 
 
 def _format_bool(value: bool) -> str:
+    """Format a boolean as yes or no."""
     return "yes" if value else "no"
 
 
 def _timestamp_slug(value: datetime) -> str:
+    """Format a datetime as a UTC timestamp slug for filenames."""
     normalized = value if value.tzinfo is not None else value.replace(tzinfo=UTC)
     return normalized.astimezone(UTC).strftime("%Y%m%dT%H%M%SZ")
 
 
 def _run_id(started_at: datetime) -> str:
+    """Build a deterministic workflow run ID from the start timestamp."""
     return f"{REPORT_FILENAME_PREFIX}-{_timestamp_slug(started_at)}"
 
 
 def _build_success_run_record(
     result: DailyMarketingReportResult,
 ) -> WorkflowRunRecord:
+    """Build a persisted run record for a successful workflow result."""
     return WorkflowRunRecord(
         run_id=result.run_id,
         workflow_name=WORKFLOW_NAME,
@@ -496,6 +684,7 @@ def _build_failed_run_record(
     task_errors: Sequence[str],
     error: WorkflowExecutionError,
 ) -> WorkflowRunRecord:
+    """Build a persisted run record for an unrecoverable workflow failure."""
     return WorkflowRunRecord(
         run_id=run_id,
         workflow_name=WORKFLOW_NAME,
@@ -517,10 +706,12 @@ def _build_failed_run_record(
 
 
 def _critical_finding_count(findings: Sequence[AnomalyFinding]) -> int:
+    """Count critical deterministic findings."""
     return sum(1 for finding in findings if finding.severity is AnomalySeverity.CRITICAL)
 
 
 def _data_quality_summary(snapshots: Sequence[CampaignSnapshot]) -> dict[str, int]:
+    """Count data quality flags across campaign snapshots."""
     counts: Counter[str] = Counter(
         flag.value
         for snapshot in snapshots
@@ -530,6 +721,7 @@ def _data_quality_summary(snapshots: Sequence[CampaignSnapshot]) -> dict[str, in
 
 
 def _duration_seconds(started_at: datetime, finished_at: datetime) -> float:
+    """Return non-negative workflow duration in seconds."""
     return max((finished_at - started_at).total_seconds(), 0.0)
 
 

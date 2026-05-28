@@ -15,6 +15,17 @@ def create_app() -> FastAPI:
 
     @app.post("/api/tasks", response_model=TaskResponse, status_code=201)
     async def create_task(request: TaskCreateRequest) -> TaskResponse:
+        """Create a mock project management task in memory.
+
+        Args:
+            request: Validated task creation request.
+
+        Returns:
+            Created task response.
+
+        Side Effects:
+            Appends the task to the app-local in-memory task list.
+        """
         task = TaskResponse(
             task_id=f"task-{len(tasks) + 1:03d}",
             title=request.title.strip(),
@@ -28,6 +39,7 @@ def create_app() -> FastAPI:
 
     @app.get("/api/tasks", response_model=list[TaskResponse])
     async def get_tasks() -> list[TaskResponse]:
+        """Return all in-memory mock project management tasks."""
         return tasks
 
     return app

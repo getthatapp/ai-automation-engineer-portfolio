@@ -84,6 +84,17 @@ class Campaign(BaseModel):
     @field_validator("campaign_id", "name")
     @classmethod
     def strip_required_text(cls, value: str) -> str:
+        """Trim required campaign text fields and reject blanks.
+
+        Args:
+            value: Raw field value.
+
+        Returns:
+            Stripped non-empty value.
+
+        Raises:
+            ValueError: If the stripped value is blank.
+        """
         stripped = value.strip()
         if not stripped:
             raise ValueError("value must not be blank")
@@ -103,6 +114,17 @@ class ReportRecommendation(BaseModel):
     @field_validator("title", "rationale")
     @classmethod
     def strip_required_text(cls, value: str) -> str:
+        """Trim required recommendation text fields and reject blanks.
+
+        Args:
+            value: Raw field value.
+
+        Returns:
+            Stripped non-empty value.
+
+        Raises:
+            ValueError: If the stripped value is blank.
+        """
         stripped = value.strip()
         if not stripped:
             raise ValueError("value must not be blank")
@@ -125,6 +147,17 @@ class WorkflowRunLog(BaseModel):
     @field_validator("run_id")
     @classmethod
     def strip_run_id(cls, value: str) -> str:
+        """Trim workflow run IDs and reject blank values.
+
+        Args:
+            value: Raw run ID.
+
+        Returns:
+            Stripped non-empty run ID.
+
+        Raises:
+            ValueError: If the stripped run ID is blank.
+        """
         stripped = value.strip()
         if not stripped:
             raise ValueError("run_id must not be blank")

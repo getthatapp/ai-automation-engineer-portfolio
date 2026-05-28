@@ -47,6 +47,17 @@ class AnomalyFinding(BaseModel):
     @field_validator("campaign_id", "message", "source")
     @classmethod
     def strip_required_text(cls, value: str) -> str:
+        """Trim required text fields and reject blank values.
+
+        Args:
+            value: Raw field value.
+
+        Returns:
+            Stripped non-empty value.
+
+        Raises:
+            ValueError: If the stripped value is blank.
+        """
         stripped = value.strip()
         if not stripped:
             raise ValueError("value must not be blank")

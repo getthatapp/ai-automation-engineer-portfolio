@@ -46,6 +46,15 @@ class ProjectManagementClient:
         http_client: httpx.AsyncClient | None = None,
         config: AppConfig | None = None,
     ) -> None:
+        """Initialize the Project Management REST API client.
+
+        Args:
+            base_url: Optional project management API base URL override.
+            timeout_seconds: Per-call timeout override.
+            retry_config: Retry policy for transient service failures.
+            http_client: Optional injected HTTP client for tests.
+            config: Optional application configuration.
+        """
         resolved_config = config or load_config()
         self._http = AsyncHttpServiceClient(
             base_url=base_url or resolved_config.project_management_api_base_url,
@@ -56,6 +65,7 @@ class ProjectManagementClient:
         )
 
     async def __aenter__(self) -> "ProjectManagementClient":
+        """Enter the async client context."""
         return self
 
     async def __aexit__(
@@ -64,6 +74,7 @@ class ProjectManagementClient:
         exc: BaseException | None,
         traceback: object,
     ) -> None:
+        """Exit the async client context and close owned HTTP resources."""
         await self.aclose()
 
     async def aclose(self) -> None:
@@ -72,7 +83,18 @@ class ProjectManagementClient:
         await self._http.aclose()
 
     async def create_task(self, task: ProjectTaskCreate) -> ProjectTask:
-        """Create a project management task."""
+        """Create a project management task through the mock REST API.
+
+        Args:
+            task: Validated task creation request.
+
+        Returns:
+            Created task returned by the service.
+
+        Raises:
+            ServiceDecodeError: If the response shape is invalid.
+            ServiceClientError: If the HTTP request fails after retries.
+        """
 
         payload = await self._http.request_json(
             "POST",
@@ -85,7 +107,15 @@ class ProjectManagementClient:
             raise ServiceDecodeError("Task creation response is invalid") from exc
 
     async def list_tasks(self) -> list[ProjectTask]:
-        """List project management tasks."""
+        """List project management tasks from the mock REST API.
+
+        Returns:
+            Validated project tasks.
+
+        Raises:
+            ServiceDecodeError: If the response shape is invalid.
+            ServiceClientError: If the HTTP request fails after retries.
+        """
 
         payload = await self._http.request_json("GET", "/api/tasks")
         if not isinstance(payload, list):

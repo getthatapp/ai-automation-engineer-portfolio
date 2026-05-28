@@ -35,6 +35,17 @@ class DailyMarketingReportResult(BaseModel):
     @field_validator("run_id")
     @classmethod
     def strip_run_id(cls, value: str) -> str:
+        """Trim workflow run IDs and reject blank values.
+
+        Args:
+            value: Raw run ID.
+
+        Returns:
+            Stripped non-empty run ID.
+
+        Raises:
+            ValueError: If the stripped run ID is blank.
+        """
         stripped = value.strip()
         if not stripped:
             raise ValueError("run_id must not be blank")
