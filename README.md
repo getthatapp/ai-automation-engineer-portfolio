@@ -10,7 +10,7 @@ This repository is not a chatbot demo. It is a staged AI automation ecosystem bu
 
 ### Project 1: AI Marketing Operations Agent
 
-Status: **Milestones 1–8 completed**
+Status: **Milestones 1-9 completed**
 
 Implemented:
 
@@ -29,6 +29,8 @@ Implemented:
 - daily marketing report workflow
 - local report generation
 - optional deterministic task creation
+- persistent workflow run recording
+- local JSONL run history
 
 Current deterministic pipeline:
 
@@ -44,12 +46,14 @@ AnomalyFinding objects
 Markdown report
         ↓
 Daily workflow orchestration
+        ↓
+Persistent run recording
 ```
 
 Next milestone:
 
 ```text
-Persistent run recording and observability
+LLM interpretation layer over validated deterministic outputs
 ```
 
 ---
@@ -83,7 +87,8 @@ It simulates a Head of Marketing workflow:
 4. validate consistency across sources,
 5. detect anomalies deterministically,
 6. generate a Markdown report,
-7. create deterministic project-management tasks.
+7. create deterministic project-management tasks,
+8. persist structured workflow run history.
 
 ### 02 — MCP Automation Server + Claude Code Toolkit
 
@@ -149,6 +154,18 @@ Generated reports are saved under:
 01-ai-marketing-ops-agent/reports/
 ```
 
+Run history is saved under:
+
+```text
+01-ai-marketing-ops-agent/run-history/workflow-runs.jsonl
+```
+
+Inspect run history:
+
+```bash
+tail -n 5 run-history/workflow-runs.jsonl
+```
+
 ---
 
 ## Quality Checks
@@ -163,7 +180,7 @@ uv run mypy src
 Current status:
 
 ```text
-67 tests passing
+77 tests passing
 ruff clean
 mypy clean
 ```
@@ -205,7 +222,6 @@ Project-level documentation:
 ## Current Roadmap
 
 ```text
-Milestone 9  — persistent run recording and observability
 Milestone 10 — LLM interpretation layer
 Milestone 11 — notifications
 Milestone 12 — CI/CD
