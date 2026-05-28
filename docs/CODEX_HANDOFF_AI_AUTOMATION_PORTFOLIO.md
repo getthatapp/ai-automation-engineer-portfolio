@@ -3,7 +3,7 @@
 Last updated: 2026-05-28  
 Repository: `ai-automation-engineer-portfolio`  
 Current project: `01-ai-marketing-ops-agent`  
-Current status: Milestones 1-11 completed.
+Current status: Milestones 1-11 completed.  
 Next step: Milestone 12 — approval-aware notifications.
 
 ---
@@ -16,194 +16,66 @@ Codex should read this document together with the root `AGENTS.md` before making
 
 ---
 
-## 2. Recruitment Context
+## 2. Current State
 
-The portfolio is being built for the role:
+Project 1 now includes:
 
-**AI Automation Developer / Senior AI Automation Developer**
-
-The role is about practical AI automation engineering, not ML research or data science.
-
-The candidate is expected to build working systems:
-
-- AI agents
-- workflow automation
-- Claude Code tooling
-- MCP servers
-- skills
-- hooks
-- memory systems
-- scheduled tasks
-- bots
-- Playwright automation
-- API integrations
-- monitoring
-- logging
-- retry/fallback behavior
-- documentation of decisions
-
-Candidate positioning:
-
-> I am not an ML engineer. I am an automation engineer who turns repetitive business processes into controlled, testable and observable AI-powered workflows.
-
----
-
-## 3. Portfolio Strategy
-
-Build one coherent AI Automation mini-ecosystem consisting of three projects:
-
-```text
-ai-automation-engineer-portfolio/
-├── 01-ai-marketing-ops-agent/
-├── 02-mcp-automation-server-claude-toolkit/
-├── 03-agentops-control-tower/
-├── docs/
-│   ├── CODEX_HANDOFF_AI_AUTOMATION_PORTFOLIO.md
-│   ├── PORTFOLIO_OVERVIEW.md
-│   ├── REQUIREMENTS_COVERAGE_MATRIX.md
-│   ├── ARCHITECTURE_OVERVIEW.md
-│   └── INTERVIEW_DEMO_SCRIPT.md
-├── AGENTS.md
-└── README.md
-```
-
-Main portfolio narrative:
-
-> I built a production-oriented AI automation ecosystem: an AI agent executes a real business workflow, an MCP server exposes tools for Claude Code, and a Control Tower monitors workflow runs, errors, token usage, retries and human approvals.
-
----
-
-## 4. Repository Notes
-
-The correct repository root is:
-
-```text
-/Users/gtest/Projects/aiPortfolio/ai-automation-engineer-portfolio
-```
-
-Do not initialize Git above this folder.
-
-Root-level documentation describes the full portfolio:
-
-```text
-docs/CODEX_HANDOFF_AI_AUTOMATION_PORTFOLIO.md
-README.md
-AGENTS.md
-```
-
-Project-level documentation describes Project 1:
-
-```text
-01-ai-marketing-ops-agent/docs/
-├── ARCHITECTURE.md
-├── DECISIONS.md
-└── RUNBOOK.md
-```
-
----
-
-## 5. Project 1: AI Marketing Operations Agent
-
-Project 1 is the active project.
-
-Business goal:
-
-An agent-like automation workflow for a Head of Marketing that can:
-
-1. log into a mock marketing panel using Playwright,
-2. collect campaign data from an HTML-only panel without an API,
-3. collect campaign metadata from Campaign REST API,
-4. collect analytics metrics from Analytics GraphQL API,
-5. aggregate and validate data,
-6. detect anomalies,
-7. generate a deterministic Markdown report,
-8. create tasks in a mock Project Management API,
-9. save workflow output locally,
-10. persist workflow run history,
-11. interpret deterministic outputs with an optional LLM layer,
-12. require human approval for sensitive or high-risk automation,
-13. later send reports via Telegram / Slack / email.
-
-Project 1 demonstrates:
-
-- Python
-- Playwright
-- panels without API
-- scraping
-- REST
-- GraphQL
-- typed clients
-- retry logic
-- rate limiting
-- deterministic data validation
-- deterministic anomaly detection
-- deterministic reporting
-- workflow orchestration
-- local observability
+- local mock marketing panel
+- Campaign REST API mock
+- Analytics GraphQL API mock
+- Project Management API mock
+- typed HTTP clients
+- Playwright scraper
+- deterministic aggregation into `CampaignSnapshot`
+- deterministic anomaly detection into `AnomalyFinding`
+- deterministic Markdown reporting
+- daily workflow orchestration
+- persistent JSONL run recording
 - optional LLM interpretation over validated outputs
-- local human approval queue
-- monitoring/logging foundation
-- Docker
-- decision documentation
+- deterministic human approval flow
+- local JSONL approval queue
 
----
-
-## 6. Current Project 1 Structure
-
-Project 1 uses a `src/` layout. Do not move code to `app/`.
+Current verified status after Milestone 11:
 
 ```text
-01-ai-marketing-ops-agent/
-├── AGENTS.md
-├── README.md
-├── .env.example
-├── pyproject.toml
-├── uv.lock
-├── compose.yaml
-├── Dockerfile.mock
-├── reports/
-│   └── .gitkeep
-├── run-history/
-│   └── .gitkeep
-├── approval-requests/
-│   └── .gitkeep
-├── docs/
-│   ├── ARCHITECTURE.md
-│   ├── DECISIONS.md
-│   └── RUNBOOK.md
-├── .agents/
-│   └── skills/
-│       └── marketing-report/
-│           └── SKILL.md
-├── src/
-│   └── marketing_ops_agent/
-│       ├── approval/
-│       ├── aggregation/
-│       ├── anomaly/
-│       ├── browser/
-│       ├── clients/
-│       ├── llm/
-│       ├── mock_services/
-│       ├── observability/
-│       ├── reporting/
-│       ├── workflows/
-│       └── utils/
-└── tests/
-    ├── approval/
-    ├── aggregation/
-    ├── anomaly/
-    ├── browser/
-    ├── clients/
-    ├── llm/
-    ├── mock_services/
-    ├── observability/
-    ├── reporting/
-    └── workflows/
+96 tests passing
+ruff clean
+mypy clean
 ```
 
 ---
 
-## 7. Completed Milestones
+## 3. Current Pipeline
+
+```text
+mock panel / REST API / GraphQL API
+        ↓
+Playwright scraper + typed service clients
+        ↓
+CampaignSnapshot with data quality flags
+        ↓
+AnomalyFinding objects
+        ↓
+deterministic Markdown report
+        ↓
+daily workflow orchestration + local report file + optional LLM interpretation
+        ↓
+approval request creation for high-risk outputs
+        ↓
+optional deterministic tasks
+        ↓
+persistent run recording + local JSONL history
+```
+
+Project 1 does not yet have:
+
+- Telegram/Slack/email notification
+- CI/CD
+- final interview demo script
+
+---
+
+## 4. Completed Milestones
 
 ### Milestone 1 — Initial Scaffold
 
@@ -219,12 +91,7 @@ mypy clean
 
 ### Milestone 2 — Local Mock Services
 
-Implemented local FastAPI mock services:
-
-- marketing panel without API
-- Campaign REST API
-- Analytics GraphQL API
-- Project Management REST API
+Implemented local FastAPI mock services: marketing panel, Campaign REST API, Analytics GraphQL API and Project Management REST API.
 
 Verification:
 
@@ -237,11 +104,7 @@ docker compose config validates
 
 ### Milestone 3 — Typed Service Clients
 
-Implemented typed `httpx` clients:
-
-- `CampaignClient`
-- `AnalyticsClient`
-- `ProjectManagementClient`
+Implemented typed `httpx` clients: `CampaignClient`, `AnalyticsClient` and `ProjectManagementClient`.
 
 Verification:
 
@@ -325,27 +188,7 @@ mypy clean
 
 ### Milestone 10 — Optional LLM Interpretation Layer
 
-Implemented:
-
-- `LLMInterpretationRequest`
-- `LLMInterpretationResult`
-- `LLMRecommendedAction`
-- `LLMTokenUsage`
-- `LLMInterpretationProvider` protocol
-- deterministic mock LLM provider
-- prompt builder with anti-hallucination and secret-safety rules
-- fail-safe interpreter service
-- optional workflow integration
-- deterministic test coverage for prompt safety, missing data, disabled mode and token usage
-
-LLM interpretation behavior:
-
-- consumes only validated deterministic outputs
-- does not replace deterministic reporting
-- does not overwrite deterministic findings
-- does not access raw scraped rows, raw REST responses, raw GraphQL responses, credentials or secrets
-- is optional and safe to disable
-- captures token usage when the provider returns it
+Implemented optional LLM interpretation over deterministic outputs. The LLM layer is fail-safe, mockable, token-aware and forbidden from replacing deterministic findings.
 
 Verification:
 
@@ -391,37 +234,7 @@ mypy clean
 
 ---
 
-## 8. Current Pipeline
-
-```text
-mock panel / REST API / GraphQL API
-        ↓
-Playwright scraper + typed service clients
-        ↓
-CampaignSnapshot with data quality flags
-        ↓
-AnomalyFinding objects
-        ↓
-deterministic Markdown report
-        ↓
-daily workflow orchestration + local report file + optional LLM interpretation
-        ↓
-approval request creation for high-risk outputs
-        ↓
-optional deterministic tasks
-        ↓
-persistent run recording + local JSONL history
-```
-
-Project 1 does not yet have:
-
-- Telegram/Slack/email notification
-- CI/CD
-- final interview demo script
-
----
-
-## 9. Architectural Decisions
+## 5. Architectural Decisions
 
 ### Deterministic code before agentic code
 
@@ -448,27 +261,7 @@ Project 1 now creates local approval requests for sensitive recommendations and 
 
 ---
 
-## 10. Quality Standards
-
-Codex must maintain:
-
-```bash
-uv run pytest
-uv run ruff check .
-uv run mypy src
-```
-
-Current verified status after Milestone 11:
-
-```text
-96 tests passing
-ruff clean
-mypy clean
-```
-
----
-
-## 11. Next Milestone: Milestone 12
+## 6. Next Milestone: Milestone 12
 
 ### Goal
 
@@ -504,7 +297,7 @@ Do not add real Slack, Telegram or email credentials. Use `.env.example` for con
 
 ---
 
-## 12. Prompt for Codex: Milestone 12
+## 7. Prompt for Codex: Milestone 12
 
 Use this prompt next:
 
@@ -565,6 +358,7 @@ Implementation guidance:
 - Do not call real notification APIs in tests.
 - Real provider configuration should use environment variables only.
 - Keep mypy clean.
+- Add Google-style docstrings to all new functions, methods and classes.
 - Ensure:
   - uv run pytest passes
   - uv run ruff check . passes
@@ -593,18 +387,7 @@ After implementation, summarize:
 
 ---
 
-## 13. Future Milestones
-
-```text
-Milestone 12 — approval-aware notifications
-Milestone 13 — CI/CD
-Project 2     — MCP Automation Server + Claude Code Toolkit
-Project 3     — AgentOps Control Tower
-```
-
----
-
-## 14. Demo Commands
+## 8. Demo Commands
 
 Run mock services:
 
@@ -645,22 +428,11 @@ Generated report, run history and approval request files are ignored by git.
 
 ---
 
-## 15. What Not To Do
+## 9. Future Milestones
 
-Do not:
-
-- build a chatbot as the main project
-- add a frontend too early
-- train ML models
-- bypass real CAPTCHA
-- scrape external websites
-- hardcode secrets
-- let LLM invent metrics
-- silently drop mismatched data
-- put all code in one file
-- move `src/marketing_ops_agent` to `app`
-- change `.agents/skills` to `.skills`
-- let LLM replace deterministic logic
-- send sensitive notifications while approvals are pending
-- skip tests
-- ignore mypy/ruff failures
+```text
+Milestone 12 — approval-aware notifications
+Milestone 13 — CI/CD
+Project 2     — MCP Automation Server + Claude Code Toolkit
+Project 3     — AgentOps Control Tower
+```
