@@ -19,6 +19,9 @@ class AppConfig(BaseModel):
     campaign_api_base_url: str = "http://localhost:8001"
     analytics_graphql_url: str = "http://localhost:8002/graphql"
     project_management_api_base_url: str = "http://localhost:8003"
+    llm_interpretation_enabled: bool = False
+    llm_provider: str = "mock"
+    llm_model: str = "deterministic-marketing-interpreter"
     request_timeout_seconds: float = Field(default=15.0, gt=0)
     retry_max_attempts: int = Field(default=3, ge=1)
 
@@ -55,6 +58,18 @@ class AppConfig(BaseModel):
                 "PROJECT_MANAGEMENT_API_BASE_URL",
                 cls.model_fields["project_management_api_base_url"].default,
             ),
+            llm_interpretation_enabled=_get_bool_env(
+                "LLM_INTERPRETATION_ENABLED",
+                False,
+            ),
+            llm_provider=os.getenv(
+                "LLM_PROVIDER",
+                cls.model_fields["llm_provider"].default,
+            ),
+            llm_model=os.getenv(
+                "LLM_MODEL",
+                cls.model_fields["llm_model"].default,
+            ),
             request_timeout_seconds=_get_float_env("REQUEST_TIMEOUT_SECONDS", 15.0),
             retry_max_attempts=_get_int_env("RETRY_MAX_ATTEMPTS", 3),
         )
@@ -89,3 +104,15 @@ def _get_int_env(name: str, default: int) -> int:
         return int(raw_value)
     except ValueError as exc:
         raise ValueError(f"{name} must be a valid integer") from exc
+
+
+def _get_bool_env(name: str, default: bool) -> bool:
+    raw_value = os.getenv(name)
+    if raw_value is None or raw_value == "":
+        return default
+    normalized = raw_value.strip().lower()
+    if normalized in {"1", "true", "yes", "on"}:
+        return True
+    if normalized in {"0", "false", "no", "off"}:
+        return False
+    raise ValueError(f"{name} must be a valid boolean")

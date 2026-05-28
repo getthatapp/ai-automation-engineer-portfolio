@@ -25,6 +25,13 @@ from marketing_ops_agent.clients import (
     ProjectTaskCreate,
     ServiceClientError,
 )
+from marketing_ops_agent.config import load_config
+from marketing_ops_agent.llm import (
+    DeterministicMockLLMProvider,
+    LLMInterpretationRequest,
+    LLMInterpretationResult,
+    LLMInterpreter,
+)
 from marketing_ops_agent.models import WorkflowStatus
 from marketing_ops_agent.observability import (
     DEFAULT_RUN_RECORDS_PATH,
@@ -76,6 +83,15 @@ class WorkflowRunRecorder(Protocol):
     def append(self, record: WorkflowRunRecord) -> None: ...
 
 
+class WorkflowLLMInterpreter(Protocol):
+    """Optional LLM interpreter contract needed by the workflow."""
+
+    async def interpret(
+        self,
+        request: LLMInterpretationRequest,
+    ) -> LLMInterpretationResult: ...
+
+
 class WorkflowExecutionError(Exception):
     """Raised when an unrecoverable workflow step fails."""
 
@@ -96,6 +112,7 @@ class DailyMarketingReportWorkflow:
         analytics_client: CampaignAnalyticsClient,
         detector: CampaignAnomalyDetector | None = None,
         report_writer: CampaignReportWriter | None = None,
+        llm_interpreter: WorkflowLLMInterpreter | None = None,
         task_client: TaskCreationClient | None = None,
         run_recorder: WorkflowRunRecorder | None = None,
         reports_dir: Path | str = DEFAULT_REPORTS_DIR,
@@ -108,6 +125,7 @@ class DailyMarketingReportWorkflow:
         )
         self._detector = detector or AnomalyDetector()
         self._report_writer = report_writer or MarkdownReportWriter()
+        self._llm_interpreter = llm_interpreter
         self._task_client = task_client
         self._run_recorder = run_recorder
         self._reports_dir = Path(reports_dir)
@@ -122,6 +140,7 @@ class DailyMarketingReportWorkflow:
         snapshots: list[CampaignSnapshot] = []
         findings: list[AnomalyFinding] = []
         report_path: Path | None = None
+        llm_interpretation: LLMInterpretationResult | None = None
         created_tasks: list[ProjectTask] = []
         task_errors: list[str] = []
 
@@ -131,6 +150,11 @@ class DailyMarketingReportWorkflow:
             findings = self._detect_findings(snapshots)
             report_markdown = self._write_report(snapshots, findings, started_at)
             report_path = self._save_report(report_markdown, started_at)
+            llm_interpretation = await self._interpret_report_safely(
+                snapshots,
+                findings,
+                report_markdown,
+            )
             created_tasks, task_errors = await self._create_tasks(findings)
         except WorkflowExecutionError as exc:
             finished_at = self._normalize_datetime(self._clock())
@@ -169,6 +193,7 @@ class DailyMarketingReportWorkflow:
             requires_human_review=requires_human_review,
             snapshots=tuple(snapshots),
             findings=tuple(findings),
+            llm_interpretation=llm_interpretation,
             created_tasks=tuple(created_tasks),
             task_creation_errors=tuple(task_errors),
         )
@@ -228,6 +253,26 @@ class DailyMarketingReportWorkflow:
         except OSError as exc:
             raise WorkflowExecutionError("save_markdown_report", exc) from exc
         return report_path
+
+    async def _interpret_report_safely(
+        self,
+        snapshots: Sequence[CampaignSnapshot],
+        findings: Sequence[AnomalyFinding],
+        report_markdown: str,
+    ) -> LLMInterpretationResult | None:
+        if self._llm_interpreter is None:
+            return None
+
+        request = LLMInterpretationRequest(
+            snapshots=tuple(snapshots),
+            findings=tuple(findings),
+            deterministic_report_summary=report_markdown,
+        )
+        try:
+            return await self._llm_interpreter.interpret(request)
+        except Exception:
+            logger.exception("Optional LLM interpretation failed without blocking workflow")
+            return None
 
     async def _create_tasks(
         self,
@@ -303,8 +348,16 @@ async def run_daily_marketing_report_workflow(
     reports_dir: Path | str = DEFAULT_REPORTS_DIR,
     run_records_path: Path | str | None = DEFAULT_RUN_RECORDS_PATH,
     create_project_tasks: bool = False,
+    enable_llm_interpretation: bool | None = None,
 ) -> DailyMarketingReportResult:
     """Run the workflow with concrete local scraper and service clients."""
+
+    config = load_config()
+    llm_enabled = (
+        config.llm_interpretation_enabled
+        if enable_llm_interpretation is None
+        else enable_llm_interpretation
+    )
 
     async with AsyncExitStack() as stack:
         scraper = await stack.enter_async_context(PlaywrightMarketingPanelScraper())
@@ -320,6 +373,16 @@ async def run_daily_marketing_report_workflow(
             campaign_client=campaign_client,
             analytics_client=analytics_client,
             task_client=task_client,
+            llm_interpreter=(
+                LLMInterpreter(
+                    provider=DeterministicMockLLMProvider(
+                        provider_name=config.llm_provider,
+                        model_name=config.llm_model,
+                    )
+                )
+                if llm_enabled
+                else None
+            ),
             run_recorder=(
                 LocalRunRecorder(run_records_path)
                 if run_records_path is not None

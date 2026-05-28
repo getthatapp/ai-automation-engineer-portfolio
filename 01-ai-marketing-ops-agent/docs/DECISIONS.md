@@ -137,3 +137,35 @@ Consequences:
 - Failure messages are sanitized for common inline credential shapes before
   they are persisted.
 - Generated run history is ignored by git except for `run-history/.gitkeep`.
+
+## Optional LLM Interpretation After Deterministic Reporting
+
+Decision: add an optional LLM interpretation layer after deterministic
+aggregation, anomaly detection, Markdown reporting and run recording contracts
+exist.
+
+Reasoning:
+
+- The LLM should interpret business meaning, not collect, join, validate or
+  recalculate data.
+- Prompts must use validated `CampaignSnapshot`, `AnomalyFinding`,
+  deterministic report summary and optional `WorkflowRunRecord` inputs only.
+- Missing metrics, source mismatches and human-review flags must stay explicit
+  because they are audit and approval signals.
+- Tests should not call external LLM APIs, require API keys or depend on
+  nondeterministic model output.
+
+Consequences:
+
+- `marketing_ops_agent.llm` exposes typed request/result/recommendation/token
+  usage models.
+- `LLMInterpretationProvider` is a Protocol so future real providers can be
+  added without changing workflow code.
+- `DeterministicMockLLMProvider` is the default provider for tests and local
+  no-key runs.
+- Prompt construction redacts common inline secret shapes and includes
+  anti-hallucination rules.
+- `DailyMarketingReportWorkflow` can call an optional interpreter but does not
+  require LLM output for workflow success.
+- LLM recommendations remain separate from deterministic recommended actions
+  in the Markdown report.

@@ -367,6 +367,59 @@ result = asyncio.run(
 Task creation requires the mock project management API to be running. Task
 creation is optional; report generation does not depend on it.
 
+## Optional LLM Interpretation
+
+The optional LLM layer interprets deterministic outputs after snapshots,
+findings and the Markdown report already exist. It must not be used to scrape,
+join, validate, detect anomalies or replace deterministic report sections.
+
+Environment variables:
+
+| Environment variable | Default | Purpose |
+| --- | --- | --- |
+| `LLM_INTERPRETATION_ENABLED` | `false` | Enables the optional workflow hook in the local runner |
+| `LLM_PROVIDER` | `mock` | Provider label; only the deterministic mock provider is implemented now |
+| `LLM_MODEL` | `deterministic-marketing-interpreter` | Model label for interpretation results |
+| `OPENAI_API_KEY` | empty | Reserved for a future real provider; not used by tests |
+
+Programmatic usage:
+
+```python
+from marketing_ops_agent.llm import LLMInterpretationRequest, LLMInterpreter
+
+
+interpreter = LLMInterpreter()
+result = await interpreter.interpret(
+    LLMInterpretationRequest(
+        snapshots=tuple(snapshots),
+        findings=tuple(findings),
+        deterministic_report_summary=report_markdown,
+    )
+)
+print(result.status, result.summary, result.token_usage)
+```
+
+Run the local workflow with the optional hook:
+
+```python
+result = asyncio.run(
+    run_daily_marketing_report_workflow(enable_llm_interpretation=True)
+)
+print(result.llm_interpretation)
+```
+
+Operational notes:
+
+- Tests use `DeterministicMockLLMProvider` and never call external LLM APIs.
+- Prompt input is limited to `CampaignSnapshot`, `AnomalyFinding`,
+  deterministic report summary and optional `WorkflowRunRecord`.
+- Prompt text includes anti-hallucination rules and common inline secret
+  redaction.
+- Disabled or failed interpretation should not block deterministic report
+  generation.
+- Token usage is recorded in `LLMInterpretationResult.token_usage` when a
+  provider returns it.
+
 ## Report Output
 
 Reports are written under:

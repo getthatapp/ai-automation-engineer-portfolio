@@ -9,9 +9,10 @@ campaign data from three deterministic local sources:
 - Campaign metadata from the Campaign REST API.
 - Campaign metrics from the Analytics GraphQL API.
 
-The LLM workflow is intentionally not implemented yet. Current logic stops at
-deterministic collection, aggregation, validation, anomaly detection and
-Markdown report generation orchestrated by the daily workflow.
+The optional LLM workflow is downstream of deterministic collection,
+aggregation, validation, anomaly detection, Markdown report generation and run
+recording. It interprets already validated outputs and never replaces the
+deterministic report.
 
 ## API-First Strategy
 
@@ -100,6 +101,38 @@ first, then campaign ID, anomaly type, message and source. Missing Campaign API
 or Analytics GraphQL values are shown as `missing`; the writer does not infer
 unavailable metrics or recalculate anomaly rules.
 
+## LLM Interpretation Layer
+
+`marketing_ops_agent.llm` provides the Milestone 10 optional interpretation
+boundary. It consumes only typed deterministic outputs:
+
+- `CampaignSnapshot` objects;
+- `AnomalyFinding` objects;
+- deterministic Markdown report text or a short summary;
+- optional `WorkflowRunRecord`.
+
+The prompt builder creates a sanitized JSON payload from those objects and adds
+explicit safety rules:
+
+- use only validated deterministic data;
+- never invent missing metrics, trends, causes or source data;
+- preserve data quality flags exactly;
+- keep facts separate from recommendations;
+- do not overwrite deterministic findings;
+- treat human-review flags as blocking sensitive automated action;
+- do not request, reveal or infer credentials, secrets, tokens or API keys.
+
+The provider contract is `LLMInterpretationProvider`. The current concrete
+provider is `DeterministicMockLLMProvider`, used by tests and local no-key runs.
+It returns `LLMInterpretationResult` with summary text, fact statements,
+structured `LLMRecommendedAction` entries, data quality warnings and optional
+`LLMTokenUsage`.
+
+The interpreter is fail-safe. Disabled or unavailable interpretation returns a
+structured disabled/failed result from the service, and workflow integration
+logs unexpected interpreter errors without failing deterministic report
+generation.
+
 ## Workflow Orchestration Layer
 
 `marketing_ops_agent.workflows.DailyMarketingReportWorkflow` is the executable
@@ -114,7 +147,8 @@ Workflow order:
 3. pass snapshots into anomaly detection;
 4. pass findings into the Markdown report writer;
 5. save the report under a local reports directory;
-6. optionally create project management tasks.
+6. optionally run LLM interpretation over the deterministic outputs;
+7. optionally create project management tasks.
 
 The workflow uses dependency injection for the scraper, clients, detector,
 report writer and optional task client. Tests can replace every boundary with
@@ -124,7 +158,8 @@ fakes while production-local runs use `PlaywrightMarketingPanelScraper`,
 
 The typed result is `DailyMarketingReportResult`. It records the run ID,
 status, timestamps, report path, row/snapshot/finding counts, snapshots,
-findings, created tasks and non-fatal task creation errors.
+findings, optional LLM interpretation, created tasks and non-fatal task
+creation errors.
 
 Report paths are deterministic from the run timestamp:
 
@@ -193,11 +228,14 @@ report generation; they are recorded in `task_creation_errors`.
 
 ## LLM Boundary
 
-Future LLM usage is limited to interpretation, summarization and
-recommendations after deterministic validation and anomaly detection have
-produced campaign snapshots, typed findings and a deterministic report
-baseline. LLM prompts must consume the explicit data quality flags and anomaly
-findings rather than infer source reliability.
+LLM usage is limited to interpretation, summarization and recommendations after
+deterministic validation and anomaly detection have produced campaign
+snapshots, typed findings and a deterministic report baseline. LLM prompts
+consume explicit data quality flags and anomaly findings rather than infer
+source reliability.
+
+LLM output is never the source of truth for anomaly counts, data quality flags
+or workflow status. Those values remain owned by deterministic modules.
 
 ## Human Approval
 

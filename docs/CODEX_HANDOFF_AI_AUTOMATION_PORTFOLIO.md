@@ -3,8 +3,8 @@
 Last updated: 2026-05-28  
 Repository: `ai-automation-engineer-portfolio`  
 Current project: `01-ai-marketing-ops-agent`  
-Current status: Milestones 1-9 completed.  
-Next step: Milestone 10 — LLM interpretation layer.
+Current status: Milestones 1-10 completed.  
+Next step: Milestone 11 — human approval flow or notification delivery.
 
 ---
 
@@ -120,7 +120,7 @@ An agent-like automation workflow for a Head of Marketing that can:
 8. create tasks in a mock Project Management API,
 9. save workflow output locally,
 10. persist workflow run history,
-11. later add LLM interpretation,
+11. interpret deterministic outputs with an optional LLM layer,
 12. later send reports via Telegram / Slack / email.
 
 Project 1 demonstrates:
@@ -521,17 +521,13 @@ AnomalyFinding objects
         ↓
 deterministic Markdown report
         ↓
-daily workflow orchestration + local report file + optional deterministic tasks
+daily workflow orchestration + local report file + optional LLM interpretation + optional deterministic tasks
         ↓
 persistent run recording + local JSONL history
-        ↓
-Next: optional LLM interpretation layer
 ```
 
 Project 1 does not yet have:
 
-- LLM interpretation layer
-- token usage tracking
 - Telegram/Slack/email notification
 - CI/CD
 - final interview demo script
@@ -564,15 +560,17 @@ AnomalyFinding
 Markdown report string
 DailyMarketingReportResult
 WorkflowRunRecord
+LLMInterpretationRequest
+LLMInterpretationResult
 ```
 
 They should not consume raw scraped rows, raw REST responses or raw GraphQL responses.
 
-### LLM later
+### LLM interpretation boundary
 
-Do not add LLM logic before deterministic workflow and observability exist.
+LLM logic now exists only after deterministic workflow and observability.
 
-This condition is now satisfied after Milestone 9.
+This condition is satisfied after Milestone 10.
 
 ### No real CAPTCHA bypass
 
@@ -613,17 +611,17 @@ uv run ruff check .
 uv run mypy src
 ```
 
-Current verified status after Milestone 9:
+Current verified status after Milestone 10:
 
 ```text
-77 tests passing
+84 tests passing
 ruff clean
 mypy clean
 ```
 
 ---
 
-## 12. Next Milestone: Milestone 10
+## 12. Completed Milestone: Milestone 10
 
 ### Goal
 
@@ -672,7 +670,7 @@ tests/llm/
 
 ---
 
-## 13. Prompt for Codex: Milestone 10
+## 13. Prompt for Codex: Milestone 11
 
 Use this prompt next:
 
@@ -681,7 +679,7 @@ Read the root AGENTS.md and docs/CODEX_HANDOFF_AI_AUTOMATION_PORTFOLIO.md first.
 
 Continue Project 1: 01-ai-marketing-ops-agent.
 
-Milestone 10: implement LLM interpretation layer.
+Milestone 11: implement the next controlled automation boundary.
 
 Current state:
 - Mock FastAPI services exist.
@@ -695,90 +693,22 @@ Current state:
 - Daily workflow orchestration exists.
 - Persistent run recording exists.
 - WorkflowRunRecord exists.
+- Optional LLM interpretation layer exists.
+- LLM token usage is captured when available.
 - Tests pass.
 - Do not move existing files.
 - Do not replace deterministic reporting.
 - Do not let LLM access raw scraped rows, raw REST responses, raw GraphQL responses, credentials or secrets.
-- Do not add notification integrations yet.
-- Keep LLM interpretation optional, safe and testable.
 
 Goal:
-Add an optional LLM interpretation layer that consumes deterministic outputs and produces structured business interpretation.
+Choose and implement Milestone 11:
+- human approval flow for sensitive recommendations, or
+- notification delivery through Slack, Telegram or email.
 
-Inputs:
-- list[CampaignSnapshot]
-- list[AnomalyFinding]
-- deterministic Markdown report draft or summary
-- optional WorkflowRunRecord
-
-Implement:
-1. Typed LLM interpretation models, for example:
-   - LLMInterpretationRequest
-   - LLMInterpretationResult
-   - LLMRecommendedAction
-   - LLMTokenUsage
-2. A deterministic/mock provider used by default in tests and when no real API key is configured.
-3. Optional provider abstraction for future real LLM providers.
-4. Prompt builder that:
-   - includes only validated deterministic data,
-   - includes explicit anti-hallucination rules,
-   - instructs the model to never invent missing metrics,
-   - instructs the model to preserve data quality flags,
-   - separates facts from recommendations.
-5. Interpreter service that:
-   - accepts validated inputs,
-   - returns structured interpretation,
-   - records token usage when available,
-   - fails safely when LLM is disabled or unavailable.
-6. Optional integration point with workflow, but do not make LLM required for the workflow to succeed.
-7. Tests for:
-   - mock provider returns structured interpretation,
-   - prompt does not include raw credentials or secrets,
-   - prompt includes anti-hallucination rules,
-   - missing data is preserved,
-   - deterministic findings are not overwritten,
-   - LLM disabled mode does not break workflow,
-   - token usage is captured when provider returns it.
-8. Documentation updates:
-   - README.md
-   - docs/ARCHITECTURE.md
-   - docs/DECISIONS.md
-   - docs/RUNBOOK.md
-   - .agents/skills/marketing-report/SKILL.md
-
-Implementation guidance:
-- Do not add heavy dependencies unless necessary.
-- Prefer protocol/interface style provider abstraction.
-- Keep tests deterministic.
-- Do not call external LLM APIs in tests.
-- Real provider configuration should use environment variables only.
-- Do not hardcode API keys.
-- Keep mypy clean.
-- Ensure:
-  - uv run pytest passes
-  - uv run ruff check . passes
-  - uv run mypy src passes
-
-Suggested structure:
-- src/marketing_ops_agent/llm/
-  - __init__.py
-  - interpreter.py
-  - models.py
-  - prompts.py
-  - providers.py
-  - errors.py
-- tests/llm/
-  - test_interpreter.py
-
-After implementation, summarize:
-1. files created/changed
-2. interpretation models
-3. provider abstraction
-4. prompt safety rules
-5. workflow integration behavior, if any
-6. token usage behavior
-7. test coverage added
-8. what should be built next
+Keep the same quality gate:
+- uv run pytest
+- uv run ruff check .
+- uv run mypy src
 ```
 
 ---
@@ -786,8 +716,7 @@ After implementation, summarize:
 ## 14. Future Milestones
 
 ```text
-Milestone 10 — LLM interpretation layer
-Milestone 11 — notifications
+Milestone 11 — human approval flow or notifications
 Milestone 12 — CI/CD
 Project 2    — MCP Automation Server + Claude Code Toolkit
 Project 3    — AgentOps Control Tower

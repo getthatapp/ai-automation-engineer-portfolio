@@ -8,6 +8,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from marketing_ops_agent.aggregation import CampaignSnapshot
 from marketing_ops_agent.anomaly import AnomalyFinding
 from marketing_ops_agent.clients import ProjectTask
+from marketing_ops_agent.llm import LLMInterpretationResult
 from marketing_ops_agent.models import WorkflowStatus
 
 
@@ -27,6 +28,7 @@ class DailyMarketingReportResult(BaseModel):
     requires_human_review: bool = False
     snapshots: tuple[CampaignSnapshot, ...] = ()
     findings: tuple[AnomalyFinding, ...] = ()
+    llm_interpretation: LLMInterpretationResult | None = None
     created_tasks: tuple[ProjectTask, ...] = ()
     task_creation_errors: tuple[str, ...] = ()
 

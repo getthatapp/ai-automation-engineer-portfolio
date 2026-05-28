@@ -6,7 +6,7 @@ The goal is not to build a chatbot. The goal is to demonstrate a controlled, tes
 
 ## Current status
 
-Milestones 1-9 are completed.
+Milestones 1-10 are completed.
 
 Completed scope:
 
@@ -22,10 +22,12 @@ Completed scope:
 - Deterministic Markdown report writer over `CampaignSnapshot` and `AnomalyFinding` objects.
 - Deterministic daily report workflow orchestration that scrapes, aggregates, detects anomalies, writes a Markdown report to `reports/` and can optionally create project management tasks for critical or human-review findings.
 - Persistent local run recording to JSONL under `run-history/`, including success/failure status, timings, output paths, counts, task IDs, data quality summaries and sanitized failure messages.
+- Optional LLM interpretation layer over validated `CampaignSnapshot`, `AnomalyFinding`, deterministic report summary and optional run record inputs.
+- Deterministic mock LLM provider for tests and local no-key runs, with token usage capture when a provider returns it.
 - Minimal pytest coverage and project documentation placeholders.
 - Claude/Codex-ready marketing report skill.
 
-The full LLM report workflow and external notification delivery are intentionally left for later milestones.
+External notification delivery is intentionally left for later milestones.
 
 ## Requirements
 
@@ -334,6 +336,59 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
+## Optional LLM interpretation
+
+The LLM layer lives in `marketing_ops_agent.llm`. It consumes only validated
+deterministic outputs:
+
+- `CampaignSnapshot` objects;
+- `AnomalyFinding` objects;
+- deterministic Markdown report text or a summary;
+- optional `WorkflowRunRecord`.
+
+It does not read raw scraped rows, raw REST responses, raw GraphQL responses,
+credentials or environment variables. Prompt construction includes explicit
+rules to avoid invented metrics, preserve data quality flags, keep facts
+separate from recommendations and respect human-review gates.
+
+By default, tests and local no-key runs use `DeterministicMockLLMProvider`.
+No external LLM API is called by the test suite.
+
+Minimal usage:
+
+```python
+from marketing_ops_agent.llm import LLMInterpretationRequest, LLMInterpreter
+
+
+interpreter = LLMInterpreter()
+result = await interpreter.interpret(
+    LLMInterpretationRequest(
+        snapshots=tuple(snapshots),
+        findings=tuple(findings),
+        deterministic_report_summary=report_markdown,
+    )
+)
+print(result.status, result.summary, result.token_usage)
+```
+
+The daily workflow remains deterministic by default. To enable the optional
+interpretation hook in the local runner:
+
+```python
+result = asyncio.run(
+    run_daily_marketing_report_workflow(enable_llm_interpretation=True)
+)
+print(result.llm_interpretation)
+```
+
+Equivalent environment configuration:
+
+```text
+LLM_INTERPRETATION_ENABLED=true
+LLM_PROVIDER=mock
+LLM_MODEL=deterministic-marketing-interpreter
+```
+
 ## Tests and quality checks
 
 Run tests:
@@ -351,7 +406,5 @@ uv run mypy src
 
 ## Next milestone
 
-The next milestone should add persistent run recording and observability around
-workflow status, failures and retry counts. LLM-based interpretation should
-still remain downstream of deterministic validation, anomaly detection and
-report generation.
+The next milestone should add human approval handling around sensitive
+recommendations or notification delivery through Slack, Telegram or email.
