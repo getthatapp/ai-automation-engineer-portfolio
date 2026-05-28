@@ -1,8 +1,8 @@
 # AI Automation Engineer Portfolio
 
-Production-oriented portfolio demonstrating practical AI automation engineering: browser automation, API integrations, deterministic workflow orchestration, data validation, anomaly detection, reporting, observability, and future LLM/MCP extensions.
+Production-oriented portfolio demonstrating practical AI automation engineering: browser automation, API integrations, deterministic workflow orchestration, data validation, anomaly detection, reporting, observability, optional LLM interpretation, and future MCP extensions.
 
-This repository is not a chatbot demo. It is a staged AI automation ecosystem built to automate real business workflows.
+This repository is not a chatbot demo. It is a staged AI automation ecosystem built to automate real business workflows safely and observably.
 
 ---
 
@@ -10,7 +10,7 @@ This repository is not a chatbot demo. It is a staged AI automation ecosystem bu
 
 ### Project 1: AI Marketing Operations Agent
 
-Status: **Milestones 1-9 completed**
+Status: **Milestones 1-10 completed**
 
 Implemented:
 
@@ -31,8 +31,11 @@ Implemented:
 - optional deterministic task creation
 - persistent workflow run recording
 - local JSONL run history
+- optional LLM interpretation layer
+- deterministic/mock LLM provider for safe local use
+- LLM prompt safety rules and token usage capture
 
-Current deterministic pipeline:
+Current pipeline:
 
 ```text
 Marketing panel + REST API + GraphQL API
@@ -48,12 +51,14 @@ Markdown report
 Daily workflow orchestration
         ↓
 Persistent run recording
+        ↓
+Optional LLM interpretation over validated outputs
 ```
 
 Next milestone:
 
 ```text
-LLM interpretation layer over validated deterministic outputs
+Human approval flow for sensitive recommendations and high-risk automation
 ```
 
 ---
@@ -88,7 +93,10 @@ It simulates a Head of Marketing workflow:
 5. detect anomalies deterministically,
 6. generate a Markdown report,
 7. create deterministic project-management tasks,
-8. persist structured workflow run history.
+8. persist structured workflow run history,
+9. optionally produce LLM-based business interpretation over validated outputs.
+
+The LLM layer is intentionally downstream of deterministic validation. It must not invent metrics, replace deterministic findings, or access raw credentials/source payloads.
 
 ### 02 — MCP Automation Server + Claude Code Toolkit
 
@@ -180,7 +188,7 @@ uv run mypy src
 Current status:
 
 ```text
-77 tests passing
+84 tests passing
 ruff clean
 mypy clean
 ```
@@ -194,6 +202,7 @@ mypy clean
 - Deterministic validation before LLM interpretation.
 - Missing data must be explicit.
 - LLM must not invent metrics.
+- LLM must not replace deterministic findings.
 - Human review must be triggered for unsafe or incomplete automation.
 - Workflow behavior must be testable and observable.
 - Generated reports and run history are not committed.
@@ -222,9 +231,9 @@ Project-level documentation:
 ## Current Roadmap
 
 ```text
-Milestone 10 — LLM interpretation layer
-Milestone 11 — notifications
-Milestone 12 — CI/CD
-Project 2    — MCP Automation Server + Claude Code Toolkit
-Project 3    — AgentOps Control Tower
+Milestone 11 — human approval flow
+Milestone 12 — notifications
+Milestone 13 — CI/CD
+Project 2     — MCP Automation Server + Claude Code Toolkit
+Project 3     — AgentOps Control Tower
 ```

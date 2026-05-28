@@ -4,7 +4,7 @@ Last updated: 2026-05-28
 Repository: `ai-automation-engineer-portfolio`  
 Current project: `01-ai-marketing-ops-agent`  
 Current status: Milestones 1-10 completed.  
-Next step: Milestone 11 — human approval flow or notification delivery.
+Next step: Milestone 11 — human approval flow.
 
 ---
 
@@ -121,7 +121,8 @@ An agent-like automation workflow for a Head of Marketing that can:
 9. save workflow output locally,
 10. persist workflow run history,
 11. interpret deterministic outputs with an optional LLM layer,
-12. later send reports via Telegram / Slack / email.
+12. require human approval for sensitive or high-risk automation,
+13. later send reports via Telegram / Slack / email.
 
 Project 1 demonstrates:
 
@@ -139,6 +140,7 @@ Project 1 demonstrates:
 - deterministic reporting
 - workflow orchestration
 - local observability
+- optional LLM interpretation over validated outputs
 - monitoring/logging foundation
 - Docker
 - decision documentation
@@ -176,6 +178,7 @@ Project 1 uses a `src/` layout. Do not move code to `app/`.
 │       ├── anomaly/
 │       ├── browser/
 │       ├── clients/
+│       ├── llm/
 │       ├── mock_services/
 │       ├── observability/
 │       ├── reporting/
@@ -186,6 +189,7 @@ Project 1 uses a `src/` layout. Do not move code to `app/`.
     ├── anomaly/
     ├── browser/
     ├── clients/
+    ├── llm/
     ├── mock_services/
     ├── observability/
     ├── reporting/
@@ -194,52 +198,11 @@ Project 1 uses a `src/` layout. Do not move code to `app/`.
 
 ---
 
-## 7. AGENTS.md and Skills
-
-There are two levels of `AGENTS.md`:
-
-```text
-AGENTS.md
-01-ai-marketing-ops-agent/AGENTS.md
-```
-
-For Codex skills, prefer:
-
-```text
-.agents/skills/
-```
-
-Project 1 uses:
-
-```text
-01-ai-marketing-ops-agent/.agents/skills/marketing-report/SKILL.md
-```
-
-Do not change this to `.skills/` unless explicitly requested.
-
-The `marketing-report` skill should consume:
-
-```text
-CampaignSnapshot + AnomalyFinding + deterministic report draft
-```
-
-It must not generate reports directly from raw scraped rows, raw REST responses or raw GraphQL responses.
-
----
-
-## 8. Completed Milestones
+## 7. Completed Milestones
 
 ### Milestone 1 — Initial Scaffold
 
-Implemented:
-
-- Python 3.12+ uv project scaffold
-- project-level README and AGENTS.md
-- docs placeholders
-- Pydantic models
-- async retry utility
-- async rate limiter utility
-- minimal tests
+Implemented initial Python project scaffold, docs placeholders, typed models, retry/rate limiter utilities and minimal tests.
 
 Verification:
 
@@ -251,22 +214,12 @@ mypy clean
 
 ### Milestone 2 — Local Mock Services
 
-Implemented:
+Implemented local FastAPI mock services:
 
 - marketing panel without API
 - Campaign REST API
 - Analytics GraphQL API
 - Project Management REST API
-- Docker Compose support
-
-Services:
-
-```text
-Marketing panel:              http://localhost:8000
-Campaign REST API:            http://localhost:8001
-Analytics GraphQL API:        http://localhost:8002/graphql
-Project Management REST API:  http://localhost:8003
-```
 
 Verification:
 
@@ -285,14 +238,6 @@ Implemented typed `httpx` clients:
 - `AnalyticsClient`
 - `ProjectManagementClient`
 
-Client behavior:
-
-- environment-based defaults
-- per-call timeout
-- translated errors
-- retry for timeout/transport/5xx cases
-- explicit GraphQL error handling
-
 Verification:
 
 ```text
@@ -303,14 +248,7 @@ mypy clean
 
 ### Milestone 4 — Playwright Marketing Panel Scraper
 
-Implemented:
-
-- `PlaywrightMarketingPanelScraper`
-- mock login handling
-- mock 2FA handling
-- dashboard scraping
-- typed scraped rows
-- browser-specific custom errors
+Implemented `PlaywrightMarketingPanelScraper`, mock login, mock 2FA handling, dashboard scraping and typed scraped rows.
 
 Verification:
 
@@ -322,22 +260,7 @@ mypy clean
 
 ### Milestone 5 — Deterministic Data Aggregation
 
-Implemented:
-
-- `CampaignSnapshot`
-- aggregation service
-- data quality flags
-- explicit missing/mismatched data handling
-
-Data quality flags:
-
-- `missing_campaign_metadata`
-- `missing_analytics_metrics`
-- `spend_mismatch`
-- `conversions_mismatch`
-- `revenue_mismatch`
-- `stale_data`
-- `requires_human_review`
+Implemented `CampaignSnapshot`, aggregation service and data quality flags.
 
 Verification:
 
@@ -349,15 +272,7 @@ mypy clean
 
 ### Milestone 6 — Deterministic Anomaly Detection
 
-Implemented:
-
-- `AnomalyFinding`
-- deterministic anomaly detector
-- high spend / low conversions rule
-- CPA threshold rule
-- ROI rule
-- data quality flag mapping
-- human review escalation
+Implemented `AnomalyFinding`, deterministic anomaly detector and data quality flag mapping.
 
 Verification:
 
@@ -369,27 +284,7 @@ mypy clean
 
 ### Milestone 7 — Deterministic Markdown Reporting
 
-Implemented:
-
-- `ReportMetadata`
-- `MarkdownReportWriter`
-- `generate_markdown_report`
-- deterministic report sections
-- stable finding and campaign ordering
-
-Report sections:
-
-- title
-- generated timestamp
-- executive summary
-- campaign health overview
-- critical anomalies
-- warning anomalies
-- data quality issues
-- human review required
-- campaign snapshot table
-- deterministic recommended actions
-- limitations / missing data
+Implemented deterministic Markdown report writer with executive summary, anomaly sections, data quality issues, human review section and campaign snapshot table.
 
 Verification:
 
@@ -401,32 +296,7 @@ mypy clean
 
 ### Milestone 8 — Workflow Orchestration
 
-Implemented:
-
-- `DailyMarketingReportWorkflow(...).run()`
-- `run_daily_marketing_report_workflow(...)`
-- `build_task_requests(...)`
-- `WorkflowExecutionError`
-- `DailyMarketingReportResult`
-
-Workflow behavior:
-
-```text
-scrape panel
-→ fetch Campaign REST API data
-→ fetch Analytics GraphQL metrics
-→ aggregate snapshots
-→ detect anomalies
-→ generate Markdown report
-→ optionally create deterministic tasks
-→ save report locally
-```
-
-Report path:
-
-```text
-reports/daily-marketing-report-YYYYMMDDTHHMMSSZ.md
-```
+Implemented `DailyMarketingReportWorkflow`, `DailyMarketingReportResult`, deterministic task requests and local report saving.
 
 Verification:
 
@@ -438,63 +308,7 @@ mypy clean
 
 ### Milestone 9 — Persistent Run Recording and Observability
 
-Implemented observability package:
-
-```text
-src/marketing_ops_agent/observability/
-├── __init__.py
-├── errors.py
-├── models.py
-└── run_recorder.py
-```
-
-Implemented `WorkflowRunRecord` with:
-
-- `run_id`
-- `workflow_name`
-- `status`
-- `started_at`
-- `finished_at`
-- `duration_seconds`
-- `report_path`
-- `snapshot_count`
-- `finding_count`
-- `critical_finding_count`
-- `human_review_required`
-- `created_task_ids`
-- `task_error_count`
-- `data_quality_summary`
-- `failure_type`
-- `failure_message`
-
-Implemented `LocalRunRecorder` API:
-
-- `append(record)`
-- `read_recent(limit=20)`
-- `get(run_id)`
-
-Persistence behavior:
-
-- appends structured records to JSONL
-- default local path: `run-history/workflow-runs.jsonl`
-- creates parent directories on append
-- handles malformed JSONL lines explicitly
-- does not store secrets
-- generated run history files are ignored by git
-- only `run-history/.gitkeep` should be committed
-
-Manual successful run verified:
-
-```json
-{
-  "status": "succeeded",
-  "snapshot_count": 3,
-  "finding_count": 0,
-  "critical_finding_count": 0,
-  "human_review_required": false,
-  "report_path": "reports/daily-marketing-report-20260528T151506Z.md"
-}
-```
+Implemented `WorkflowRunRecord`, `LocalRunRecorder`, JSONL run history and workflow integration.
 
 Verification:
 
@@ -504,11 +318,41 @@ ruff clean
 mypy clean
 ```
 
+### Milestone 10 — Optional LLM Interpretation Layer
+
+Implemented:
+
+- `LLMInterpretationRequest`
+- `LLMInterpretationResult`
+- `LLMRecommendedAction`
+- `LLMTokenUsage`
+- `LLMInterpretationProvider` protocol
+- deterministic mock LLM provider
+- prompt builder with anti-hallucination and secret-safety rules
+- fail-safe interpreter service
+- optional workflow integration
+- deterministic test coverage for prompt safety, missing data, disabled mode and token usage
+
+LLM interpretation behavior:
+
+- consumes only validated deterministic outputs
+- does not replace deterministic reporting
+- does not overwrite deterministic findings
+- does not access raw scraped rows, raw REST responses, raw GraphQL responses, credentials or secrets
+- is optional and safe to disable
+- captures token usage when the provider returns it
+
+Verification:
+
+```text
+84 tests passed
+ruff clean
+mypy clean
+```
+
 ---
 
-## 9. Current Deterministic Pipeline
-
-Project 1 currently has:
+## 8. Current Pipeline
 
 ```text
 mock panel / REST API / GraphQL API
@@ -528,58 +372,14 @@ persistent run recording + local JSONL history
 
 Project 1 does not yet have:
 
+- human approval records / approval queue
 - Telegram/Slack/email notification
 - CI/CD
 - final interview demo script
 
 ---
 
-## 10. Architectural Decisions
-
-### Keep `src/marketing_ops_agent`
-
-Do not move code to `app/`.
-
-### API first, browser automation second
-
-Use API clients where APIs exist:
-
-- Campaign REST API
-- Analytics GraphQL API
-- Project Management REST API
-
-Use Playwright only for the local HTML-only panel without API.
-
-### Downstream modules consume validated objects
-
-Downstream modules should consume:
-
-```text
-CampaignSnapshot
-AnomalyFinding
-Markdown report string
-DailyMarketingReportResult
-WorkflowRunRecord
-LLMInterpretationRequest
-LLMInterpretationResult
-```
-
-They should not consume raw scraped rows, raw REST responses or raw GraphQL responses.
-
-### LLM interpretation boundary
-
-LLM logic now exists only after deterministic workflow and observability.
-
-This condition is satisfied after Milestone 10.
-
-### No real CAPTCHA bypass
-
-Do not implement:
-
-- real CAPTCHA bypass
-- anti-bot evasion
-- external site scraping
-- credential hardcoding
+## 9. Architectural Decisions
 
 ### Deterministic code before agentic code
 
@@ -590,6 +390,7 @@ LLM must not:
 - invent missing metrics
 - silently resolve mismatches
 - perform deterministic calculations
+- replace deterministic findings
 
 LLM may:
 
@@ -599,9 +400,13 @@ LLM may:
 - classify narrative severity
 - draft executive summaries
 
+### Human approval before external action
+
+Before adding real notifications or external side effects, Project 1 should add a human approval flow for sensitive recommendations and high-risk actions.
+
 ---
 
-## 11. Quality Standards
+## 10. Quality Standards
 
 Codex must maintain:
 
@@ -621,56 +426,50 @@ mypy clean
 
 ---
 
-## 12. Completed Milestone: Milestone 10
+## 11. Next Milestone: Milestone 11
 
 ### Goal
 
-Implement an optional LLM interpretation layer on top of the deterministic pipeline.
+Implement a human approval flow for sensitive recommendations and high-risk automation.
 
-The LLM layer must consume only validated deterministic outputs:
-
-```text
-CampaignSnapshot
-AnomalyFinding
-Markdown report draft
-WorkflowRunRecord
-```
-
-Do not let the LLM access raw scraped rows, raw REST responses, raw GraphQL responses, credentials or secrets.
+Notifications should come after this milestone.
 
 ### Required behavior
 
-The LLM interpretation layer should:
+The human approval layer should:
 
-- generate an executive interpretation from validated snapshots and findings
-- summarize business impact
-- propose human-readable recommended actions
-- explicitly mention missing data and data quality flags
-- never invent missing metrics
-- never overwrite deterministic findings
-- return structured output
-- support a safe local/mock mode when no API key is configured
-- track token usage if a real provider is used
-- be optional and disabled by default unless configured
+- create approval requests for high-risk recommendations
+- create approval requests for critical findings
+- create approval requests for findings that require human review
+- persist approval records locally
+- support statuses such as `pending`, `approved`, `rejected`, `expired`
+- never auto-approve high-risk actions
+- be deterministic and testable
+- integrate with the existing workflow without making approval mandatory for healthy runs
+- prepare the system for approval-aware notifications later
 
 ### Suggested structure
 
 ```text
-src/marketing_ops_agent/llm/
+src/marketing_ops_agent/approval/
 ├── __init__.py
-├── interpreter.py
 ├── models.py
-├── prompts.py
-├── providers.py
+├── approval_store.py
+├── service.py
 └── errors.py
 
-tests/llm/
-└── test_interpreter.py
+tests/approval/
+└── test_approval_flow.py
+
+approval-requests/
+└── .gitkeep
 ```
+
+Generated approval request files should be ignored by git. Only `.gitkeep` should be committed.
 
 ---
 
-## 13. Prompt for Codex: Milestone 11
+## 12. Prompt for Codex: Milestone 11
 
 Use this prompt next:
 
@@ -679,7 +478,7 @@ Read the root AGENTS.md and docs/CODEX_HANDOFF_AI_AUTOMATION_PORTFOLIO.md first.
 
 Continue Project 1: 01-ai-marketing-ops-agent.
 
-Milestone 11: implement the next controlled automation boundary.
+Milestone 11: implement human approval flow.
 
 Current state:
 - Mock FastAPI services exist.
@@ -699,32 +498,103 @@ Current state:
 - Do not move existing files.
 - Do not replace deterministic reporting.
 - Do not let LLM access raw scraped rows, raw REST responses, raw GraphQL responses, credentials or secrets.
+- Do not add notification integrations yet.
 
 Goal:
-Choose and implement Milestone 11:
-- human approval flow for sensitive recommendations, or
-- notification delivery through Slack, Telegram or email.
+Add a deterministic human approval flow for sensitive recommendations and high-risk automation.
 
-Keep the same quality gate:
-- uv run pytest
-- uv run ruff check .
-- uv run mypy src
+Implement:
+1. Typed approval models:
+   - ApprovalRequest
+   - ApprovalDecision
+   - ApprovalStatus enum
+   - ApprovalRiskLevel enum
+2. Local approval store:
+   - append/create approval request
+   - list pending approvals
+   - get approval by id
+   - record approve/reject decision
+   - persist records locally, preferably JSONL or JSON files
+3. Approval service that:
+   - creates approval requests for critical findings
+   - creates approval requests for findings requiring human review
+   - creates approval requests for high-risk LLM recommended actions if available
+   - never auto-approves high-risk actions
+   - deduplicates approval requests within one run
+4. Optional workflow integration:
+   - create approval requests after deterministic findings and optional LLM interpretation
+   - do not block healthy workflow runs
+   - include approval request IDs in workflow result if appropriate
+5. Tests for:
+   - creating approval request
+   - listing pending approvals
+   - approving request
+   - rejecting request
+   - deduplication
+   - critical finding creates approval request
+   - human-review finding creates approval request
+   - healthy run creates no approval request
+   - no secrets are persisted
+6. Documentation updates:
+   - README.md
+   - docs/ARCHITECTURE.md
+   - docs/DECISIONS.md
+   - docs/RUNBOOK.md
+   - .agents/skills/marketing-report/SKILL.md
+
+Implementation guidance:
+- Prefer local persistence for this milestone.
+- Use Pydantic models.
+- Use pathlib.
+- Use timezone-aware UTC timestamps.
+- Generated approval files must not be committed.
+- Add or update .gitignore if needed.
+- Keep tests deterministic.
+- Do not add Slack/Telegram/email yet.
+- Keep mypy clean.
+- Ensure:
+  - uv run pytest passes
+  - uv run ruff check . passes
+  - uv run mypy src passes
+
+Suggested structure:
+- src/marketing_ops_agent/approval/
+  - __init__.py
+  - models.py
+  - approval_store.py
+  - service.py
+  - errors.py
+- tests/approval/
+  - test_approval_flow.py
+- approval-requests/
+  - .gitkeep
+
+After implementation, summarize:
+1. files created/changed
+2. approval models
+3. approval store API
+4. approval service behavior
+5. workflow integration behavior
+6. test coverage added
+7. how to inspect approval requests manually
+8. what should be built next
 ```
 
 ---
 
-## 14. Future Milestones
+## 13. Future Milestones
 
 ```text
-Milestone 11 — human approval flow or notifications
-Milestone 12 — CI/CD
-Project 2    — MCP Automation Server + Claude Code Toolkit
-Project 3    — AgentOps Control Tower
+Milestone 11 — human approval flow
+Milestone 12 — notifications
+Milestone 13 — CI/CD
+Project 2     — MCP Automation Server + Claude Code Toolkit
+Project 3     — AgentOps Control Tower
 ```
 
 ---
 
-## 15. Demo Commands
+## 14. Demo Commands
 
 Run mock services:
 
@@ -759,7 +629,7 @@ Generated report and run history files are ignored by git.
 
 ---
 
-## 16. What Not To Do
+## 15. What Not To Do
 
 Do not:
 
@@ -775,6 +645,6 @@ Do not:
 - move `src/marketing_ops_agent` to `app`
 - change `.agents/skills` to `.skills`
 - let LLM replace deterministic logic
-- add notifications before LLM interpretation decision is complete
+- add notifications before human approval flow
 - skip tests
 - ignore mypy/ruff failures
