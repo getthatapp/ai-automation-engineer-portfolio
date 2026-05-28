@@ -6,7 +6,7 @@ The goal is not to build a chatbot. The goal is to demonstrate a controlled, tes
 
 ## Current status
 
-Milestones 1-8 are completed.
+Milestones 1-9 are completed.
 
 Completed scope:
 
@@ -21,10 +21,11 @@ Completed scope:
 - Deterministic anomaly detection over `CampaignSnapshot` objects, including performance rules and data quality escalation.
 - Deterministic Markdown report writer over `CampaignSnapshot` and `AnomalyFinding` objects.
 - Deterministic daily report workflow orchestration that scrapes, aggregates, detects anomalies, writes a Markdown report to `reports/` and can optionally create project management tasks for critical or human-review findings.
+- Persistent local run recording to JSONL under `run-history/`, including success/failure status, timings, output paths, counts, task IDs, data quality summaries and sanitized failure messages.
 - Minimal pytest coverage and project documentation placeholders.
 - Claude/Codex-ready marketing report skill.
 
-The full LLM report workflow, persistent run recording and external notification delivery are intentionally left for later milestones.
+The full LLM report workflow and external notification delivery are intentionally left for later milestones.
 
 ## Requirements
 
@@ -249,6 +250,46 @@ so the local output directory exists in a fresh checkout.
 Optional task creation is deterministic and limited to findings that are
 critical or require human review. Duplicate task requests for the same campaign
 and anomaly type are suppressed within one workflow run.
+
+## Persistent run recording
+
+The observability layer lives in `marketing_ops_agent.observability`. The local
+runner records workflow summaries to JSONL by default:
+
+```text
+run-history/workflow-runs.jsonl
+```
+
+Each `WorkflowRunRecord` captures:
+
+- run identity, workflow name, status and UTC timestamps;
+- duration in seconds;
+- report path when a report was saved;
+- snapshot, finding, critical finding and task error counts;
+- human-review requirement;
+- created project task IDs;
+- data quality flag counts;
+- sanitized failure type and message for unrecoverable workflow failures.
+
+Manual inspection:
+
+```bash
+tail -n 5 run-history/workflow-runs.jsonl
+```
+
+Programmatic inspection:
+
+```python
+from marketing_ops_agent.observability import LocalRunRecorder
+
+
+recorder = LocalRunRecorder("run-history/workflow-runs.jsonl")
+recent_runs = recorder.read_recent(limit=10)
+specific_run = recorder.get("daily-marketing-report-20260528T120000Z")
+```
+
+Generated JSONL run history is ignored by git. Only `run-history/.gitkeep` is
+checked in so the local directory exists in a fresh checkout.
 
 ## Typed client usage
 

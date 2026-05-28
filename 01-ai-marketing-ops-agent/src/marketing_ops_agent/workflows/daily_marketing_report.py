@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+from collections import Counter
 from collections.abc import Callable, Sequence
 from contextlib import AsyncExitStack
 from datetime import UTC, datetime
@@ -25,11 +26,17 @@ from marketing_ops_agent.clients import (
     ServiceClientError,
 )
 from marketing_ops_agent.models import WorkflowStatus
+from marketing_ops_agent.observability import (
+    DEFAULT_RUN_RECORDS_PATH,
+    LocalRunRecorder,
+    WorkflowRunRecord,
+)
 from marketing_ops_agent.reporting import MarkdownReportWriter, ReportMetadata, sort_findings
 from marketing_ops_agent.workflows.models import DailyMarketingReportResult
 
 DEFAULT_REPORTS_DIR = Path("reports")
 REPORT_FILENAME_PREFIX = "daily-marketing-report"
+WORKFLOW_NAME = "daily_marketing_report"
 
 logger = logging.getLogger(__name__)
 
@@ -63,6 +70,12 @@ class TaskCreationClient(Protocol):
     async def create_task(self, task: ProjectTaskCreate) -> ProjectTask: ...
 
 
+class WorkflowRunRecorder(Protocol):
+    """Persistent recorder contract needed by the workflow."""
+
+    def append(self, record: WorkflowRunRecord) -> None: ...
+
+
 class WorkflowExecutionError(Exception):
     """Raised when an unrecoverable workflow step fails."""
 
@@ -84,6 +97,7 @@ class DailyMarketingReportWorkflow:
         detector: CampaignAnomalyDetector | None = None,
         report_writer: CampaignReportWriter | None = None,
         task_client: TaskCreationClient | None = None,
+        run_recorder: WorkflowRunRecorder | None = None,
         reports_dir: Path | str = DEFAULT_REPORTS_DIR,
         clock: Callable[[], datetime] | None = None,
     ) -> None:
@@ -95,6 +109,7 @@ class DailyMarketingReportWorkflow:
         self._detector = detector or AnomalyDetector()
         self._report_writer = report_writer or MarkdownReportWriter()
         self._task_client = task_client
+        self._run_recorder = run_recorder
         self._reports_dir = Path(reports_dir)
         self._clock = clock or (lambda: datetime.now(UTC))
 
@@ -104,6 +119,11 @@ class DailyMarketingReportWorkflow:
         started_at = self._normalize_datetime(self._clock())
         run_id = _run_id(started_at)
         logger.info("Starting daily marketing report workflow run %s", run_id)
+        snapshots: list[CampaignSnapshot] = []
+        findings: list[AnomalyFinding] = []
+        report_path: Path | None = None
+        created_tasks: list[ProjectTask] = []
+        task_errors: list[str] = []
 
         try:
             scraped_rows = await self._scrape_rows()
@@ -112,7 +132,21 @@ class DailyMarketingReportWorkflow:
             report_markdown = self._write_report(snapshots, findings, started_at)
             report_path = self._save_report(report_markdown, started_at)
             created_tasks, task_errors = await self._create_tasks(findings)
-        except WorkflowExecutionError:
+        except WorkflowExecutionError as exc:
+            finished_at = self._normalize_datetime(self._clock())
+            self._record_run_safely(
+                _build_failed_run_record(
+                    run_id=run_id,
+                    started_at=started_at,
+                    finished_at=finished_at,
+                    snapshots=snapshots,
+                    findings=findings,
+                    report_path=report_path,
+                    created_tasks=created_tasks,
+                    task_errors=task_errors,
+                    error=exc,
+                )
+            )
             logger.exception("Daily marketing report workflow run %s failed", run_id)
             raise
 
@@ -138,6 +172,7 @@ class DailyMarketingReportWorkflow:
             created_tasks=tuple(created_tasks),
             task_creation_errors=tuple(task_errors),
         )
+        self._record_run_safely(_build_success_run_record(result))
         logger.info(
             "Daily marketing report workflow run %s finished with status %s",
             run_id,
@@ -218,6 +253,17 @@ class DailyMarketingReportWorkflow:
     def _report_path(self, generated_at: datetime) -> Path:
         return self._reports_dir / f"{REPORT_FILENAME_PREFIX}-{_timestamp_slug(generated_at)}.md"
 
+    def _record_run_safely(self, record: WorkflowRunRecord) -> None:
+        if self._run_recorder is None:
+            return
+        try:
+            self._run_recorder.append(record)
+        except Exception:
+            logger.exception(
+                "Failed to persist workflow run record for %s",
+                record.run_id,
+            )
+
     @staticmethod
     def _normalize_datetime(value: datetime) -> datetime:
         if value.tzinfo is None:
@@ -255,6 +301,7 @@ def build_task_requests(findings: Sequence[AnomalyFinding]) -> list[ProjectTaskC
 async def run_daily_marketing_report_workflow(
     *,
     reports_dir: Path | str = DEFAULT_REPORTS_DIR,
+    run_records_path: Path | str | None = DEFAULT_RUN_RECORDS_PATH,
     create_project_tasks: bool = False,
 ) -> DailyMarketingReportResult:
     """Run the workflow with concrete local scraper and service clients."""
@@ -273,6 +320,11 @@ async def run_daily_marketing_report_workflow(
             campaign_client=campaign_client,
             analytics_client=analytics_client,
             task_client=task_client,
+            run_recorder=(
+                LocalRunRecorder(run_records_path)
+                if run_records_path is not None
+                else None
+            ),
             reports_dir=reports_dir,
         )
         return await workflow.run()
@@ -344,6 +396,78 @@ def _timestamp_slug(value: datetime) -> str:
 
 def _run_id(started_at: datetime) -> str:
     return f"{REPORT_FILENAME_PREFIX}-{_timestamp_slug(started_at)}"
+
+
+def _build_success_run_record(
+    result: DailyMarketingReportResult,
+) -> WorkflowRunRecord:
+    return WorkflowRunRecord(
+        run_id=result.run_id,
+        workflow_name=WORKFLOW_NAME,
+        status=result.status,
+        started_at=result.started_at,
+        finished_at=result.finished_at,
+        duration_seconds=_duration_seconds(result.started_at, result.finished_at),
+        report_path=result.report_path,
+        snapshot_count=result.snapshot_count,
+        finding_count=result.finding_count,
+        critical_finding_count=_critical_finding_count(result.findings),
+        human_review_required=result.requires_human_review,
+        created_task_ids=tuple(task.task_id for task in result.created_tasks),
+        task_error_count=len(result.task_creation_errors),
+        data_quality_summary=_data_quality_summary(result.snapshots),
+        failure_type=None,
+        failure_message=None,
+    )
+
+
+def _build_failed_run_record(
+    *,
+    run_id: str,
+    started_at: datetime,
+    finished_at: datetime,
+    snapshots: Sequence[CampaignSnapshot],
+    findings: Sequence[AnomalyFinding],
+    report_path: Path | None,
+    created_tasks: Sequence[ProjectTask],
+    task_errors: Sequence[str],
+    error: WorkflowExecutionError,
+) -> WorkflowRunRecord:
+    return WorkflowRunRecord(
+        run_id=run_id,
+        workflow_name=WORKFLOW_NAME,
+        status=WorkflowStatus.FAILED,
+        started_at=started_at,
+        finished_at=finished_at,
+        duration_seconds=_duration_seconds(started_at, finished_at),
+        report_path=report_path,
+        snapshot_count=len(snapshots),
+        finding_count=len(findings),
+        critical_finding_count=_critical_finding_count(findings),
+        human_review_required=_requires_human_review(snapshots, findings),
+        created_task_ids=tuple(task.task_id for task in created_tasks),
+        task_error_count=len(task_errors),
+        data_quality_summary=_data_quality_summary(snapshots),
+        failure_type=error.step,
+        failure_message=str(error.cause),
+    )
+
+
+def _critical_finding_count(findings: Sequence[AnomalyFinding]) -> int:
+    return sum(1 for finding in findings if finding.severity is AnomalySeverity.CRITICAL)
+
+
+def _data_quality_summary(snapshots: Sequence[CampaignSnapshot]) -> dict[str, int]:
+    counts: Counter[str] = Counter(
+        flag.value
+        for snapshot in snapshots
+        for flag in snapshot.data_quality_flags
+    )
+    return dict(sorted(counts.items()))
+
+
+def _duration_seconds(started_at: datetime, finished_at: datetime) -> float:
+    return max((finished_at - started_at).total_seconds(), 0.0)
 
 
 if __name__ == "__main__":

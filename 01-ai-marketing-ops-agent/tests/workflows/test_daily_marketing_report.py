@@ -17,6 +17,7 @@ from marketing_ops_agent.clients import ProjectTask, ProjectTaskCreate
 from marketing_ops_agent.clients.analytics_client import AnalyticsCampaignMetrics
 from marketing_ops_agent.clients.errors import ServiceDecodeError, ServiceResponseError
 from marketing_ops_agent.models import Campaign, CampaignMetrics, Channel, WorkflowStatus
+from marketing_ops_agent.observability import LocalRunRecorder
 from marketing_ops_agent.reporting import ReportMetadata
 from marketing_ops_agent.workflows import DailyMarketingReportWorkflow, WorkflowExecutionError
 
@@ -248,6 +249,70 @@ async def test_unrecoverable_scraper_failure_is_surfaced_clearly(
     assert not list(tmp_path.iterdir())
 
 
+@pytest.mark.asyncio
+async def test_successful_workflow_records_run(tmp_path: Path) -> None:
+    recorder = LocalRunRecorder(tmp_path / "run-history" / "workflow-runs.jsonl")
+    workflow = _workflow(
+        rows=[_row()],
+        reports_dir=tmp_path / "reports",
+        run_recorder=recorder,
+    )
+
+    result = await workflow.run()
+
+    records = recorder.read_recent()
+    assert len(records) == 1
+    record = records[0]
+    assert record.run_id == result.run_id
+    assert record.workflow_name == "daily_marketing_report"
+    assert record.status is WorkflowStatus.SUCCEEDED
+    assert record.started_at == REFERENCE_TIME
+    assert record.finished_at == REFERENCE_TIME
+    assert record.duration_seconds == 0.0
+    assert record.report_path == result.report_path
+    assert record.snapshot_count == 1
+    assert record.finding_count == 0
+    assert record.critical_finding_count == 0
+    assert record.human_review_required is False
+    assert record.created_task_ids == ()
+    assert record.task_error_count == 0
+    assert record.data_quality_summary == {}
+    assert record.failure_type is None
+    assert record.failure_message is None
+
+
+@pytest.mark.asyncio
+async def test_failed_workflow_records_failed_run_without_hiding_exception(
+    tmp_path: Path,
+) -> None:
+    recorder = LocalRunRecorder(tmp_path / "run-history" / "workflow-runs.jsonl")
+    workflow = _workflow(
+        rows=[],
+        scraper_error=DashboardUnavailableError(
+            "dashboard unavailable password=super-secret token=abc123"
+        ),
+        reports_dir=tmp_path / "reports",
+        run_recorder=recorder,
+    )
+
+    with pytest.raises(WorkflowExecutionError):
+        await workflow.run()
+
+    records = recorder.read_recent()
+    assert len(records) == 1
+    record = records[0]
+    assert record.run_id == "daily-marketing-report-20260528T120000Z"
+    assert record.status is WorkflowStatus.FAILED
+    assert record.failure_type == "scrape_marketing_panel"
+    assert record.failure_message is not None
+    assert "super-secret" not in record.failure_message
+    assert "abc123" not in record.failure_message
+    assert "[REDACTED]" in record.failure_message
+    assert record.report_path is None
+    assert record.snapshot_count == 0
+    assert record.finding_count == 0
+
+
 def _workflow(
     *,
     rows: Sequence[ScrapedCampaignRow],
@@ -256,6 +321,7 @@ def _workflow(
     detector: RecordingDetector | AnomalyDetector | None = None,
     report_writer: RecordingReportWriter | None = None,
     task_client: FakeTaskClient | None = None,
+    run_recorder: LocalRunRecorder | None = None,
     reports_dir: Path | str,
     scraper_error: Exception | None = None,
 ) -> DailyMarketingReportWorkflow:
@@ -275,6 +341,7 @@ def _workflow(
         detector=detector or RecordingDetector(findings=[]),
         report_writer=report_writer or RecordingReportWriter(),
         task_client=task_client,
+        run_recorder=run_recorder,
         reports_dir=reports_dir,
         clock=lambda: REFERENCE_TIME,
     )

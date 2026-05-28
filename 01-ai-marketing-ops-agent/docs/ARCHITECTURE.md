@@ -135,6 +135,46 @@ reports/daily-marketing-report-YYYYMMDDTHHMMSSZ.md
 Generated reports are local artifacts and are ignored by git except for
 `reports/.gitkeep`.
 
+## Observability Layer
+
+`marketing_ops_agent.observability` provides the Milestone 9 local run-history
+boundary. It is intentionally file-backed and deterministic, with no external
+services.
+
+The durable model is `WorkflowRunRecord`. It stores:
+
+- `run_id` and `workflow_name`;
+- `status`;
+- timezone-aware UTC `started_at` and `finished_at`;
+- `duration_seconds`;
+- `report_path`;
+- `snapshot_count`, `finding_count` and `critical_finding_count`;
+- `human_review_required`;
+- `created_task_ids` and `task_error_count`;
+- `data_quality_summary`;
+- sanitized `failure_type` and `failure_message`.
+
+`LocalRunRecorder` appends one JSON object per line to:
+
+```text
+run-history/workflow-runs.jsonl
+```
+
+It creates the storage directory on append, reads recent records, reads one run
+by `run_id` and raises `MalformedRunRecordLineError` when an existing JSONL line
+cannot be parsed or validated. Malformed lines are not silently skipped because
+run history is an audit artifact.
+
+`DailyMarketingReportWorkflow` accepts an optional recorder dependency. When a
+recorder is provided, successful runs are recorded after result creation. Failed
+unrecoverable runs are recorded before re-raising the original
+`WorkflowExecutionError`. Recorder persistence errors are logged so they do not
+replace the original workflow success or failure path.
+
+The concrete `run_daily_marketing_report_workflow` local runner enables
+recording by default through `LocalRunRecorder`. Passing `run_records_path=None`
+disables local run recording for callers that need a side-effect-free run.
+
 ## Project Task Rules
 
 Task creation is optional. When a task client is provided, the workflow creates

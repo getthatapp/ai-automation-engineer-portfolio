@@ -44,6 +44,9 @@ logs/
 reports/*.md
 reports/*.html
 reports/*.json
+**/run-history/*.jsonl
+**/run-history/*.json
+!**/run-history/.gitkeep
 *.log
 
 # Playwright

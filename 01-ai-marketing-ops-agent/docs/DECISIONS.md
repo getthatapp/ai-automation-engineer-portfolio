@@ -107,5 +107,33 @@ Consequences:
   filenames and are ignored by git except for `.gitkeep`.
 - Task creation deduplicates by `(campaign_id, anomaly_type)` within a single
   run.
-- LLM analysis, external notifications and persistent run recording remain
-  separate later milestones.
+- LLM analysis and external notifications remain separate later milestones.
+
+## JSONL Local Run Recording Before External Observability
+
+Decision: persist daily workflow run records locally as JSONL before adding any
+external monitoring, database or notification integration.
+
+Reasoning:
+
+- Run history should be deterministic, inspectable and easy to test in a local
+  portfolio environment.
+- JSONL gives append-only behavior without introducing a database dependency for
+  this milestone.
+- The workflow should record enough operational metadata for auditability while
+  avoiding raw source payloads, environment variables and secrets.
+- Malformed history lines should surface explicitly instead of being silently
+  ignored.
+
+Consequences:
+
+- `WorkflowRunRecord` is the typed persisted observability contract.
+- `LocalRunRecorder` appends records to `run-history/workflow-runs.jsonl` and
+  reads recent runs or a specific run ID.
+- Successful workflow runs and unrecoverable workflow failures are recorded when
+  a recorder is configured.
+- Failed workflow recording preserves original exception behavior by re-raising
+  the original `WorkflowExecutionError`.
+- Failure messages are sanitized for common inline credential shapes before
+  they are persisted.
+- Generated run history is ignored by git except for `run-history/.gitkeep`.

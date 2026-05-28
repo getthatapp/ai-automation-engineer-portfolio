@@ -341,6 +341,7 @@ uv run python -m marketing_ops_agent.workflows.daily_marketing_report
 ```
 
 The command prints the report path on success.
+It also appends a local run record to `run-history/workflow-runs.jsonl`.
 
 Programmatic usage:
 
@@ -376,6 +377,51 @@ reports/daily-marketing-report-YYYYMMDDTHHMMSSZ.md
 
 Generated report files are ignored by git. Keep only `reports/.gitkeep`
 checked in.
+
+## Run History Output
+
+Run history is written under:
+
+```text
+run-history/workflow-runs.jsonl
+```
+
+The file is append-only JSONL. Each line is one `WorkflowRunRecord` with:
+
+- run ID, workflow name, status and UTC timestamps;
+- duration in seconds;
+- report path;
+- snapshot, finding, critical finding and task error counts;
+- human-review requirement;
+- created task IDs;
+- data quality flag counts;
+- sanitized failure type and message for unrecoverable failures.
+
+Inspect recent runs manually:
+
+```bash
+tail -n 5 run-history/workflow-runs.jsonl
+```
+
+Read recent runs from Python:
+
+```python
+from marketing_ops_agent.observability import LocalRunRecorder
+
+
+recorder = LocalRunRecorder("run-history/workflow-runs.jsonl")
+for record in recorder.read_recent(limit=5):
+    print(record.run_id, record.status, record.report_path)
+```
+
+Read one run by ID:
+
+```python
+record = recorder.get("daily-marketing-report-20260528T120000Z")
+```
+
+Generated run history files are ignored by git. Keep only
+`run-history/.gitkeep` checked in.
 
 ## Workflow Result
 
@@ -413,8 +459,15 @@ Unrecoverable failures raise `WorkflowExecutionError` with a step name:
 Task creation service failures are recorded in `task_creation_errors` and do
 not delete or block the local Markdown report.
 
+When a local run recorder is configured, successful workflow runs and
+unrecoverable workflow failures are persisted. Failed workflow runs still
+re-raise `WorkflowExecutionError`; recording does not hide the original
+failure.
+
+If a JSONL history line is malformed, `LocalRunRecorder` raises
+`MalformedRunRecordLineError` with the path and line number. Do not silently
+delete the line unless you have already captured it for investigation.
+
 ## Planned Runbook Sections
 
-- log inspection,
-- retry and failure handling,
 - human approval flow.
