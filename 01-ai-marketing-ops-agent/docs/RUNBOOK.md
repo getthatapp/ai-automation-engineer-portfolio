@@ -420,6 +420,50 @@ Operational notes:
 - Token usage is recorded in `LLMInterpretationResult.token_usage` when a
   provider returns it.
 
+## Human Approval Flow
+
+Approval requests are written locally when deterministic findings or LLM
+recommendations require review. The default path is:
+
+```text
+approval-requests/approval-requests.jsonl
+```
+
+Inspect pending requests manually:
+
+```bash
+tail -n 20 approval-requests/approval-requests.jsonl
+```
+
+Read and decide requests from Python:
+
+```python
+from marketing_ops_agent.approval import LocalApprovalStore
+
+
+store = LocalApprovalStore("approval-requests/approval-requests.jsonl")
+pending = store.list_pending()
+request = store.get(pending[0].approval_id)
+approved = store.approve(
+    pending[0].approval_id,
+    decided_by="manager@example.com",
+    reason="Evidence reviewed.",
+)
+```
+
+Approval behavior:
+
+- critical deterministic findings create approval requests;
+- findings with `requires_human_review=True` create approval requests;
+- high-priority or human-approval LLM recommended actions create approval
+  requests;
+- high-risk actions are never auto-approved;
+- duplicate approval requests are suppressed within one workflow run;
+- approval storage errors do not block deterministic report generation.
+
+If an approval JSONL line is malformed, `LocalApprovalStore` raises
+`MalformedApprovalRecordLineError` with the path and line number.
+
 ## Report Output
 
 Reports are written under:
@@ -446,6 +490,7 @@ The file is append-only JSONL. Each line is one `WorkflowRunRecord` with:
 - report path;
 - snapshot, finding, critical finding and task error counts;
 - human-review requirement;
+- approval request count;
 - created task IDs;
 - data quality flag counts;
 - sanitized failure type and message for unrecoverable failures.
@@ -488,6 +533,7 @@ Generated run history files are ignored by git. Keep only
 - `requires_human_review`
 - `snapshots`
 - `findings`
+- `approval_request_ids`
 - `created_tasks`
 - `task_creation_errors`
 
@@ -523,4 +569,4 @@ delete the line unless you have already captured it for investigation.
 
 ## Planned Runbook Sections
 
-- human approval flow.
+- approval-aware notification delivery.

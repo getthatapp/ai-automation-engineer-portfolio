@@ -35,6 +35,7 @@ class WorkflowRunRecord(BaseModel):
     finding_count: int = Field(ge=0)
     critical_finding_count: int = Field(ge=0)
     human_review_required: bool
+    approval_request_count: int = Field(default=0, ge=0)
     created_task_ids: tuple[str, ...] = ()
     task_error_count: int = Field(ge=0)
     data_quality_summary: dict[str, int] = Field(default_factory=dict)

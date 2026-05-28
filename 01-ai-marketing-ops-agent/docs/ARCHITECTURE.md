@@ -133,11 +133,33 @@ structured disabled/failed result from the service, and workflow integration
 logs unexpected interpreter errors without failing deterministic report
 generation.
 
+## Approval Layer
+
+`marketing_ops_agent.approval` provides deterministic human approval gating for
+sensitive workflow outputs. It creates `ApprovalRequest` records for critical
+findings, findings that require human review and high-risk LLM recommended
+actions. High-risk actions are never auto-approved.
+
+`LocalApprovalStore` persists approval request states as JSONL under:
+
+```text
+approval-requests/approval-requests.jsonl
+```
+
+The store supports create, list pending, list all, get by ID, approve and
+reject operations. Later decision entries are appended as full request states
+and collapsed by approval ID on read. Malformed JSONL lines raise
+`MalformedApprovalRecordLineError` instead of being skipped silently.
+
+Approval records store sanitized text, run ID, campaign ID, source type, source
+reference, risk level and source evidence. They do not store credentials, raw
+scraped rows, raw REST responses or raw GraphQL responses.
+
 ## Workflow Orchestration Layer
 
 `marketing_ops_agent.workflows.DailyMarketingReportWorkflow` is the executable
-deterministic pipeline for Milestone 8. It coordinates existing components
-without introducing LLM calls or external notification integrations.
+deterministic pipeline. It coordinates existing components without introducing
+external notification integrations.
 
 Workflow order:
 
@@ -148,7 +170,8 @@ Workflow order:
 4. pass findings into the Markdown report writer;
 5. save the report under a local reports directory;
 6. optionally run LLM interpretation over the deterministic outputs;
-7. optionally create project management tasks.
+7. create optional approval requests for high-risk outputs;
+8. optionally create project management tasks.
 
 The workflow uses dependency injection for the scraper, clients, detector,
 report writer and optional task client. Tests can replace every boundary with
@@ -158,8 +181,8 @@ fakes while production-local runs use `PlaywrightMarketingPanelScraper`,
 
 The typed result is `DailyMarketingReportResult`. It records the run ID,
 status, timestamps, report path, row/snapshot/finding counts, snapshots,
-findings, optional LLM interpretation, created tasks and non-fatal task
-creation errors.
+findings, optional LLM interpretation, approval request IDs, created tasks and
+non-fatal task creation errors.
 
 Report paths are deterministic from the run timestamp:
 
@@ -185,6 +208,7 @@ The durable model is `WorkflowRunRecord`. It stores:
 - `report_path`;
 - `snapshot_count`, `finding_count` and `critical_finding_count`;
 - `human_review_required`;
+- `approval_request_count`;
 - `created_task_ids` and `task_error_count`;
 - `data_quality_summary`;
 - sanitized `failure_type` and `failure_message`.
@@ -239,9 +263,8 @@ or workflow status. Those values remain owned by deterministic modules.
 
 ## Human Approval
 
-`CampaignSnapshot.requires_human_review` is the first checkpoint for later
-approval flow. `AnomalyFinding.requires_human_review` is the second checkpoint
-for rule-level escalations. The workflow already uses finding-level human
-review requirements when deciding whether to create deterministic project
-management tasks. Later milestones should add explicit approval state before
-sending reports or recommending sensitive campaign changes.
+`CampaignSnapshot.requires_human_review` and
+`AnomalyFinding.requires_human_review` are deterministic inputs to the approval
+layer. Approval requests are explicit local records that must be approved or
+rejected by a human before later notification or external-action milestones
+act on sensitive recommendations.

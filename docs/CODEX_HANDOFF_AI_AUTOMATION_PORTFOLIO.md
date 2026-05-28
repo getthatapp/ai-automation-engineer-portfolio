@@ -3,8 +3,8 @@
 Last updated: 2026-05-28  
 Repository: `ai-automation-engineer-portfolio`  
 Current project: `01-ai-marketing-ops-agent`  
-Current status: Milestones 1-10 completed.  
-Next step: Milestone 11 — human approval flow.
+Current status: Milestones 1-11 completed.
+Next step: Milestone 12 — approval-aware notifications.
 
 ---
 
@@ -141,6 +141,7 @@ Project 1 demonstrates:
 - workflow orchestration
 - local observability
 - optional LLM interpretation over validated outputs
+- local human approval queue
 - monitoring/logging foundation
 - Docker
 - decision documentation
@@ -164,6 +165,8 @@ Project 1 uses a `src/` layout. Do not move code to `app/`.
 │   └── .gitkeep
 ├── run-history/
 │   └── .gitkeep
+├── approval-requests/
+│   └── .gitkeep
 ├── docs/
 │   ├── ARCHITECTURE.md
 │   ├── DECISIONS.md
@@ -174,6 +177,7 @@ Project 1 uses a `src/` layout. Do not move code to `app/`.
 │           └── SKILL.md
 ├── src/
 │   └── marketing_ops_agent/
+│       ├── approval/
 │       ├── aggregation/
 │       ├── anomaly/
 │       ├── browser/
@@ -185,6 +189,7 @@ Project 1 uses a `src/` layout. Do not move code to `app/`.
 │       ├── workflows/
 │       └── utils/
 └── tests/
+    ├── approval/
     ├── aggregation/
     ├── anomaly/
     ├── browser/
@@ -350,6 +355,40 @@ ruff clean
 mypy clean
 ```
 
+### Milestone 11 — Human Approval Flow
+
+Implemented:
+
+- `ApprovalRequest`
+- `ApprovalDecision`
+- `ApprovalStatus`
+- `ApprovalRiskLevel`
+- `ApprovalSource`
+- local JSONL `LocalApprovalStore`
+- deterministic `ApprovalService`
+- optional workflow integration with approval request IDs
+- `approval_request_count` in workflow run history
+- deterministic test coverage for approvals, deduplication, high-risk LLM actions, secret sanitization and malformed persistence handling
+
+Human approval behavior:
+
+- creates requests for critical findings
+- creates requests for findings requiring human review
+- creates requests for high-risk or human-approval LLM recommendations
+- never auto-approves high-risk actions
+- deduplicates approval requests within a run
+- persists records locally under `approval-requests/`
+- does not block healthy workflow runs
+- fails safely when approval storage is unavailable
+
+Verification:
+
+```text
+96 tests passed
+ruff clean
+mypy clean
+```
+
 ---
 
 ## 8. Current Pipeline
@@ -365,14 +404,17 @@ AnomalyFinding objects
         ↓
 deterministic Markdown report
         ↓
-daily workflow orchestration + local report file + optional LLM interpretation + optional deterministic tasks
+daily workflow orchestration + local report file + optional LLM interpretation
+        ↓
+approval request creation for high-risk outputs
+        ↓
+optional deterministic tasks
         ↓
 persistent run recording + local JSONL history
 ```
 
 Project 1 does not yet have:
 
-- human approval records / approval queue
 - Telegram/Slack/email notification
 - CI/CD
 - final interview demo script
@@ -402,7 +444,7 @@ LLM may:
 
 ### Human approval before external action
 
-Before adding real notifications or external side effects, Project 1 should add a human approval flow for sensitive recommendations and high-risk actions.
+Project 1 now creates local approval requests for sensitive recommendations and high-risk actions before any real notification integrations are added.
 
 ---
 
@@ -416,60 +458,53 @@ uv run ruff check .
 uv run mypy src
 ```
 
-Current verified status after Milestone 10:
+Current verified status after Milestone 11:
 
 ```text
-84 tests passing
+96 tests passing
 ruff clean
 mypy clean
 ```
 
 ---
 
-## 11. Next Milestone: Milestone 11
+## 11. Next Milestone: Milestone 12
 
 ### Goal
 
-Implement a human approval flow for sensitive recommendations and high-risk automation.
-
-Notifications should come after this milestone.
+Implement approval-aware notification delivery for completed reports and pending approval requests.
 
 ### Required behavior
 
-The human approval layer should:
+The notification layer should:
 
-- create approval requests for high-risk recommendations
-- create approval requests for critical findings
-- create approval requests for findings that require human review
-- persist approval records locally
-- support statuses such as `pending`, `approved`, `rejected`, `expired`
-- never auto-approve high-risk actions
-- be deterministic and testable
-- integrate with the existing workflow without making approval mandatory for healthy runs
-- prepare the system for approval-aware notifications later
+- send deterministic report summaries only after workflow completion
+- include pending approval request IDs when approvals exist
+- avoid sending sensitive action recommendations as approved work
+- support local/mock providers by default
+- keep real providers optional and environment-configured
+- fail safely without breaking workflow runs
+- avoid storing or sending secrets
 
 ### Suggested structure
 
 ```text
-src/marketing_ops_agent/approval/
+src/marketing_ops_agent/notifications/
 ├── __init__.py
 ├── models.py
-├── approval_store.py
+├── providers.py
 ├── service.py
 └── errors.py
 
-tests/approval/
-└── test_approval_flow.py
-
-approval-requests/
-└── .gitkeep
+tests/notifications/
+└── test_notifications.py
 ```
 
-Generated approval request files should be ignored by git. Only `.gitkeep` should be committed.
+Do not add real Slack, Telegram or email credentials. Use `.env.example` for configuration examples only.
 
 ---
 
-## 12. Prompt for Codex: Milestone 11
+## 12. Prompt for Codex: Milestone 12
 
 Use this prompt next:
 
@@ -478,7 +513,7 @@ Read the root AGENTS.md and docs/CODEX_HANDOFF_AI_AUTOMATION_PORTFOLIO.md first.
 
 Continue Project 1: 01-ai-marketing-ops-agent.
 
-Milestone 11: implement human approval flow.
+Milestone 12: implement approval-aware notification delivery.
 
 Current state:
 - Mock FastAPI services exist.
@@ -494,47 +529,28 @@ Current state:
 - WorkflowRunRecord exists.
 - Optional LLM interpretation layer exists.
 - LLM token usage is captured when available.
+- Deterministic human approval flow exists.
+- Approval requests are persisted locally.
 - Tests pass.
 - Do not move existing files.
 - Do not replace deterministic reporting.
 - Do not let LLM access raw scraped rows, raw REST responses, raw GraphQL responses, credentials or secrets.
-- Do not add notification integrations yet.
+- Do not hardcode notification credentials.
 
 Goal:
-Add a deterministic human approval flow for sensitive recommendations and high-risk automation.
+Add optional, deterministic, approval-aware notification delivery.
 
 Implement:
-1. Typed approval models:
-   - ApprovalRequest
-   - ApprovalDecision
-   - ApprovalStatus enum
-   - ApprovalRiskLevel enum
-2. Local approval store:
-   - append/create approval request
-   - list pending approvals
-   - get approval by id
-   - record approve/reject decision
-   - persist records locally, preferably JSONL or JSON files
-3. Approval service that:
-   - creates approval requests for critical findings
-   - creates approval requests for findings requiring human review
-   - creates approval requests for high-risk LLM recommended actions if available
-   - never auto-approves high-risk actions
-   - deduplicates approval requests within one run
-4. Optional workflow integration:
-   - create approval requests after deterministic findings and optional LLM interpretation
-   - do not block healthy workflow runs
-   - include approval request IDs in workflow result if appropriate
+1. Typed notification models.
+2. Provider abstraction with deterministic/mock provider by default.
+3. Notification service that sends report summaries and pending approval references.
+4. Optional workflow integration that does not block successful runs.
 5. Tests for:
-   - creating approval request
-   - listing pending approvals
-   - approving request
-   - rejecting request
-   - deduplication
-   - critical finding creates approval request
-   - human-review finding creates approval request
-   - healthy run creates no approval request
-   - no secrets are persisted
+   - mock provider delivery
+   - disabled mode
+   - approval-aware message content
+   - no secrets in persisted or sent payloads
+   - workflow continues when notification delivery fails
 6. Documentation updates:
    - README.md
    - docs/ARCHITECTURE.md
@@ -543,14 +559,11 @@ Implement:
    - .agents/skills/marketing-report/SKILL.md
 
 Implementation guidance:
-- Prefer local persistence for this milestone.
 - Use Pydantic models.
-- Use pathlib.
 - Use timezone-aware UTC timestamps.
-- Generated approval files must not be committed.
-- Add or update .gitignore if needed.
 - Keep tests deterministic.
-- Do not add Slack/Telegram/email yet.
+- Do not call real notification APIs in tests.
+- Real provider configuration should use environment variables only.
 - Keep mypy clean.
 - Ensure:
   - uv run pytest passes
@@ -558,25 +571,23 @@ Implementation guidance:
   - uv run mypy src passes
 
 Suggested structure:
-- src/marketing_ops_agent/approval/
+- src/marketing_ops_agent/notifications/
   - __init__.py
   - models.py
-  - approval_store.py
+  - providers.py
   - service.py
   - errors.py
-- tests/approval/
-  - test_approval_flow.py
-- approval-requests/
-  - .gitkeep
+- tests/notifications/
+  - test_notifications.py
 
 After implementation, summarize:
 1. files created/changed
-2. approval models
-3. approval store API
-4. approval service behavior
+2. notification models
+3. provider abstraction
+4. notification service behavior
 5. workflow integration behavior
 6. test coverage added
-7. how to inspect approval requests manually
+7. configuration behavior
 8. what should be built next
 ```
 
@@ -585,8 +596,7 @@ After implementation, summarize:
 ## 13. Future Milestones
 
 ```text
-Milestone 11 — human approval flow
-Milestone 12 — notifications
+Milestone 12 — approval-aware notifications
 Milestone 13 — CI/CD
 Project 2     — MCP Automation Server + Claude Code Toolkit
 Project 3     — AgentOps Control Tower
@@ -625,7 +635,13 @@ Inspect run history:
 tail -n 5 run-history/workflow-runs.jsonl
 ```
 
-Generated report and run history files are ignored by git.
+Inspect approval requests:
+
+```bash
+tail -n 20 approval-requests/approval-requests.jsonl
+```
+
+Generated report, run history and approval request files are ignored by git.
 
 ---
 
@@ -645,6 +661,6 @@ Do not:
 - move `src/marketing_ops_agent` to `app`
 - change `.agents/skills` to `.skills`
 - let LLM replace deterministic logic
-- add notifications before human approval flow
+- send sensitive notifications while approvals are pending
 - skip tests
 - ignore mypy/ruff failures

@@ -29,6 +29,7 @@ class DailyMarketingReportResult(BaseModel):
     snapshots: tuple[CampaignSnapshot, ...] = ()
     findings: tuple[AnomalyFinding, ...] = ()
     llm_interpretation: LLMInterpretationResult | None = None
+    approval_request_ids: tuple[str, ...] = ()
     created_tasks: tuple[ProjectTask, ...] = ()
     task_creation_errors: tuple[str, ...] = ()
 

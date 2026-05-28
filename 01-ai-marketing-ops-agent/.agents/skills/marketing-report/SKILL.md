@@ -12,9 +12,11 @@ validated campaign data, anomaly findings, recommendations and workflow logs.
 - `CampaignSnapshot` objects from the deterministic aggregation layer.
 - `AnomalyFinding` objects from deterministic anomaly detection.
 - Optional `LLMInterpretationResult` from the LLM interpretation layer.
+- Optional `ApprovalRequest` and `ApprovalDecision` records from the approval
+  layer.
 - Optional report metadata such as title and generated timestamp.
-- Later milestones may add human approval decisions, but those must remain
-  separate from deterministic facts and LLM recommendations.
+- Human approval records must remain separate from deterministic facts and LLM
+  recommendations.
 
 Do not generate reports from raw scraped rows, raw REST responses or raw GraphQL
 responses.
@@ -32,6 +34,8 @@ responses.
 - Include campaign IDs and metric values for traceability.
 - Separate deterministic findings from LLM interpretation.
 - Keep LLM facts and recommendations in their own section when included.
+- Keep pending, approved and rejected approval requests in their own section
+  when included.
 - Render unavailable values as missing; avoid inventing missing data.
 - End with concrete next actions and ownership.
 
@@ -43,6 +47,7 @@ responses.
 - Never invent missing metrics, causes, trends or campaign data.
 - Do not recommend budget changes without a human approval checkpoint.
 - Treat `requires_human_review` as blocking sensitive automated action.
+- Treat pending approval requests as blocking notification or external action.
 - Keep source data references so the report can be audited.
 - Keep deterministic recommendations conservative and based on known finding
   types.

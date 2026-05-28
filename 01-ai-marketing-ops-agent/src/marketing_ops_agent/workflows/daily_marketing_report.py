@@ -16,6 +16,12 @@ from marketing_ops_agent.aggregation.aggregator import (
 )
 from marketing_ops_agent.aggregation.campaign_snapshot import CampaignSnapshot
 from marketing_ops_agent.anomaly import AnomalyDetector, AnomalyFinding, AnomalySeverity
+from marketing_ops_agent.approval import (
+    DEFAULT_APPROVAL_RECORDS_PATH,
+    ApprovalRequest,
+    ApprovalService,
+    LocalApprovalStore,
+)
 from marketing_ops_agent.browser import PlaywrightMarketingPanelScraper, ScrapedCampaignRow
 from marketing_ops_agent.clients import (
     AnalyticsClient,
@@ -145,6 +151,29 @@ class WorkflowLLMInterpreter(Protocol):
         ...
 
 
+class WorkflowApprovalService(Protocol):
+    """Approval request service contract needed by the workflow."""
+
+    def create_requests_for_run(
+        self,
+        *,
+        run_id: str | None,
+        findings: Sequence[AnomalyFinding],
+        llm_interpretation: LLMInterpretationResult | None = None,
+    ) -> list[ApprovalRequest]:
+        """Create approval requests for high-risk workflow outputs.
+
+        Args:
+            run_id: Optional workflow run identifier.
+            findings: Deterministic anomaly findings.
+            llm_interpretation: Optional structured LLM interpretation.
+
+        Returns:
+            Persisted approval requests.
+        """
+        ...
+
+
 class WorkflowExecutionError(Exception):
     """Raised when an unrecoverable workflow step fails."""
 
@@ -172,6 +201,7 @@ class DailyMarketingReportWorkflow:
         detector: CampaignAnomalyDetector | None = None,
         report_writer: CampaignReportWriter | None = None,
         llm_interpreter: WorkflowLLMInterpreter | None = None,
+        approval_service: WorkflowApprovalService | None = None,
         task_client: TaskCreationClient | None = None,
         run_recorder: WorkflowRunRecorder | None = None,
         reports_dir: Path | str = DEFAULT_REPORTS_DIR,
@@ -186,6 +216,7 @@ class DailyMarketingReportWorkflow:
             detector: Optional anomaly detector override.
             report_writer: Optional deterministic report writer override.
             llm_interpreter: Optional non-blocking LLM interpretation boundary.
+            approval_service: Optional non-blocking human approval boundary.
             task_client: Optional project management task boundary.
             run_recorder: Optional workflow run recorder.
             reports_dir: Directory where Markdown reports are written.
@@ -199,6 +230,7 @@ class DailyMarketingReportWorkflow:
         self._detector = detector or AnomalyDetector()
         self._report_writer = report_writer or MarkdownReportWriter()
         self._llm_interpreter = llm_interpreter
+        self._approval_service = approval_service
         self._task_client = task_client
         self._run_recorder = run_recorder
         self._reports_dir = Path(reports_dir)
@@ -227,6 +259,7 @@ class DailyMarketingReportWorkflow:
         findings: list[AnomalyFinding] = []
         report_path: Path | None = None
         llm_interpretation: LLMInterpretationResult | None = None
+        approval_requests: list[ApprovalRequest] = []
         created_tasks: list[ProjectTask] = []
         task_errors: list[str] = []
 
@@ -241,6 +274,11 @@ class DailyMarketingReportWorkflow:
                 findings,
                 report_markdown,
             )
+            approval_requests = self._create_approval_requests_safely(
+                run_id=run_id,
+                findings=findings,
+                llm_interpretation=llm_interpretation,
+            )
             created_tasks, task_errors = await self._create_tasks(findings)
         except WorkflowExecutionError as exc:
             finished_at = self._normalize_datetime(self._clock())
@@ -252,6 +290,7 @@ class DailyMarketingReportWorkflow:
                     snapshots=snapshots,
                     findings=findings,
                     report_path=report_path,
+                    approval_requests=approval_requests,
                     created_tasks=created_tasks,
                     task_errors=task_errors,
                     error=exc,
@@ -280,6 +319,9 @@ class DailyMarketingReportWorkflow:
             snapshots=tuple(snapshots),
             findings=tuple(findings),
             llm_interpretation=llm_interpretation,
+            approval_request_ids=tuple(
+                request.approval_id for request in approval_requests
+            ),
             created_tasks=tuple(created_tasks),
             task_creation_errors=tuple(task_errors),
         )
@@ -464,6 +506,42 @@ class DailyMarketingReportWorkflow:
                 )
         return created_tasks, errors
 
+    def _create_approval_requests_safely(
+        self,
+        *,
+        run_id: str,
+        findings: Sequence[AnomalyFinding],
+        llm_interpretation: LLMInterpretationResult | None,
+    ) -> list[ApprovalRequest]:
+        """Create approval requests without blocking report generation.
+
+        Args:
+            run_id: Workflow run identifier.
+            findings: Deterministic anomaly findings.
+            llm_interpretation: Optional structured LLM interpretation.
+
+        Returns:
+            Approval requests created or found for this workflow run.
+
+        Side Effects:
+            May append approval records to local JSONL storage and logs
+            persistence failures.
+        """
+
+        if self._approval_service is None:
+            return []
+        try:
+            return self._approval_service.create_requests_for_run(
+                run_id=run_id,
+                findings=findings,
+                llm_interpretation=llm_interpretation,
+            )
+        except Exception:
+            logger.exception(
+                "Optional approval request creation failed without blocking workflow"
+            )
+            return []
+
     def _report_path(self, generated_at: datetime) -> Path:
         """Build the timestamped Markdown report path."""
         return self._reports_dir / f"{REPORT_FILENAME_PREFIX}-{_timestamp_slug(generated_at)}.md"
@@ -526,10 +604,26 @@ async def run_daily_marketing_report_workflow(
     *,
     reports_dir: Path | str = DEFAULT_REPORTS_DIR,
     run_records_path: Path | str | None = DEFAULT_RUN_RECORDS_PATH,
+    approval_records_path: Path | str | None = DEFAULT_APPROVAL_RECORDS_PATH,
     create_project_tasks: bool = False,
     enable_llm_interpretation: bool | None = None,
 ) -> DailyMarketingReportResult:
-    """Run the workflow with concrete local scraper and service clients."""
+    """Run the workflow with concrete local scraper and service clients.
+
+    Args:
+        reports_dir: Directory where deterministic Markdown reports are written.
+        run_records_path: Optional JSONL path for workflow run history.
+        approval_records_path: Optional JSONL path for human approval records.
+        create_project_tasks: Whether to create deterministic project tasks.
+        enable_llm_interpretation: Optional override for LLM interpretation.
+
+    Returns:
+        Typed workflow result with report, task and approval metadata.
+
+    Side Effects:
+        Launches Playwright, calls mock services, writes a report, appends run
+        history and may append approval requests or create project tasks.
+    """
 
     config = load_config()
     llm_enabled = (
@@ -560,6 +654,11 @@ async def run_daily_marketing_report_workflow(
                     )
                 )
                 if llm_enabled
+                else None
+            ),
+            approval_service=(
+                ApprovalService(store=LocalApprovalStore(approval_records_path))
+                if approval_records_path is not None
                 else None
             ),
             run_recorder=(
@@ -664,6 +763,7 @@ def _build_success_run_record(
         finding_count=result.finding_count,
         critical_finding_count=_critical_finding_count(result.findings),
         human_review_required=result.requires_human_review,
+        approval_request_count=len(result.approval_request_ids),
         created_task_ids=tuple(task.task_id for task in result.created_tasks),
         task_error_count=len(result.task_creation_errors),
         data_quality_summary=_data_quality_summary(result.snapshots),
@@ -680,6 +780,7 @@ def _build_failed_run_record(
     snapshots: Sequence[CampaignSnapshot],
     findings: Sequence[AnomalyFinding],
     report_path: Path | None,
+    approval_requests: Sequence[ApprovalRequest],
     created_tasks: Sequence[ProjectTask],
     task_errors: Sequence[str],
     error: WorkflowExecutionError,
@@ -697,6 +798,7 @@ def _build_failed_run_record(
         finding_count=len(findings),
         critical_finding_count=_critical_finding_count(findings),
         human_review_required=_requires_human_review(snapshots, findings),
+        approval_request_count=len(approval_requests),
         created_task_ids=tuple(task.task_id for task in created_tasks),
         task_error_count=len(task_errors),
         data_quality_summary=_data_quality_summary(snapshots),

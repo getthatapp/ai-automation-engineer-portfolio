@@ -6,7 +6,7 @@ The goal is not to build a chatbot. The goal is to demonstrate a controlled, tes
 
 ## Current status
 
-Milestones 1-10 are completed.
+Milestones 1-11 are completed.
 
 Completed scope:
 
@@ -24,6 +24,7 @@ Completed scope:
 - Persistent local run recording to JSONL under `run-history/`, including success/failure status, timings, output paths, counts, task IDs, data quality summaries and sanitized failure messages.
 - Optional LLM interpretation layer over validated `CampaignSnapshot`, `AnomalyFinding`, deterministic report summary and optional run record inputs.
 - Deterministic mock LLM provider for tests and local no-key runs, with token usage capture when a provider returns it.
+- Deterministic human approval flow with local JSONL approval queue for critical findings, human-review findings and high-risk LLM recommendations.
 - Minimal pytest coverage and project documentation placeholders.
 - Claude/Codex-ready marketing report skill.
 
@@ -218,7 +219,9 @@ existing deterministic components:
 4. detect deterministic `AnomalyFinding` objects;
 5. render a deterministic Markdown report;
 6. save the report under `reports/`;
-7. optionally create deterministic project management tasks.
+7. optionally run LLM interpretation;
+8. create local human approval requests for high-risk outputs;
+9. optionally create deterministic project management tasks.
 
 Manual local run after starting mock services:
 
@@ -253,6 +256,49 @@ Optional task creation is deterministic and limited to findings that are
 critical or require human review. Duplicate task requests for the same campaign
 and anomaly type are suppressed within one workflow run.
 
+## Human approval flow
+
+The approval layer lives in `marketing_ops_agent.approval`. It creates pending
+approval requests for:
+
+- critical deterministic findings;
+- deterministic findings with `requires_human_review=True`;
+- high-priority or human-approval LLM recommended actions.
+
+Approval requests are deterministic, deduplicated within one workflow run and
+never auto-approved. They preserve run ID, campaign ID, source type, risk level,
+source reference and sanitized source evidence.
+
+Local persistence defaults to:
+
+```text
+approval-requests/approval-requests.jsonl
+```
+
+Manual inspection:
+
+```bash
+tail -n 20 approval-requests/approval-requests.jsonl
+```
+
+Programmatic usage:
+
+```python
+from marketing_ops_agent.approval import LocalApprovalStore
+
+
+store = LocalApprovalStore("approval-requests/approval-requests.jsonl")
+pending = store.list_pending()
+approved = store.approve(
+    pending[0].approval_id,
+    decided_by="manager@example.com",
+    reason="Evidence reviewed.",
+)
+```
+
+Generated approval files are ignored by git. Only
+`approval-requests/.gitkeep` is checked in.
+
 ## Persistent run recording
 
 The observability layer lives in `marketing_ops_agent.observability`. The local
@@ -269,6 +315,7 @@ Each `WorkflowRunRecord` captures:
 - report path when a report was saved;
 - snapshot, finding, critical finding and task error counts;
 - human-review requirement;
+- approval request count;
 - created project task IDs;
 - data quality flag counts;
 - sanitized failure type and message for unrecoverable workflow failures.
@@ -406,5 +453,5 @@ uv run mypy src
 
 ## Next milestone
 
-The next milestone should add human approval handling around sensitive
-recommendations or notification delivery through Slack, Telegram or email.
+The next milestone should add approval-aware notification delivery through
+Slack, Telegram or email.

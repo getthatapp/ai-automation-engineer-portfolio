@@ -169,3 +169,31 @@ Consequences:
   require LLM output for workflow success.
 - LLM recommendations remain separate from deterministic recommended actions
   in the Markdown report.
+
+## Local Human Approval Queue Before Notifications
+
+Decision: persist human approval requests locally before adding Slack,
+Telegram, email or other notification delivery.
+
+Reasoning:
+
+- Critical findings, human-review flags and high-risk LLM recommendations
+  should require explicit human approval before external follow-up.
+- Approval records must be deterministic, auditable and easy to inspect in a
+  local portfolio environment.
+- JSONL gives append-only history without adding a database dependency.
+- Malformed approval records should surface explicitly because approval state
+  is an audit artifact.
+
+Consequences:
+
+- `ApprovalRequest`, `ApprovalDecision`, `ApprovalStatus`,
+  `ApprovalRiskLevel` and `ApprovalSource` define the approval contract.
+- `LocalApprovalStore` persists approval states under
+  `approval-requests/approval-requests.jsonl`.
+- `ApprovalService` creates pending approval requests for critical findings,
+  human-review findings and high-risk LLM recommended actions.
+- Workflow integration is non-blocking; approval persistence failures are
+  logged and do not replace deterministic report generation.
+- Generated approval files are ignored by git except for
+  `approval-requests/.gitkeep`.

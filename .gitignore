@@ -47,6 +47,9 @@ reports/*.json
 **/run-history/*.jsonl
 **/run-history/*.json
 !**/run-history/.gitkeep
+**/approval-requests/*.jsonl
+**/approval-requests/*.json
+!**/approval-requests/.gitkeep
 *.log
 
 # Playwright
