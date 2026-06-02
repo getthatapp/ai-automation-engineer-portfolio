@@ -80,9 +80,94 @@ def test_data_quality_section() -> None:
     report = _report([snapshot], [finding])
 
     assert "## Data Quality Issues" in report
-    assert "flags=missing_campaign_metadata" in report
-    assert "Campaign API returned 404." in report
-    assert "`cmp-search-brand` missing_campaign_metadata" in report
+    assert (
+        "- `cmp-search-brand`: flags=missing_campaign_metadata; "
+        "notes=Campaign API returned 404.; "
+        "related findings: warning missing_campaign_metadata; human review: yes."
+        in report
+    )
+    assert report.count("- `cmp-search-brand`: flags=missing_campaign_metadata") == 1
+    assert "`cmp-search-brand` missing_campaign_metadata:" not in report
+
+
+def test_data_quality_section_groups_stale_and_review_findings_by_campaign() -> None:
+    snapshot = _snapshot(
+        flags=(DataQualityFlag.STALE_DATA, DataQualityFlag.REQUIRES_HUMAN_REVIEW),
+        notes=("Campaign REST API metadata is older than 24 hours.",),
+        requires_human_review=True,
+    )
+    stale_finding = _finding(
+        anomaly_type=AnomalyType.STALE_DATA,
+        severity=AnomalySeverity.WARNING,
+        message="Campaign source data is stale.",
+        source="aggregation_data_quality",
+    )
+    review_finding = _finding(
+        anomaly_type=AnomalyType.REQUIRES_HUMAN_REVIEW,
+        severity=AnomalySeverity.CRITICAL,
+        message="Snapshot requires human review before automated follow-up actions.",
+        source="aggregation_data_quality",
+        requires_human_review=True,
+    )
+
+    report = _report([snapshot], [stale_finding, review_finding])
+    data_quality_section = _section(report, "Data Quality Issues", "Human Review Required")
+
+    assert data_quality_section.count("- `cmp-search-brand`:") == 1
+    assert "flags=stale_data, requires_human_review" in data_quality_section
+    assert "notes=Campaign REST API metadata is older than 24 hours." in data_quality_section
+    assert (
+        "related findings: critical requires_human_review, warning stale_data"
+        in data_quality_section
+    )
+    assert "human review: yes" in data_quality_section
+    assert "`cmp-search-brand` stale_data:" not in data_quality_section
+    assert "`cmp-search-brand` requires_human_review:" not in data_quality_section
+    assert "`cmp-search-brand` requires_human_review" in report
+    assert "`cmp-search-brand` stale_data" in report
+
+
+def test_data_quality_section_orders_multiple_campaigns_deterministically() -> None:
+    snapshot_b = _snapshot(
+        campaign_id="cmp-b",
+        flags=(DataQualityFlag.STALE_DATA,),
+        notes=("Campaign B data is stale.",),
+    )
+    snapshot_a = _snapshot(
+        campaign_id="cmp-a",
+        flags=(DataQualityFlag.MISSING_ANALYTICS_METRICS,),
+        notes=("Campaign A analytics are missing.",),
+        analytics_metrics=None,
+        requires_human_review=True,
+    )
+    finding_a = _finding(
+        campaign_id="cmp-a",
+        anomaly_type=AnomalyType.MISSING_ANALYTICS_METRICS,
+        severity=AnomalySeverity.WARNING,
+        message="Analytics metrics are missing.",
+        source="aggregation_data_quality",
+    )
+    finding_b = _finding(
+        campaign_id="cmp-b",
+        anomaly_type=AnomalyType.STALE_DATA,
+        severity=AnomalySeverity.WARNING,
+        message="Campaign source data is stale.",
+        source="aggregation_data_quality",
+    )
+
+    report = _report([snapshot_b, snapshot_a], [finding_b, finding_a])
+    data_quality_section = _section(report, "Data Quality Issues", "Human Review Required")
+
+    assert data_quality_section.index("- `cmp-a`:") < data_quality_section.index("- `cmp-b`:")
+    assert "related findings: warning missing_analytics_metrics" in data_quality_section
+    assert "related findings: warning stale_data" in data_quality_section
+
+
+def test_no_data_quality_issues_message_is_preserved() -> None:
+    report = _report([_snapshot()], [])
+
+    assert "## Data Quality Issues" in report
+    assert "- No data quality issues detected." in report
 
 
 def test_human_review_section() -> None:
@@ -212,6 +297,23 @@ def _report(
         findings,
         ReportMetadata(title="Weekly Ops Report", generated_at=REFERENCE_TIME),
     )
+
+
+def _section(report: str, start_title: str, end_title: str) -> str:
+    """Return a report section bounded by two level-two headings.
+
+    Args:
+        report: Full deterministic Markdown report.
+        start_title: Section heading title to start from.
+        end_title: Section heading title that follows the target section.
+
+    Returns:
+        Markdown text between the start heading and next heading.
+    """
+
+    start = report.index(f"## {start_title}")
+    end = report.index(f"## {end_title}", start)
+    return report[start:end]
 
 
 def _snapshot(

@@ -216,24 +216,35 @@ class MarkdownReportWriter:
             lines.append(bullet("No data quality issues detected."))
             return "\n".join(lines)
 
-        for snapshot in snapshots_with_quality_issues:
-            flags = _format_flags(snapshot.data_quality_flags)
-            notes = (
-                " | ".join(snapshot.data_quality_notes)
-                if snapshot.data_quality_notes
-                else "none"
-            )
-            lines.append(
-                bullet(
-                    f"`{snapshot.campaign_id}`: flags={flags}; notes={_escape_inline(notes)}."
-                )
-            )
+        quality_campaign_ids = sorted(
+            {
+                *(snapshot.campaign_id for snapshot in snapshots_with_quality_issues),
+                *(finding.campaign_id for finding in data_quality_findings),
+            }
+        )
+        snapshots_by_campaign = {
+            snapshot.campaign_id: snapshot for snapshot in snapshots_with_quality_issues
+        }
 
-        for finding in data_quality_findings:
+        for campaign_id in quality_campaign_ids:
+            snapshot = snapshots_by_campaign.get(campaign_id)
+            campaign_quality_findings = [
+                finding
+                for finding in data_quality_findings
+                if finding.campaign_id == campaign_id
+            ]
+            flags = _format_flags(() if snapshot is None else snapshot.data_quality_flags)
+            notes = _format_notes(() if snapshot is None else snapshot.data_quality_notes)
+            related_findings = _format_related_findings(campaign_quality_findings)
+            human_review_required = (
+                (snapshot.requires_human_review if snapshot is not None else False)
+                or any(finding.requires_human_review for finding in campaign_quality_findings)
+            )
             lines.append(
                 bullet(
-                    f"`{finding.campaign_id}` {finding.anomaly_type.value}: "
-                    f"{_escape_inline(finding.message)}"
+                    f"`{campaign_id}`: flags={flags}; notes={notes}; "
+                    f"related findings: {related_findings}; "
+                    f"human review: {_format_bool(human_review_required)}."
                 )
             )
         return "\n".join(lines)
@@ -551,6 +562,38 @@ def _format_flags(flags: Sequence[DataQualityFlag]) -> str:
     if not flags:
         return "none"
     return ", ".join(flag.value for flag in flags)
+
+
+def _format_notes(notes: Sequence[str]) -> str:
+    """Format data quality notes for compact grouped report output.
+
+    Args:
+        notes: Data quality notes from a campaign snapshot.
+
+    Returns:
+        Escaped note text joined in deterministic input order, or `none`.
+    """
+    if not notes:
+        return "none"
+    return _escape_inline(" | ".join(notes))
+
+
+def _format_related_findings(findings: Sequence[AnomalyFinding]) -> str:
+    """Format related data quality finding severity and type labels.
+
+    Args:
+        findings: Data quality findings for one campaign.
+
+    Returns:
+        Comma-separated severity/type labels, or `none` when no related data
+        quality findings exist.
+    """
+    if not findings:
+        return "none"
+    return ", ".join(
+        f"{finding.severity.value} {finding.anomaly_type.value}"
+        for finding in sort_findings(findings)
+    )
 
 
 def _format_campaign_list(campaign_ids: Sequence[str]) -> str:
