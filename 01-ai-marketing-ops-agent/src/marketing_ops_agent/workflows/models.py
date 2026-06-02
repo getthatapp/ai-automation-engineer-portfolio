@@ -10,6 +10,7 @@ from marketing_ops_agent.anomaly import AnomalyFinding
 from marketing_ops_agent.clients import ProjectTask
 from marketing_ops_agent.llm import LLMInterpretationResult
 from marketing_ops_agent.models import WorkflowStatus
+from marketing_ops_agent.notifications import NotificationResult
 
 
 class DailyMarketingReportResult(BaseModel):
@@ -29,6 +30,7 @@ class DailyMarketingReportResult(BaseModel):
     snapshots: tuple[CampaignSnapshot, ...] = ()
     findings: tuple[AnomalyFinding, ...] = ()
     llm_interpretation: LLMInterpretationResult | None = None
+    notification_result: NotificationResult | None = None
     approval_request_ids: tuple[str, ...] = ()
     created_tasks: tuple[ProjectTask, ...] = ()
     task_creation_errors: tuple[str, ...] = ()

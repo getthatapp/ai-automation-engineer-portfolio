@@ -1,10 +1,10 @@
 # Codex Handoff: AI Automation Engineer Portfolio
 
-Last updated: 2026-05-28  
+Last updated: 2026-06-02
 Repository: `ai-automation-engineer-portfolio`  
 Current project: `01-ai-marketing-ops-agent`  
-Current status: Milestones 1-11 completed.  
-Next step: Milestone 12 — approval-aware notifications.
+Current status: Milestones 1-12 completed.
+Next step: Milestone 13 — CI/CD.
 
 ---
 
@@ -34,11 +34,13 @@ Project 1 now includes:
 - optional LLM interpretation over validated outputs
 - deterministic human approval flow
 - local JSONL approval queue
+- optional approval-aware notification delivery
+- deterministic mock notification provider
 
-Current verified status after Milestone 11:
+Current verified status after Milestone 12:
 
 ```text
-96 tests passing
+105 tests passing
 ruff clean
 mypy clean
 ```
@@ -63,6 +65,8 @@ daily workflow orchestration + local report file + optional LLM interpretation
 approval request creation for high-risk outputs
         ↓
 optional deterministic tasks
+        ↓
+optional approval-aware notification summary
         ↓
 persistent run recording + local JSONL history
 ```
@@ -259,45 +263,58 @@ LLM may:
 
 Project 1 now creates local approval requests for sensitive recommendations and high-risk actions before any real notification integrations are added.
 
+### Approval-aware notifications before real providers
+
+Project 1 now sends optional summary-only notifications through a deterministic
+mock provider. Notifications include pending approval request IDs when present
+and explicitly state that pending approvals are not approved actions.
+
 ---
 
-## 6. Next Milestone: Milestone 12
+### Milestone 12 — Approval-Aware Notifications
+
+Implemented:
+
+- `NotificationRequest`
+- `NotificationResult`
+- `NotificationStatus`
+- `NotificationChannel`
+- `NotificationPriority`
+- `NotificationProvider`
+- `DeterministicMockNotificationProvider`
+- `NotificationService`
+- optional workflow integration with `notification_result`
+- optional run-history fields for notification status and count
+- local env toggle through `NOTIFICATION_DELIVERY_ENABLED`
+
+Behavior:
+
+- sends deterministic workflow summaries only after workflow completion when enabled
+- includes run ID, report path, workflow counts and pending approval request IDs
+- states pending approval requests are not approved actions
+- avoids raw source payloads, credentials, secrets and approved-action claims
+- does not call real Slack, Telegram, email or external notification APIs
+- fails safely without breaking workflow runs
+
+Verification:
+
+```text
+105 tests passed
+ruff clean
+mypy clean
+```
+
+---
+
+## 6. Next Milestone: Milestone 13
 
 ### Goal
 
-Implement approval-aware notification delivery for completed reports and pending approval requests.
-
-### Required behavior
-
-The notification layer should:
-
-- send deterministic report summaries only after workflow completion
-- include pending approval request IDs when approvals exist
-- avoid sending sensitive action recommendations as approved work
-- support local/mock providers by default
-- keep real providers optional and environment-configured
-- fail safely without breaking workflow runs
-- avoid storing or sending secrets
-
-### Suggested structure
-
-```text
-src/marketing_ops_agent/notifications/
-├── __init__.py
-├── models.py
-├── providers.py
-├── service.py
-└── errors.py
-
-tests/notifications/
-└── test_notifications.py
-```
-
-Do not add real Slack, Telegram or email credentials. Use `.env.example` for configuration examples only.
+Add CI/CD for Project 1 verification.
 
 ---
 
-## 7. Prompt for Codex: Milestone 12
+## 7. Prompt for Codex: Milestone 13
 
 Use this prompt next:
 
@@ -306,83 +323,41 @@ Read the root AGENTS.md and docs/CODEX_HANDOFF_AI_AUTOMATION_PORTFOLIO.md first.
 
 Continue Project 1: 01-ai-marketing-ops-agent.
 
-Milestone 12: implement approval-aware notification delivery.
+Milestone 13: add CI/CD verification.
 
 Current state:
-- Mock FastAPI services exist.
-- Typed httpx clients exist.
-- Async Playwright scraper exists.
-- Deterministic aggregation exists.
-- CampaignSnapshot model exists.
-- Deterministic anomaly detection exists.
-- AnomalyFinding model exists.
-- Deterministic Markdown report writer exists.
-- Daily workflow orchestration exists.
-- Persistent run recording exists.
-- WorkflowRunRecord exists.
-- Optional LLM interpretation layer exists.
-- LLM token usage is captured when available.
-- Deterministic human approval flow exists.
-- Approval requests are persisted locally.
-- Tests pass.
+- Project 1 has Milestones 1-12 completed.
+- Local reviewer scripts exist under scripts/.
+- Tests pass locally.
 - Do not move existing files.
-- Do not replace deterministic reporting.
-- Do not let LLM access raw scraped rows, raw REST responses, raw GraphQL responses, credentials or secrets.
-- Do not hardcode notification credentials.
 
 Goal:
-Add optional, deterministic, approval-aware notification delivery.
+Add GitHub Actions CI for Project 1.
 
 Implement:
-1. Typed notification models.
-2. Provider abstraction with deterministic/mock provider by default.
-3. Notification service that sends report summaries and pending approval references.
-4. Optional workflow integration that does not block successful runs.
-5. Tests for:
-   - mock provider delivery
-   - disabled mode
-   - approval-aware message content
-   - no secrets in persisted or sent payloads
-   - workflow continues when notification delivery fails
-6. Documentation updates:
-   - README.md
-   - docs/ARCHITECTURE.md
-   - docs/DECISIONS.md
-   - docs/RUNBOOK.md
-   - .agents/skills/marketing-report/SKILL.md
+1. Workflow that runs on pull request and push.
+2. Use Python 3.12.
+3. Install uv.
+4. Run:
+   - uv sync
+   - uv run pytest
+   - uv run ruff check .
+   - uv run mypy src
+5. Keep generated runtime artifacts out of git.
+6. Documentation update for CI behavior.
 
-Implementation guidance:
-- Use Pydantic models.
-- Use timezone-aware UTC timestamps.
-- Keep tests deterministic.
-- Do not call real notification APIs in tests.
-- Real provider configuration should use environment variables only.
-- Keep mypy clean.
-- Add Google-style docstrings to all new functions, methods and classes.
-- Ensure:
+Ensure:
   - uv run pytest passes
   - uv run ruff check . passes
   - uv run mypy src passes
-
-Suggested structure:
-- src/marketing_ops_agent/notifications/
-  - __init__.py
-  - models.py
-  - providers.py
-  - service.py
-  - errors.py
-- tests/notifications/
-  - test_notifications.py
+  - git diff --check passes
 
 After implementation, summarize:
 1. files created/changed
-2. notification models
-3. provider abstraction
-4. notification service behavior
-5. workflow integration behavior
-6. test coverage added
-7. configuration behavior
-8. what should be built next
+2. CI triggers
+3. CI commands
+4. verification results
+5. what should be built next
 ```
 
 ---
@@ -403,6 +378,12 @@ MARKETING_PANEL_USERNAME=demo@example.com \
 MARKETING_PANEL_PASSWORD=local-password \
 MARKETING_PANEL_2FA_CODE=000000 \
 uv run python -m marketing_ops_agent.workflows.daily_marketing_report
+```
+
+Run workflow with mock notifications:
+
+```bash
+NOTIFICATION_DELIVERY_ENABLED=true ./scripts/run_workflow.sh
 ```
 
 Inspect generated report:
@@ -431,7 +412,6 @@ Generated report, run history and approval request files are ignored by git.
 ## 9. Future Milestones
 
 ```text
-Milestone 12 — approval-aware notifications
 Milestone 13 — CI/CD
 Project 2     — MCP Automation Server + Claude Code Toolkit
 Project 3     — AgentOps Control Tower

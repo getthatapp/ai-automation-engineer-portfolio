@@ -17,6 +17,12 @@ from marketing_ops_agent.clients import ProjectTask, ProjectTaskCreate
 from marketing_ops_agent.clients.analytics_client import AnalyticsCampaignMetrics
 from marketing_ops_agent.clients.errors import ServiceDecodeError, ServiceResponseError
 from marketing_ops_agent.models import Campaign, CampaignMetrics, Channel, WorkflowStatus
+from marketing_ops_agent.notifications import (
+    NotificationChannel,
+    NotificationResult,
+    NotificationService,
+    NotificationStatus,
+)
 from marketing_ops_agent.observability import LocalRunRecorder
 from marketing_ops_agent.reporting import ReportMetadata
 from marketing_ops_agent.workflows import DailyMarketingReportWorkflow, WorkflowExecutionError
@@ -104,6 +110,25 @@ class FakeTaskClient:
             status="open",
             created_at=REFERENCE_TIME,
         )
+
+
+class RaisingNotificationService:
+    """Notification service fake that raises to exercise fail-safe workflow logic."""
+
+    async def send_report_summary(
+        self,
+        *,
+        run_id: str,
+        report_path: Path | str,
+        snapshot_count: int,
+        finding_count: int,
+        critical_finding_count: int,
+        human_review_required: bool,
+        pending_approval_request_ids: Sequence[str] = (),
+    ) -> NotificationResult:
+        """Raise a secret-bearing failure for workflow sanitization tests."""
+
+        raise RuntimeError("notification failed token=abc123")
 
 
 @pytest.mark.asyncio
@@ -274,6 +299,8 @@ async def test_successful_workflow_records_run(tmp_path: Path) -> None:
     assert record.finding_count == 0
     assert record.critical_finding_count == 0
     assert record.human_review_required is False
+    assert record.notification_status is None
+    assert record.notification_count == 0
     assert record.created_task_ids == ()
     assert record.task_error_count == 0
     assert record.data_quality_summary == {}
@@ -313,6 +340,99 @@ async def test_failed_workflow_records_failed_run_without_hiding_exception(
     assert record.finding_count == 0
 
 
+@pytest.mark.asyncio
+async def test_successful_workflow_can_send_summary_notification(
+    tmp_path: Path,
+) -> None:
+    """Verify completed workflows can include a sent notification result."""
+
+    notification_service = NotificationService(clock=lambda: REFERENCE_TIME)
+    workflow = _workflow(
+        rows=[_row()],
+        reports_dir=tmp_path / "reports",
+        notification_service=notification_service,
+    )
+
+    result = await workflow.run()
+
+    assert result.status is WorkflowStatus.SUCCEEDED
+    assert result.notification_result is not None
+    assert result.notification_result.status is NotificationStatus.SENT
+    assert result.notification_result.request is not None
+    assert result.notification_result.request.run_id == result.run_id
+    assert result.notification_result.request.report_path == result.report_path
+    assert result.notification_result.request.snapshot_count == 1
+    assert "Snapshot count: 1" in result.notification_result.request.message
+
+
+@pytest.mark.asyncio
+async def test_notification_disabled_mode_does_not_break_workflow(
+    tmp_path: Path,
+) -> None:
+    """Verify disabled notification mode leaves workflow success intact."""
+
+    notification_service = NotificationService(
+        enabled=False,
+        clock=lambda: REFERENCE_TIME,
+    )
+    workflow = _workflow(
+        rows=[_row()],
+        reports_dir=tmp_path / "reports",
+        notification_service=notification_service,
+    )
+
+    result = await workflow.run()
+
+    assert result.status is WorkflowStatus.SUCCEEDED
+    assert result.notification_result is not None
+    assert result.notification_result.status is NotificationStatus.DISABLED
+
+
+@pytest.mark.asyncio
+async def test_workflow_continues_when_notification_delivery_fails(
+    tmp_path: Path,
+) -> None:
+    """Verify notification exceptions are converted into failed results."""
+
+    workflow = _workflow(
+        rows=[_row()],
+        reports_dir=tmp_path / "reports",
+        notification_service=RaisingNotificationService(),
+    )
+
+    result = await workflow.run()
+
+    assert result.status is WorkflowStatus.SUCCEEDED
+    assert result.report_path.exists()
+    assert result.notification_result is not None
+    assert result.notification_result.status is NotificationStatus.FAILED
+    assert result.notification_result.channel is NotificationChannel.MOCK
+    assert result.notification_result.error_message is not None
+    assert "abc123" not in result.notification_result.error_message
+    assert "[REDACTED]" in result.notification_result.error_message
+
+
+@pytest.mark.asyncio
+async def test_workflow_records_notification_status_when_sent(
+    tmp_path: Path,
+) -> None:
+    """Verify run history records successful notification delivery metadata."""
+
+    recorder = LocalRunRecorder(tmp_path / "run-history" / "workflow-runs.jsonl")
+    workflow = _workflow(
+        rows=[_row()],
+        reports_dir=tmp_path / "reports",
+        run_recorder=recorder,
+        notification_service=NotificationService(clock=lambda: REFERENCE_TIME),
+    )
+
+    await workflow.run()
+
+    record = recorder.read_recent()[0]
+    assert record.notification_status == "sent"
+    assert record.notification_count == 1
+
+
 def _workflow(
     *,
     rows: Sequence[ScrapedCampaignRow],
@@ -322,6 +442,7 @@ def _workflow(
     report_writer: RecordingReportWriter | None = None,
     task_client: FakeTaskClient | None = None,
     run_recorder: LocalRunRecorder | None = None,
+    notification_service: NotificationService | RaisingNotificationService | None = None,
     reports_dir: Path | str,
     scraper_error: Exception | None = None,
 ) -> DailyMarketingReportWorkflow:
@@ -340,6 +461,7 @@ def _workflow(
         ),
         detector=detector or RecordingDetector(findings=[]),
         report_writer=report_writer or RecordingReportWriter(),
+        notification_service=notification_service,
         task_client=task_client,
         run_recorder=run_recorder,
         reports_dir=reports_dir,

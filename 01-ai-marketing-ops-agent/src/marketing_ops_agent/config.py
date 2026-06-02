@@ -22,6 +22,8 @@ class AppConfig(BaseModel):
     llm_interpretation_enabled: bool = False
     llm_provider: str = "mock"
     llm_model: str = "deterministic-marketing-interpreter"
+    notification_delivery_enabled: bool = False
+    notification_provider: str = "mock"
     request_timeout_seconds: float = Field(default=15.0, gt=0)
     retry_max_attempts: int = Field(default=3, ge=1)
 
@@ -69,6 +71,14 @@ class AppConfig(BaseModel):
             llm_model=os.getenv(
                 "LLM_MODEL",
                 cls.model_fields["llm_model"].default,
+            ),
+            notification_delivery_enabled=_get_bool_env(
+                "NOTIFICATION_DELIVERY_ENABLED",
+                False,
+            ),
+            notification_provider=os.getenv(
+                "NOTIFICATION_PROVIDER",
+                cls.model_fields["notification_provider"].default,
             ),
             request_timeout_seconds=_get_float_env("REQUEST_TIMEOUT_SECONDS", 15.0),
             retry_max_attempts=_get_int_env("RETRY_MAX_ATTEMPTS", 3),

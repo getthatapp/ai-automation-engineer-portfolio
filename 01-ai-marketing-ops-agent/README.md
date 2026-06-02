@@ -6,7 +6,7 @@ The goal is not to build a chatbot. The goal is to demonstrate a controlled, tes
 
 ## Current status
 
-Milestones 1-11 are completed.
+Milestones 1-12 are completed.
 
 Completed scope:
 
@@ -25,10 +25,14 @@ Completed scope:
 - Optional LLM interpretation layer over validated `CampaignSnapshot`, `AnomalyFinding`, deterministic report summary and optional run record inputs.
 - Deterministic mock LLM provider for tests and local no-key runs, with token usage capture when a provider returns it.
 - Deterministic human approval flow with local JSONL approval queue for critical findings, human-review findings and high-risk LLM recommendations.
+- Optional approval-aware notification delivery over completed workflow summaries.
+- Deterministic mock notification provider for tests and local no-key demos.
 - Minimal pytest coverage and project documentation placeholders.
 - Claude/Codex-ready marketing report skill.
 
-External notification delivery is intentionally left for later milestones.
+Real Slack, Telegram and email providers are intentionally left for later
+milestones. The current provider is local, deterministic and does not call
+external notification APIs.
 
 ## Requirements
 
@@ -82,6 +86,12 @@ Run the workflow with the deterministic mock LLM interpretation layer:
 ./scripts/run_workflow_with_llm.sh
 ```
 
+Run the workflow with deterministic mock notification delivery:
+
+```bash
+NOTIFICATION_DELIVERY_ENABLED=true ./scripts/run_workflow.sh
+```
+
 The workflow scripts set safe local defaults for the mock marketing panel:
 
 ```text
@@ -92,7 +102,8 @@ MARKETING_PANEL_2FA_CODE=000000
 
 They also default to the local mock service URLs. Any of these values can be
 overridden with environment variables before invoking the script. No real
-secrets or external LLM key are required when `LLM_PROVIDER=mock`.
+secrets, external LLM key or real notification credentials are required when
+`LLM_PROVIDER=mock` and `NOTIFICATION_PROVIDER=mock`.
 
 Inspect the latest report:
 
@@ -314,7 +325,8 @@ existing deterministic components:
 6. save the report under `reports/`;
 7. optionally run LLM interpretation;
 8. create local human approval requests for high-risk outputs;
-9. optionally create deterministic project management tasks.
+9. optionally create deterministic project management tasks;
+10. optionally send an approval-aware notification summary.
 
 Manual local run after starting mock services:
 
@@ -354,6 +366,58 @@ so the local output directory exists in a fresh checkout.
 Optional task creation is deterministic and limited to findings that are
 critical or require human review. Duplicate task requests for the same campaign
 and anomaly type are suppressed within one workflow run.
+
+## Approval-aware notifications
+
+The notification layer lives in `marketing_ops_agent.notifications`. It sends
+summary-only notifications after workflow completion when enabled. The summary
+includes:
+
+- run ID and report path;
+- snapshot, finding and critical finding counts;
+- whether human review is required;
+- pending approval request IDs when approval requests exist.
+
+Pending approval requests are explicitly described as not approved actions. The
+notification payload does not include raw scraped rows, raw REST responses, raw
+GraphQL responses, credentials, secrets or sensitive recommendations as approved
+work.
+
+Local notification delivery is disabled by default. Enable the deterministic
+mock provider for a local demo:
+
+```bash
+NOTIFICATION_DELIVERY_ENABLED=true \
+NOTIFICATION_PROVIDER=mock \
+./scripts/run_workflow.sh
+```
+
+Programmatic usage:
+
+```python
+import asyncio
+
+from marketing_ops_agent.notifications import NotificationService
+
+
+service = NotificationService()
+result = asyncio.run(
+    service.send_report_summary(
+        run_id="daily-marketing-report-20260528T120000Z",
+        report_path="reports/daily-marketing-report-20260528T120000Z.md",
+        snapshot_count=3,
+        finding_count=2,
+        critical_finding_count=1,
+        human_review_required=True,
+        pending_approval_request_ids=("approval-001",),
+    )
+)
+print(result.status, result.notification_id)
+```
+
+The workflow records notification status and count in local run history when a
+notification service is configured. Delivery failures are logged and returned
+as `NotificationResult(status="failed")` without failing report generation.
 
 ## Human approval flow
 
@@ -415,6 +479,7 @@ Each `WorkflowRunRecord` captures:
 - snapshot, finding, critical finding and task error counts;
 - human-review requirement;
 - approval request count;
+- notification status and count when notification delivery is configured;
 - created project task IDs;
 - data quality flag counts;
 - sanitized failure type and message for unrecoverable workflow failures.
@@ -541,6 +606,16 @@ Reviewer helper:
 ./scripts/run_workflow_with_llm.sh
 ```
 
+## Optional notification configuration
+
+```text
+NOTIFICATION_DELIVERY_ENABLED=true
+NOTIFICATION_PROVIDER=mock
+```
+
+Only the deterministic mock provider is implemented. Real Slack, Telegram or
+email credentials should remain empty until real providers are added.
+
 ## Tests and quality checks
 
 Run tests:
@@ -559,5 +634,4 @@ uv run mypy src
 
 ## Next milestone
 
-The next milestone should add approval-aware notification delivery through
-Slack, Telegram or email.
+The next milestone should add CI/CD for tests, linting and type checking.

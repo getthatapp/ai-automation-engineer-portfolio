@@ -14,6 +14,8 @@ validated campaign data, anomaly findings, recommendations and workflow logs.
 - Optional `LLMInterpretationResult` from the LLM interpretation layer.
 - Optional `ApprovalRequest` and `ApprovalDecision` records from the approval
   layer.
+- Optional `NotificationResult` records from approval-aware notification
+  delivery.
 - Optional report metadata such as title and generated timestamp.
 - Human approval records must remain separate from deterministic facts and LLM
   recommendations.
@@ -36,6 +38,7 @@ responses.
 - Keep LLM facts and recommendations in their own section when included.
 - Keep pending, approved and rejected approval requests in their own section
   when included.
+- Keep notification delivery status separate from deterministic report facts.
 - Render unavailable values as missing; avoid inventing missing data.
 - End with concrete next actions and ownership.
 
@@ -48,6 +51,8 @@ responses.
 - Do not recommend budget changes without a human approval checkpoint.
 - Treat `requires_human_review` as blocking sensitive automated action.
 - Treat pending approval requests as blocking notification or external action.
+- Never describe pending approval requests as approved actions in notification
+  summaries.
 - Keep source data references so the report can be audited.
 - Keep deterministic recommendations conservative and based on known finding
   types.

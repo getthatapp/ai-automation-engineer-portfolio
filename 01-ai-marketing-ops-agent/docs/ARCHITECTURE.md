@@ -133,6 +133,29 @@ structured disabled/failed result from the service, and workflow integration
 logs unexpected interpreter errors without failing deterministic report
 generation.
 
+## Notification Layer
+
+`marketing_ops_agent.notifications` provides optional approval-aware summary
+delivery after workflow completion. The layer consumes only workflow metadata:
+
+- run ID;
+- report path;
+- snapshot, finding and critical finding counts;
+- human-review status;
+- pending approval request IDs.
+
+It does not consume raw scraped rows, raw REST responses, raw GraphQL responses,
+credentials, secrets, report body text or sensitive action recommendations.
+
+The provider contract is `NotificationProvider`. The current concrete provider
+is `DeterministicMockNotificationProvider`, used by tests and local demos. It
+records notification requests in memory and does not call external APIs.
+
+`NotificationService` is fail-safe. Disabled delivery returns a typed disabled
+result. Provider errors return a typed failed result. Workflow integration logs
+unexpected notification failures without replacing deterministic report
+generation.
+
 ## Approval Layer
 
 `marketing_ops_agent.approval` provides deterministic human approval gating for
@@ -171,7 +194,8 @@ Workflow order:
 5. save the report under a local reports directory;
 6. optionally run LLM interpretation over the deterministic outputs;
 7. create optional approval requests for high-risk outputs;
-8. optionally create project management tasks.
+8. optionally create project management tasks;
+9. optionally send an approval-aware notification summary.
 
 The workflow uses dependency injection for the scraper, clients, detector,
 report writer and optional task client. Tests can replace every boundary with
@@ -181,8 +205,8 @@ fakes while production-local runs use `PlaywrightMarketingPanelScraper`,
 
 The typed result is `DailyMarketingReportResult`. It records the run ID,
 status, timestamps, report path, row/snapshot/finding counts, snapshots,
-findings, optional LLM interpretation, approval request IDs, created tasks and
-non-fatal task creation errors.
+findings, optional LLM interpretation, optional notification result, approval
+request IDs, created tasks and non-fatal task creation errors.
 
 Report paths are deterministic from the run timestamp:
 
@@ -209,6 +233,7 @@ The durable model is `WorkflowRunRecord`. It stores:
 - `snapshot_count`, `finding_count` and `critical_finding_count`;
 - `human_review_required`;
 - `approval_request_count`;
+- `notification_status` and `notification_count`;
 - `created_task_ids` and `task_error_count`;
 - `data_quality_summary`;
 - sanitized `failure_type` and `failure_message`.

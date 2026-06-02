@@ -36,6 +36,8 @@ class WorkflowRunRecord(BaseModel):
     critical_finding_count: int = Field(ge=0)
     human_review_required: bool
     approval_request_count: int = Field(default=0, ge=0)
+    notification_status: str | None = None
+    notification_count: int = Field(default=0, ge=0)
     created_task_ids: tuple[str, ...] = ()
     task_error_count: int = Field(ge=0)
     data_quality_summary: dict[str, int] = Field(default_factory=dict)
@@ -115,6 +117,23 @@ class WorkflowRunRecord(BaseModel):
         if not stripped:
             return None
         return sanitize_observability_text(stripped)
+
+    @field_validator("notification_status")
+    @classmethod
+    def sanitize_notification_status(cls, value: str | None) -> str | None:
+        """Normalize optional notification status text.
+
+        Args:
+            value: Optional notification status.
+
+        Returns:
+            Sanitized status text, or `None` when blank.
+        """
+
+        if value is None:
+            return None
+        stripped = sanitize_observability_text(value.strip())
+        return stripped or None
 
     @field_validator("data_quality_summary")
     @classmethod

@@ -34,6 +34,12 @@ Run the workflow with deterministic mock LLM interpretation:
 ./scripts/run_workflow_with_llm.sh
 ```
 
+Run the workflow with deterministic mock notification delivery:
+
+```bash
+NOTIFICATION_DELIVERY_ENABLED=true ./scripts/run_workflow.sh
+```
+
 Both workflow scripts use local mock marketing panel credentials by default:
 
 | Environment variable | Default |
@@ -67,6 +73,28 @@ Clean generated runtime files:
 ```
 
 Generated reports, run history and approval request records are ignored by git.
+
+## Notification Delivery
+
+Notification delivery is optional and disabled by default:
+
+| Environment variable | Default |
+| --- | --- |
+| `NOTIFICATION_DELIVERY_ENABLED` | `false` |
+| `NOTIFICATION_PROVIDER` | `mock` |
+
+The current provider is deterministic and in-memory. It does not call Slack,
+Telegram, email or any external API.
+
+When enabled, the workflow sends a summary-only notification after workflow
+completion. The notification includes run ID, report path, snapshot count,
+finding count, critical finding count, human-review status, approval request
+count and pending approval request IDs. Pending approval requests are explicitly
+not approved actions.
+
+Delivery failures do not fail the workflow. They are returned as failed
+notification results and recorded as notification status/count in run history
+when a recorder is configured.
 
 ## Mock Service Startup
 
@@ -230,6 +258,8 @@ Configuration defaults:
 | `CAMPAIGN_API_BASE_URL` | `http://localhost:8001` |
 | `ANALYTICS_GRAPHQL_URL` | `http://localhost:8002/graphql` |
 | `PROJECT_MANAGEMENT_API_BASE_URL` | `http://localhost:8003` |
+| `NOTIFICATION_DELIVERY_ENABLED` | `false` |
+| `NOTIFICATION_PROVIDER` | `mock` |
 | `REQUEST_TIMEOUT_SECONDS` | `15` |
 | `RETRY_MAX_ATTEMPTS` | `3` |
 

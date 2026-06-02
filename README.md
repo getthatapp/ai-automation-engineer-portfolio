@@ -10,7 +10,7 @@ This repository is not a chatbot demo. It is a staged AI automation ecosystem bu
 
 ### Project 1: AI Marketing Operations Agent
 
-Status: **Milestones 1-11 completed**
+Status: **Milestones 1-12 completed**
 
 Implemented:
 
@@ -36,6 +36,8 @@ Implemented:
 - LLM prompt safety rules and token usage capture
 - deterministic human approval flow
 - local JSONL approval queue for high-risk outputs
+- optional approval-aware notification delivery
+- deterministic/mock notification provider for local runs and tests
 
 Current pipeline:
 
@@ -57,12 +59,14 @@ Persistent run recording
 Optional LLM interpretation over validated outputs
         ↓
 Human approval requests for high-risk outputs
+        ↓
+Optional approval-aware notification summary
 ```
 
 Next milestone:
 
 ```text
-Approval-aware notification delivery
+CI/CD
 ```
 
 ---
@@ -99,11 +103,12 @@ It simulates a Head of Marketing workflow:
 7. create deterministic project-management tasks,
 8. persist structured workflow run history,
 9. optionally produce LLM-based business interpretation over validated outputs,
-10. create approval requests for critical findings, human-review findings and high-risk LLM recommendations.
+10. create approval requests for critical findings, human-review findings and high-risk LLM recommendations,
+11. optionally send an approval-aware notification summary through the deterministic mock provider.
 
 The LLM layer is intentionally downstream of deterministic validation. It must not invent metrics, replace deterministic findings, or access raw credentials/source payloads.
 
-The approval layer is intentionally upstream of real external notifications. High-risk recommendations are not treated as approved work unless explicitly approved.
+The approval layer is intentionally upstream of notification delivery. High-risk recommendations are not treated as approved work unless explicitly approved, and notifications clearly identify pending approval requests as not approved actions.
 
 ### 02 — MCP Automation Server + Claude Code Toolkit
 
@@ -183,6 +188,16 @@ In another terminal:
 ./scripts/run_workflow_with_llm.sh
 ```
 
+### Run Workflow with Mock Notifications
+
+```bash
+NOTIFICATION_DELIVERY_ENABLED=true ./scripts/run_workflow.sh
+```
+
+The mock notification provider does not call Slack, Telegram, email or any
+external API. It adds a summary notification result to the workflow output and
+records notification status in run history.
+
 The workflow scripts use local demo marketing panel credentials by default:
 
 ```text
@@ -227,7 +242,7 @@ uv run mypy src
 Current status:
 
 ```text
-96 tests passing
+105 tests passing
 ruff clean
 mypy clean
 ```
@@ -294,7 +309,6 @@ Project-level documentation:
 ## Current Roadmap
 
 ```text
-Milestone 12 — approval-aware notifications
 Milestone 13 — CI/CD
 Project 2     — MCP Automation Server + Claude Code Toolkit
 Project 3     — AgentOps Control Tower

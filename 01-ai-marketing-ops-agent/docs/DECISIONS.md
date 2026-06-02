@@ -197,3 +197,34 @@ Consequences:
   logged and do not replace deterministic report generation.
 - Generated approval files are ignored by git except for
   `approval-requests/.gitkeep`.
+
+## Approval-Aware Notifications Before Real Providers
+
+Decision: add a deterministic, mock notification provider and approval-aware
+notification service before adding real Slack, Telegram or email delivery.
+
+Reasoning:
+
+- Workflow completion summaries are useful for demos, but they must not imply
+  that pending approval requests are approved actions.
+- Notification payloads should be small, deterministic and auditable.
+- Tests must not call external notification APIs or require credentials.
+- Provider failures should not replace deterministic report generation,
+  approval persistence or run recording.
+
+Consequences:
+
+- `NotificationRequest`, `NotificationResult`, `NotificationStatus`,
+  `NotificationChannel` and `NotificationPriority` define the notification
+  contract.
+- `NotificationProvider` is a Protocol so real providers can be added later
+  without changing workflow orchestration.
+- `DeterministicMockNotificationProvider` is the default provider for tests and
+  local demos.
+- `NotificationService` sends only summary metadata: run ID, report path,
+  counts, human-review status and pending approval request IDs.
+- Pending approval requests are explicitly described as not approved actions.
+- Workflow integration is optional and fail-safe; notification failures produce
+  failed notification results without failing the workflow.
+- Run history can record notification status and count while remaining backward
+  compatible with older JSONL records.

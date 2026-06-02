@@ -39,6 +39,13 @@ from marketing_ops_agent.llm import (
     LLMInterpreter,
 )
 from marketing_ops_agent.models import WorkflowStatus
+from marketing_ops_agent.notifications import (
+    DeterministicMockNotificationProvider,
+    NotificationChannel,
+    NotificationResult,
+    NotificationService,
+    NotificationStatus,
+)
 from marketing_ops_agent.observability import (
     DEFAULT_RUN_RECORDS_PATH,
     LocalRunRecorder,
@@ -174,6 +181,38 @@ class WorkflowApprovalService(Protocol):
         ...
 
 
+class WorkflowNotificationService(Protocol):
+    """Notification service contract needed by the workflow."""
+
+    async def send_report_summary(
+        self,
+        *,
+        run_id: str,
+        report_path: Path | str,
+        snapshot_count: int,
+        finding_count: int,
+        critical_finding_count: int,
+        human_review_required: bool,
+        pending_approval_request_ids: Sequence[str] = (),
+    ) -> NotificationResult:
+        """Send a workflow summary notification.
+
+        Args:
+            run_id: Workflow run identifier.
+            report_path: Local Markdown report path.
+            snapshot_count: Number of validated campaign snapshots.
+            finding_count: Number of deterministic findings.
+            critical_finding_count: Number of critical deterministic findings.
+            human_review_required: Whether human review is required.
+            pending_approval_request_ids: Approval requests pending review.
+
+        Returns:
+            Notification result. Implementations should avoid raising for
+            disabled or provider-failed notification paths.
+        """
+        ...
+
+
 class WorkflowExecutionError(Exception):
     """Raised when an unrecoverable workflow step fails."""
 
@@ -202,6 +241,7 @@ class DailyMarketingReportWorkflow:
         report_writer: CampaignReportWriter | None = None,
         llm_interpreter: WorkflowLLMInterpreter | None = None,
         approval_service: WorkflowApprovalService | None = None,
+        notification_service: WorkflowNotificationService | None = None,
         task_client: TaskCreationClient | None = None,
         run_recorder: WorkflowRunRecorder | None = None,
         reports_dir: Path | str = DEFAULT_REPORTS_DIR,
@@ -217,6 +257,7 @@ class DailyMarketingReportWorkflow:
             report_writer: Optional deterministic report writer override.
             llm_interpreter: Optional non-blocking LLM interpretation boundary.
             approval_service: Optional non-blocking human approval boundary.
+            notification_service: Optional non-blocking notification boundary.
             task_client: Optional project management task boundary.
             run_recorder: Optional workflow run recorder.
             reports_dir: Directory where Markdown reports are written.
@@ -231,6 +272,7 @@ class DailyMarketingReportWorkflow:
         self._report_writer = report_writer or MarkdownReportWriter()
         self._llm_interpreter = llm_interpreter
         self._approval_service = approval_service
+        self._notification_service = notification_service
         self._task_client = task_client
         self._run_recorder = run_recorder
         self._reports_dir = Path(reports_dir)
@@ -248,8 +290,9 @@ class DailyMarketingReportWorkflow:
 
         Side Effects:
             Scrapes the panel, calls mock APIs, writes a Markdown report, may
-            call an LLM interpreter, may create project tasks and may append a
-            JSONL run record.
+            call an LLM interpreter, may create approval requests, may send a
+            summary notification, may create project tasks and may append a JSONL
+            run record.
         """
 
         started_at = self._normalize_datetime(self._clock())
@@ -325,6 +368,8 @@ class DailyMarketingReportWorkflow:
             created_tasks=tuple(created_tasks),
             task_creation_errors=tuple(task_errors),
         )
+        notification_result = await self._send_notification_safely(result)
+        result = result.model_copy(update={"notification_result": notification_result})
         self._record_run_safely(_build_success_run_record(result))
         logger.info(
             "Daily marketing report workflow run %s finished with status %s",
@@ -542,6 +587,47 @@ class DailyMarketingReportWorkflow:
             )
             return []
 
+    async def _send_notification_safely(
+        self,
+        result: DailyMarketingReportResult,
+    ) -> NotificationResult | None:
+        """Send a workflow summary notification without blocking the workflow.
+
+        Args:
+            result: Completed workflow result to summarize.
+
+        Returns:
+            Notification result, or `None` when no service is configured.
+
+        Side Effects:
+            May call the configured notification service and logs unexpected
+            failures without changing workflow success.
+        """
+
+        if self._notification_service is None:
+            return None
+        try:
+            return await self._notification_service.send_report_summary(
+                run_id=result.run_id,
+                report_path=result.report_path,
+                snapshot_count=result.snapshot_count,
+                finding_count=result.finding_count,
+                critical_finding_count=_critical_finding_count(result.findings),
+                human_review_required=result.requires_human_review,
+                pending_approval_request_ids=result.approval_request_ids,
+            )
+        except Exception as exc:
+            logger.exception(
+                "Optional notification delivery failed without blocking workflow"
+            )
+            return NotificationResult(
+                status=NotificationStatus.FAILED,
+                channel=NotificationChannel.MOCK,
+                provider="workflow_notification_service",
+                delivered_at=self._normalize_datetime(self._clock()),
+                error_message=str(exc),
+            )
+
     def _report_path(self, generated_at: datetime) -> Path:
         """Build the timestamped Markdown report path."""
         return self._reports_dir / f"{REPORT_FILENAME_PREFIX}-{_timestamp_slug(generated_at)}.md"
@@ -607,6 +693,7 @@ async def run_daily_marketing_report_workflow(
     approval_records_path: Path | str | None = DEFAULT_APPROVAL_RECORDS_PATH,
     create_project_tasks: bool = False,
     enable_llm_interpretation: bool | None = None,
+    enable_notifications: bool | None = None,
 ) -> DailyMarketingReportResult:
     """Run the workflow with concrete local scraper and service clients.
 
@@ -616,6 +703,8 @@ async def run_daily_marketing_report_workflow(
         approval_records_path: Optional JSONL path for human approval records.
         create_project_tasks: Whether to create deterministic project tasks.
         enable_llm_interpretation: Optional override for LLM interpretation.
+        enable_notifications: Optional override for summary notification
+            delivery.
 
     Returns:
         Typed workflow result with report, task and approval metadata.
@@ -630,6 +719,11 @@ async def run_daily_marketing_report_workflow(
         config.llm_interpretation_enabled
         if enable_llm_interpretation is None
         else enable_llm_interpretation
+    )
+    notifications_enabled = (
+        config.notification_delivery_enabled
+        if enable_notifications is None
+        else enable_notifications
     )
 
     async with AsyncExitStack() as stack:
@@ -660,6 +754,12 @@ async def run_daily_marketing_report_workflow(
                 ApprovalService(store=LocalApprovalStore(approval_records_path))
                 if approval_records_path is not None
                 else None
+            ),
+            notification_service=NotificationService(
+                provider=DeterministicMockNotificationProvider(
+                    provider_name=config.notification_provider,
+                ),
+                enabled=notifications_enabled,
             ),
             run_recorder=(
                 LocalRunRecorder(run_records_path)
@@ -764,6 +864,12 @@ def _build_success_run_record(
         critical_finding_count=_critical_finding_count(result.findings),
         human_review_required=result.requires_human_review,
         approval_request_count=len(result.approval_request_ids),
+        notification_status=(
+            result.notification_result.status.value
+            if result.notification_result is not None
+            else None
+        ),
+        notification_count=_notification_count(result.notification_result),
         created_task_ids=tuple(task.task_id for task in result.created_tasks),
         task_error_count=len(result.task_creation_errors),
         data_quality_summary=_data_quality_summary(result.snapshots),
@@ -799,6 +905,8 @@ def _build_failed_run_record(
         critical_finding_count=_critical_finding_count(findings),
         human_review_required=_requires_human_review(snapshots, findings),
         approval_request_count=len(approval_requests),
+        notification_status=None,
+        notification_count=0,
         created_task_ids=tuple(task.task_id for task in created_tasks),
         task_error_count=len(task_errors),
         data_quality_summary=_data_quality_summary(snapshots),
@@ -810,6 +918,19 @@ def _build_failed_run_record(
 def _critical_finding_count(findings: Sequence[AnomalyFinding]) -> int:
     """Count critical deterministic findings."""
     return sum(1 for finding in findings if finding.severity is AnomalySeverity.CRITICAL)
+
+
+def _notification_count(result: NotificationResult | None) -> int:
+    """Return one for sent notifications and zero otherwise.
+
+    Args:
+        result: Optional notification result.
+
+    Returns:
+        Count of successfully sent notifications.
+    """
+
+    return int(result is not None and result.status is NotificationStatus.SENT)
 
 
 def _data_quality_summary(snapshots: Sequence[CampaignSnapshot]) -> dict[str, int]:
