@@ -67,8 +67,19 @@ Optional approval-aware notification summary
 Next milestone:
 
 ```text
-Project 2 — Agent Toolkit for Codex and Claude Code
+Project 2 Milestone 2 — MCP server implementation
 ```
+
+### Project 2: Agent Toolkit for Codex and Claude Code
+
+Status: **Started / scaffold ready**
+
+Project 2 supports both Codex and Claude Code by providing reusable prompt
+templates, Claude Code command templates, shared skills, safety documentation
+and lightweight reviewer scripts. It is a toolkit for agentic automation
+workflows, not another business workflow app.
+
+See [Project 2 README](02-agent-toolkit-mcp/README.md).
 
 ---
 
@@ -122,7 +133,7 @@ Project 1 is portfolio-ready and case-study-ready. For a reviewer-friendly walkt
 
 ### 02 — Agent Toolkit for Codex and Claude Code
 
-Planned project focused on:
+Started project focused on:
 
 - TypeScript / Node.js
 - MCP tools
@@ -327,6 +338,13 @@ Project-level documentation:
 ├── ARCHITECTURE.md
 ├── DECISIONS.md
 └── RUNBOOK.md
+
+02-agent-toolkit-mcp/docs/
+├── ARCHITECTURE.md
+├── CODEX_USAGE.md
+├── CLAUDE_CODE_USAGE.md
+├── SAFETY_MODEL.md
+└── ROADMAP.md
 ```
 
 ---
@@ -334,6 +352,6 @@ Project-level documentation:
 ## Current Roadmap
 
 ```text
-Project 2     — Agent Toolkit for Codex and Claude Code
+Project 2     — Milestone 2: MCP server implementation
 Project 3     — AgentOps Control Tower
 ```
