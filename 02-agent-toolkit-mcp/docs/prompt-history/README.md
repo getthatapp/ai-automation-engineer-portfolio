@@ -1,0 +1,22 @@
+# Project 2 Prompt History
+
+This directory stores the full prompts used for Project 2 milestones.
+
+Starting with Project 2 Milestone 2, every Project 2 milestone must create or
+update its own prompt-history file in this directory.
+
+Each milestone prompt-history file must include:
+
+- the milestone number and title;
+- the full prompt used for the milestone, not only a summary;
+- expected verification commands;
+- implementation result summary;
+- verification results after implementation;
+- commit and PR references, which may remain placeholders until the human
+  completes the commit or PR.
+
+Use `TEMPLATE.md` for future milestone prompt-history files.
+
+## Milestones
+
+- [Milestone 2 - MCP Server Implementation](milestone-02-mcp-server.md)

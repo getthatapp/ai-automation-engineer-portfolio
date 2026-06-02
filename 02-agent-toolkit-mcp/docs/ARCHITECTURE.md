@@ -10,7 +10,7 @@ Codex prompts          Claude Code commands
         \              /
          shared skills
               |
-       future MCP tools
+       MCP tools
               |
  deterministic local operations
 ```
@@ -33,15 +33,28 @@ Shared skills describe repeatable engineering practices that can be used by
 both Codex and Claude Code. They should stay practical, scoped and tied to
 reviewable outputs.
 
-## Future MCP Tool Layer
+## MCP Tool Layer
 
 MCP tools should be deterministic. A tool should have clear inputs, validation,
 bounded side effects, safe errors and auditable outputs. Tools should not hide
 business reasoning inside vague LLM prompts.
 
-## Scaffold Boundary
+The first implementation is a Python package under `mcp-server/`. The package
+uses Pydantic schemas and direct Python functions for the deterministic tool
+logic. `server.py` currently provides a minimal local registry for tool
+discovery and invocation; full external MCP SDK transport wiring is intentionally
+left for a later milestone.
 
-This milestone does not implement an MCP server, register tools, add
-dependencies or call external services. It establishes the documentation and
-folder structure for later implementation.
+Current tools inspect Project 1 local artifacts:
 
+- Markdown report section validation.
+- Workflow run JSONL inspection.
+- Pending approval JSONL inspection.
+- Runtime artifact cleanliness checks.
+- Deterministic Project 1 demo readiness briefs.
+
+## Milestone Boundary
+
+This milestone does not add external service integrations, notification
+providers, destructive tools, cloud deployment or frontend UI. The MCP tool
+layer is local, read-only and deterministic.

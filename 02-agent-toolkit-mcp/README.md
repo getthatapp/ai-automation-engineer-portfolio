@@ -9,9 +9,9 @@ that will support future workflow development.
 
 ## Current Status
 
-Milestone 1 is scaffold-focused.
+Milestone 2 is implemented.
 
-Implemented in this milestone:
+Implemented:
 
 - Project documentation for a dual-agent toolkit.
 - Codex prompt templates.
@@ -19,14 +19,19 @@ Implemented in this milestone:
 - Shared skill documentation.
 - Lightweight local scripts for scaffold checks and template discovery.
 - Safety model for future MCP tools and agent workflows.
+- Python MCP server package under `mcp-server/`.
+- Deterministic local read-only tools for inspecting Project 1 artifacts.
+- Typed Pydantic input and output models.
+- Path validation and output sanitization.
+- MCP server tests, linting and type checks.
 
 Not implemented yet:
 
-- MCP server runtime.
-- MCP tool registration.
 - External service integrations.
 - Real credentials or secret-backed providers.
 - Deployment or CI for Project 2.
+- Destructive tools, notification integrations or frontend UI.
+- Full external MCP SDK transport integration.
 
 ## Toolkit Concepts
 
@@ -54,6 +59,17 @@ MCP tools should contain deterministic operations, typed inputs, validation,
 safe error handling and auditable outputs. They should not contain vague LLM
 reasoning or hidden business decisions.
 
+The first local tool layer lives in `mcp-server/`. It exposes:
+
+- `validate_report(report_path)`
+- `read_run_history(jsonl_path, limit=5)`
+- `list_pending_approvals(jsonl_path)`
+- `check_runtime_clean(project_path)`
+- `generate_demo_brief(project_path)`
+
+These tools inspect local Project 1 artifacts only. They do not call an LLM,
+call external APIs, require secrets, delete files or mutate runtime artifacts.
+
 ## Project Structure
 
 ```text
@@ -65,6 +81,7 @@ reasoning or hidden business decisions.
 ├── codex-prompts/
 ├── docs/
 ├── examples/
+├── mcp-server/
 ├── scripts/
 └── skills/
 ```
@@ -85,6 +102,20 @@ From the repository root:
 
 The current checks verify expected scaffold files, validate shell script syntax
 and print the Project 2 structure.
+
+Run MCP server checks from the project directory:
+
+```bash
+./scripts/run_mcp_checks.sh
+```
+
+From the repository root:
+
+```bash
+02-agent-toolkit-mcp/scripts/run_mcp_checks.sh
+```
+
+The MCP checks run pytest, ruff, mypy and shell script syntax validation.
 
 ## Prompt and Command Helpers
 
@@ -114,6 +145,6 @@ scaffold helpers for reviewers and future development.
 
 ## Next Milestone
 
-Project 2 Milestone 2 should implement the initial MCP server scaffold and
-deterministic local tools without adding real external integrations.
-
+Project 2 Milestone 3 should add MCP runtime configuration examples and
+permission-profile documentation for using the deterministic local tools from
+Codex and Claude Code without adding external integrations.
