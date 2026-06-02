@@ -2,9 +2,9 @@
 
 Last updated: 2026-06-02
 Repository: `ai-automation-engineer-portfolio`  
-Current project: `01-ai-marketing-ops-agent`  
-Current status: Milestones 1-13 completed.
-Next step: Project 2 — Agent Toolkit for Codex and Claude Code.
+Current project: `02-agent-toolkit-mcp`
+Current status: Project 1 complete / portfolio-ready. Project 2 started with Milestone 1 scaffold.
+Next step: Project 2 Milestone 2 — MCP server implementation.
 
 ---
 
@@ -41,6 +41,17 @@ Project 1 now includes:
 - deterministic mock notification provider
 - GitHub Actions CI for Project 1
 - curated Project 1 prompt history under `docs/prompt-history/project-1/`
+
+Project 2 now includes:
+
+- project scaffold under `02-agent-toolkit-mcp/`
+- Project 2 `README.md`, `AGENTS.md` and `CLAUDE.md`
+- architecture, Codex usage, Claude Code usage, safety model and roadmap docs
+- reusable Codex prompt templates
+- reusable Claude Code command templates
+- shared skill documentation
+- lightweight scaffold scripts
+- Project 1 example positioning page
 
 Current verified status after Milestone 13:
 
@@ -354,33 +365,46 @@ git diff --check clean
 
 ---
 
-## 7. Prompt for Codex: Project 2
+## 7. Prompt for Codex: Project 2 Milestone 2
 
 Use this prompt next:
 
 ```text
 Read the root AGENTS.md and docs/CODEX_HANDOFF_AI_AUTOMATION_PORTFOLIO.md first.
 
-Start Project 2: 02-agent-toolkit-mcp.
+Continue Project 2: 02-agent-toolkit-mcp.
 
 Goal:
-Create the initial scaffold for an Agent Toolkit for Codex and Claude Code.
+Implement Project 2 Milestone 2: initial MCP server implementation.
 
 Current state:
-- Project 1 has Milestones 1-13 completed.
+- Project 1 is complete and portfolio-ready.
+- Project 2 Milestone 1 scaffold is complete.
 - Do not modify Project 1 unless the task explicitly requires it.
 - Do not hardcode secrets.
+- Do not add real external service credentials.
 
 Implementation guidance:
-- Keep the initial milestone scaffold-focused.
 - Prefer TypeScript / Node.js for the MCP tooling.
-- Plan for MCP tools, Codex prompt workflows, Claude Code commands, shared skills, `AGENTS.md` and `CLAUDE.md` guidance, shell wrappers and an explicit safety model for tool permissions.
-- Make clear in documentation that Project 2 supports both Codex and Claude Code.
-- Include README, package metadata, basic source layout, tests and docs placeholders.
+- Add the initial MCP server structure and deterministic local tools.
+- Keep MCP tools deterministic with typed inputs, validation and auditable outputs.
+- Do not place vague LLM reasoning inside tool implementations.
+- Maintain Codex and Claude Code support in docs and examples.
+- Add tests and explicit verification commands.
+- Update README files and this handoff.
 - Keep generated files out of git.
 
 After implementation, summarize files created, commands to run, verification results and next steps.
 ```
+
+Project 2 permanent rules:
+
+- every new function, method and class created by Codex must include a clear Google-style docstring
+- every milestone must update relevant README files
+- every milestone must update this handoff
+- use branch-based workflow and do not assume direct work on `main`
+- do not hardcode secrets or add real external credentials
+- do not modify Project 1 code unless explicitly requested
 
 ---
 
@@ -440,6 +464,6 @@ Run Project 1 CI locally:
 ## 9. Future Milestones
 
 ```text
-Project 2     — Agent Toolkit for Codex and Claude Code
+Project 2     — Milestone 2: MCP server implementation
 Project 3     — AgentOps Control Tower
 ```
