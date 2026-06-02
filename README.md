@@ -10,7 +10,7 @@ This repository is not a chatbot demo. It is a staged AI automation ecosystem bu
 
 ### Project 1: AI Marketing Operations Agent
 
-Status: **Milestones 1-13 completed**
+Status: **Portfolio-ready / case-study-ready**
 
 Implemented:
 
@@ -110,6 +110,14 @@ It simulates a Head of Marketing workflow:
 The LLM layer is intentionally downstream of deterministic validation. It must not invent metrics, replace deterministic findings, or access raw credentials/source payloads.
 
 The approval layer is intentionally upstream of notification delivery. High-risk recommendations are not treated as approved work unless explicitly approved, and notifications clearly identify pending approval requests as not approved actions.
+
+## Project 1 Case Study and Demo Docs
+
+Project 1 is portfolio-ready and case-study-ready. For a reviewer-friendly walkthrough, see:
+
+- [Project 1 Case Study](docs/PROJECT_1_CASE_STUDY.md)
+- [Demo Script](docs/DEMO_SCRIPT.md)
+- [Requirements Coverage Matrix](docs/REQUIREMENTS_COVERAGE_MATRIX.md)
 
 ### 02 — MCP Automation Server + Claude Code Toolkit
 
