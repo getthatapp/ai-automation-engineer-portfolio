@@ -67,7 +67,7 @@ Optional approval-aware notification summary
 Next milestone:
 
 ```text
-Project 2 — MCP Automation Server + Claude Code Toolkit
+Project 2 — Agent Toolkit for Codex and Claude Code
 ```
 
 ---
@@ -77,7 +77,7 @@ Project 2 — MCP Automation Server + Claude Code Toolkit
 ```text
 ai-automation-engineer-portfolio/
 ├── 01-ai-marketing-ops-agent/
-├── 02-mcp-automation-server-claude-toolkit/
+├── 02-agent-toolkit-mcp/
 ├── 03-agentops-control-tower/
 ├── docs/
 │   └── CODEX_HANDOFF_AI_AUTOMATION_PORTFOLIO.md
@@ -118,18 +118,20 @@ Project 1 is portfolio-ready and case-study-ready. For a reviewer-friendly walkt
 - [Project 1 Case Study](docs/PROJECT_1_CASE_STUDY.md)
 - [Demo Script](docs/DEMO_SCRIPT.md)
 - [Requirements Coverage Matrix](docs/REQUIREMENTS_COVERAGE_MATRIX.md)
+- [Project 1 Prompt History](docs/prompt-history/project-1/README.md)
 
-### 02 — MCP Automation Server + Claude Code Toolkit
+### 02 — Agent Toolkit for Codex and Claude Code
 
 Planned project focused on:
 
 - TypeScript / Node.js
 - MCP tools
-- Claude Code skills
-- hooks
-- memory files
-- tool permissions
-- agent-ready automation commands
+- Codex prompt workflows
+- Claude Code commands
+- shared skills
+- `AGENTS.md` and `CLAUDE.md` guidance
+- shell wrappers for both Codex and Claude Code
+- safety model and tool permissions
 
 ### 03 — AgentOps Control Tower
 
@@ -332,6 +334,6 @@ Project-level documentation:
 ## Current Roadmap
 
 ```text
-Project 2     — MCP Automation Server + Claude Code Toolkit
+Project 2     — Agent Toolkit for Codex and Claude Code
 Project 3     — AgentOps Control Tower
 ```

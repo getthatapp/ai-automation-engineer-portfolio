@@ -4,7 +4,7 @@ Last updated: 2026-06-02
 Repository: `ai-automation-engineer-portfolio`  
 Current project: `01-ai-marketing-ops-agent`  
 Current status: Milestones 1-13 completed.
-Next step: Project 2 — MCP Automation Server + Claude Code Toolkit.
+Next step: Project 2 — Agent Toolkit for Codex and Claude Code.
 
 ---
 
@@ -13,6 +13,9 @@ Next step: Project 2 — MCP Automation Server + Claude Code Toolkit.
 This file is the primary handoff for Codex / AI coding agents working on this portfolio.
 
 Codex should read this document together with the root `AGENTS.md` before making changes.
+
+Future projects should preserve curated milestone prompts under
+`docs/prompt-history/<project-slug>/` using the same structure as Project 1.
 
 ---
 
@@ -37,6 +40,7 @@ Project 1 now includes:
 - optional approval-aware notification delivery
 - deterministic mock notification provider
 - GitHub Actions CI for Project 1
+- curated Project 1 prompt history under `docs/prompt-history/project-1/`
 
 Current verified status after Milestone 13:
 
@@ -357,10 +361,10 @@ Use this prompt next:
 ```text
 Read the root AGENTS.md and docs/CODEX_HANDOFF_AI_AUTOMATION_PORTFOLIO.md first.
 
-Start Project 2: 02-mcp-automation-server-claude-toolkit.
+Start Project 2: 02-agent-toolkit-mcp.
 
 Goal:
-Create the initial scaffold for an MCP Automation Server + Claude Code Toolkit.
+Create the initial scaffold for an Agent Toolkit for Codex and Claude Code.
 
 Current state:
 - Project 1 has Milestones 1-13 completed.
@@ -369,7 +373,9 @@ Current state:
 
 Implementation guidance:
 - Keep the initial milestone scaffold-focused.
-- Prefer TypeScript / Node.js for the MCP server.
+- Prefer TypeScript / Node.js for the MCP tooling.
+- Plan for MCP tools, Codex prompt workflows, Claude Code commands, shared skills, `AGENTS.md` and `CLAUDE.md` guidance, shell wrappers and an explicit safety model for tool permissions.
+- Make clear in documentation that Project 2 supports both Codex and Claude Code.
 - Include README, package metadata, basic source layout, tests and docs placeholders.
 - Keep generated files out of git.
 
@@ -434,6 +440,6 @@ Run Project 1 CI locally:
 ## 9. Future Milestones
 
 ```text
-Project 2     — MCP Automation Server + Claude Code Toolkit
+Project 2     — Agent Toolkit for Codex and Claude Code
 Project 3     — AgentOps Control Tower
 ```
