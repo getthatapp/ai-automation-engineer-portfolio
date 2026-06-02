@@ -10,7 +10,7 @@ This repository is not a chatbot demo. It is a staged AI automation ecosystem bu
 
 ### Project 1: AI Marketing Operations Agent
 
-Status: **Milestones 1-12 completed**
+Status: **Milestones 1-13 completed**
 
 Implemented:
 
@@ -38,6 +38,7 @@ Implemented:
 - local JSONL approval queue for high-risk outputs
 - optional approval-aware notification delivery
 - deterministic/mock notification provider for local runs and tests
+- GitHub Actions CI for Project 1 quality checks
 
 Current pipeline:
 
@@ -66,7 +67,7 @@ Optional approval-aware notification summary
 Next milestone:
 
 ```text
-CI/CD
+Project 2 — MCP Automation Server + Claude Code Toolkit
 ```
 
 ---
@@ -239,6 +240,19 @@ uv run ruff check .
 uv run mypy src
 ```
 
+### Run CI Locally
+
+Project 1 CI runs the local verification set from `01-ai-marketing-ops-agent`:
+
+```bash
+./scripts/run_ci_locally.sh
+```
+
+This mirrors the GitHub Actions workflow: dependency sync, Playwright Chromium
+install, pytest, ruff, mypy, Docker Compose config validation and Bash syntax
+checks for scripts. CI uses mock/disabled LLM and notification settings, does
+not require secrets and does not call real external APIs.
+
 Current status:
 
 ```text
@@ -283,6 +297,7 @@ uv run python -m marketing_ops_agent.workflows.daily_marketing_report
 - Human review must be triggered for unsafe or incomplete automation.
 - Sensitive or high-risk outputs require approval before external action.
 - Workflow behavior must be testable and observable.
+- CI should validate tests, linting, typing, Compose configuration and helper scripts.
 - Generated reports, run history and approval request files are not committed.
 
 ---
@@ -309,7 +324,6 @@ Project-level documentation:
 ## Current Roadmap
 
 ```text
-Milestone 13 — CI/CD
 Project 2     — MCP Automation Server + Claude Code Toolkit
 Project 3     — AgentOps Control Tower
 ```

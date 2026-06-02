@@ -3,8 +3,8 @@
 Last updated: 2026-06-02
 Repository: `ai-automation-engineer-portfolio`  
 Current project: `01-ai-marketing-ops-agent`  
-Current status: Milestones 1-12 completed.
-Next step: Milestone 13 — CI/CD.
+Current status: Milestones 1-13 completed.
+Next step: Project 2 — MCP Automation Server + Claude Code Toolkit.
 
 ---
 
@@ -36,13 +36,16 @@ Project 1 now includes:
 - local JSONL approval queue
 - optional approval-aware notification delivery
 - deterministic mock notification provider
+- GitHub Actions CI for Project 1
 
-Current verified status after Milestone 12:
+Current verified status after Milestone 13:
 
 ```text
 105 tests passing
 ruff clean
 mypy clean
+docker compose config validates
+bash script syntax clean
 ```
 
 ---
@@ -74,7 +77,6 @@ persistent run recording + local JSONL history
 Project 1 does not yet have:
 
 - Telegram/Slack/email notification
-- CI/CD
 - final interview demo script
 
 ---
@@ -306,58 +308,72 @@ mypy clean
 
 ---
 
-## 6. Next Milestone: Milestone 13
+## 6. Completed Milestone: Milestone 13
 
 ### Goal
 
 Add CI/CD for Project 1 verification.
 
+### Milestone 13 — CI/CD
+
+Implemented:
+
+- `.github/workflows/project-1-ci.yml`
+- path-filtered triggers for pull requests and pushes to `main`
+- Python 3.12 setup
+- uv setup and dependency sync
+- Playwright Chromium install
+- pytest, ruff and mypy
+- Docker Compose config validation
+- Bash syntax checks for helper scripts
+- local mirror script: `scripts/run_ci_locally.sh`
+
+CI behavior:
+
+- runs from `01-ai-marketing-ops-agent`
+- does not start long-lived Docker Compose services
+- does not call real external APIs
+- does not require secrets
+- does not send real notifications
+- keeps runtime reports, run history and approval records out of git
+
+Verification:
+
+```text
+105 tests passed
+ruff clean
+mypy clean
+docker compose config validates
+bash script syntax clean
+git diff --check clean
+```
+
 ---
 
-## 7. Prompt for Codex: Milestone 13
+## 7. Prompt for Codex: Project 2
 
 Use this prompt next:
 
 ```text
 Read the root AGENTS.md and docs/CODEX_HANDOFF_AI_AUTOMATION_PORTFOLIO.md first.
 
-Continue Project 1: 01-ai-marketing-ops-agent.
-
-Milestone 13: add CI/CD verification.
-
-Current state:
-- Project 1 has Milestones 1-12 completed.
-- Local reviewer scripts exist under scripts/.
-- Tests pass locally.
-- Do not move existing files.
+Start Project 2: 02-mcp-automation-server-claude-toolkit.
 
 Goal:
-Add GitHub Actions CI for Project 1.
+Create the initial scaffold for an MCP Automation Server + Claude Code Toolkit.
 
-Implement:
-1. Workflow that runs on pull request and push.
-2. Use Python 3.12.
-3. Install uv.
-4. Run:
-   - uv sync
-   - uv run pytest
-   - uv run ruff check .
-   - uv run mypy src
-5. Keep generated runtime artifacts out of git.
-6. Documentation update for CI behavior.
+Current state:
+- Project 1 has Milestones 1-13 completed.
+- Do not modify Project 1 unless the task explicitly requires it.
+- Do not hardcode secrets.
 
-Ensure:
-  - uv run pytest passes
-  - uv run ruff check . passes
-  - uv run mypy src passes
-  - git diff --check passes
+Implementation guidance:
+- Keep the initial milestone scaffold-focused.
+- Prefer TypeScript / Node.js for the MCP server.
+- Include README, package metadata, basic source layout, tests and docs placeholders.
+- Keep generated files out of git.
 
-After implementation, summarize:
-1. files created/changed
-2. CI triggers
-3. CI commands
-4. verification results
-5. what should be built next
+After implementation, summarize files created, commands to run, verification results and next steps.
 ```
 
 ---
@@ -407,12 +423,17 @@ tail -n 20 approval-requests/approval-requests.jsonl
 
 Generated report, run history and approval request files are ignored by git.
 
+Run Project 1 CI locally:
+
+```bash
+./scripts/run_ci_locally.sh
+```
+
 ---
 
 ## 9. Future Milestones
 
 ```text
-Milestone 13 — CI/CD
 Project 2     — MCP Automation Server + Claude Code Toolkit
 Project 3     — AgentOps Control Tower
 ```

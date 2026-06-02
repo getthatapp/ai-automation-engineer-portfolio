@@ -6,7 +6,7 @@ The goal is not to build a chatbot. The goal is to demonstrate a controlled, tes
 
 ## Current status
 
-Milestones 1-12 are completed.
+Milestones 1-13 are completed.
 
 Completed scope:
 
@@ -27,6 +27,7 @@ Completed scope:
 - Deterministic human approval flow with local JSONL approval queue for critical findings, human-review findings and high-risk LLM recommendations.
 - Optional approval-aware notification delivery over completed workflow summaries.
 - Deterministic mock notification provider for tests and local no-key demos.
+- GitHub Actions CI for tests, linting, typing, Compose validation and script syntax checks.
 - Minimal pytest coverage and project documentation placeholders.
 - Claude/Codex-ready marketing report skill.
 
@@ -128,6 +129,12 @@ Run quality checks:
 
 ```bash
 ./scripts/run_checks.sh
+```
+
+Run the full local CI mirror:
+
+```bash
+./scripts/run_ci_locally.sh
 ```
 
 Clean generated runtime files:
@@ -632,6 +639,37 @@ uv run ruff check .
 uv run mypy src
 ```
 
+## CI/CD
+
+Project 1 includes a GitHub Actions workflow at:
+
+```text
+.github/workflows/project-1-ci.yml
+```
+
+The workflow runs on pull requests and pushes to `main` when Project 1,
+repository handoff docs, root instructions, root README or the workflow file
+change. It runs from `01-ai-marketing-ops-agent` and validates:
+
+- `uv sync`;
+- `uv run playwright install chromium`;
+- `uv run pytest`;
+- `uv run ruff check .`;
+- `uv run mypy src`;
+- `docker compose config`;
+- `bash -n scripts/*.sh`.
+
+CI does not start long-lived Docker Compose services, call real external APIs,
+send real notifications or require secrets. LLM interpretation and notification
+delivery are disabled by default, and the implemented providers are deterministic
+mocks.
+
+Run the same check set locally:
+
+```bash
+./scripts/run_ci_locally.sh
+```
+
 ## Next milestone
 
-The next milestone should add CI/CD for tests, linting and type checking.
+The next milestone should start Project 2: MCP Automation Server + Claude Code Toolkit.

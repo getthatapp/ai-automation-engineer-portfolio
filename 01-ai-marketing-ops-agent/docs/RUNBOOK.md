@@ -66,6 +66,12 @@ Run quality checks:
 ./scripts/run_checks.sh
 ```
 
+Run the full CI mirror:
+
+```bash
+./scripts/run_ci_locally.sh
+```
+
 Clean generated runtime files:
 
 ```bash
@@ -246,6 +252,41 @@ curl -X POST http://localhost:8003/api/tasks \
 
 Equivalent individual commands are `uv run pytest`, `uv run ruff check .` and
 `uv run mypy src`.
+
+For the complete GitHub Actions equivalent, run:
+
+```bash
+./scripts/run_ci_locally.sh
+```
+
+This runs `uv sync`, installs Playwright Chromium, runs pytest, ruff and mypy,
+validates `docker compose config` and checks shell script syntax with `bash -n`.
+
+## CI/CD
+
+GitHub Actions workflow:
+
+```text
+.github/workflows/project-1-ci.yml
+```
+
+Triggers:
+
+- pull requests that touch Project 1, root docs/instructions or the workflow;
+- pushes to `main` that touch the same paths.
+
+CI runs from `01-ai-marketing-ops-agent` and validates the same command set as
+`./scripts/run_ci_locally.sh`. It does not start long-lived Compose services,
+call real external APIs, send real notifications or require secrets.
+Notification delivery is disabled by default and uses only deterministic mock
+providers in tests.
+
+Generated runtime files remain ignored by git:
+
+- `reports/*.md`;
+- `run-history/*.jsonl`;
+- `approval-requests/*.jsonl`;
+- Python caches and bytecode.
 
 ## Typed Client Usage
 
