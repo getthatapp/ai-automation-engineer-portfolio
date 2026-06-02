@@ -147,11 +147,13 @@ The goal is to demonstrate the practical work expected from an AI Automation Dev
 
 ## How to Run Project 1
 
-Prerequisites:
+### Prerequisites
 
 - Python 3.12+
 - `uv`
 - Docker and Docker Compose
+
+### Setup
 
 ```bash
 cd 01-ai-marketing-ops-agent
@@ -159,25 +161,29 @@ uv sync
 uv run playwright install chromium
 ```
 
-Start the local mock services:
+### Start Local Mock Services
 
 ```bash
 ./scripts/start_services.sh
 ```
 
-Run the deterministic workflow:
+This starts the local mock services required by the workflow.
+
+### Run the Deterministic Workflow
+
+In another terminal:
 
 ```bash
 ./scripts/run_workflow.sh
 ```
 
-Run the same workflow with the deterministic mock LLM interpretation layer:
+### Run Workflow with Mock LLM Interpretation
 
 ```bash
 ./scripts/run_workflow_with_llm.sh
 ```
 
-The scripts use local demo marketing panel credentials by default:
+The workflow scripts use local demo marketing panel credentials by default:
 
 ```text
 MARKETING_PANEL_USERNAME=demo@example.com
@@ -185,10 +191,9 @@ MARKETING_PANEL_PASSWORD=local-password
 MARKETING_PANEL_2FA_CODE=000000
 ```
 
-Environment variables can override those defaults. No real secrets are required
-for the mock demo.
+Environment variables can override these defaults. No real secrets are required for the mock demo.
 
-Inspect generated outputs:
+### Inspect Generated Outputs
 
 ```text
 reports/                                  Markdown reports
@@ -205,41 +210,9 @@ tail -n 5 run-history/workflow-runs.jsonl
 tail -n 20 approval-requests/approval-requests.jsonl
 ```
 
-Run quality checks:
+### Run Quality Checks
 
 ```bash
-./scripts/run_checks.sh
-```
-
-Clean generated runtime files:
-
-```bash
-./scripts/clean_runtime.sh
-```
-
-Stop services:
-
-```bash
-docker compose down
-```
-
-Generated reports, run history and approval request files are ignored by git.
-
-Manual equivalent workflow command:
-
-```bash
-MARKETING_PANEL_USERNAME=demo@example.com \
-MARKETING_PANEL_PASSWORD=local-password \
-MARKETING_PANEL_2FA_CODE=000000 \
-uv run python -m marketing_ops_agent.workflows.daily_marketing_report
-```
-
----
-
-## Quality Checks
-
-```bash
-cd 01-ai-marketing-ops-agent
 ./scripts/run_checks.sh
 ```
 
@@ -257,6 +230,29 @@ Current status:
 96 tests passing
 ruff clean
 mypy clean
+```
+
+### Clean Generated Runtime Files
+
+```bash
+./scripts/clean_runtime.sh
+```
+
+### Stop Services
+
+```bash
+docker compose down
+```
+
+Generated reports, run history and approval request files are ignored by git.
+
+### Manual Equivalent Workflow Command
+
+```bash
+MARKETING_PANEL_USERNAME=demo@example.com \
+MARKETING_PANEL_PASSWORD=local-password \
+MARKETING_PANEL_2FA_CODE=000000 \
+uv run python -m marketing_ops_agent.workflows.daily_marketing_report
 ```
 
 ---
