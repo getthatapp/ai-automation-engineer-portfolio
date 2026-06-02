@@ -46,12 +46,105 @@ uv run playwright install chromium
 
 Fill `.env` only with local values. Do not commit secrets.
 
+## Local reviewer demo flow
+
+This flow is intended for external reviewers and recruiters who want to run the
+project without relying on personal shell aliases.
+
+Prerequisites:
+
+- Python 3.12+
+- `uv`
+- Docker and Docker Compose
+
+Install dependencies and Playwright's Chromium runtime:
+
+```bash
+uv sync
+uv run playwright install chromium
+```
+
+Start the local mock services:
+
+```bash
+./scripts/start_services.sh
+```
+
+Run the deterministic workflow:
+
+```bash
+./scripts/run_workflow.sh
+```
+
+Run the workflow with the deterministic mock LLM interpretation layer:
+
+```bash
+./scripts/run_workflow_with_llm.sh
+```
+
+The workflow scripts set safe local defaults for the mock marketing panel:
+
+```text
+MARKETING_PANEL_USERNAME=demo@example.com
+MARKETING_PANEL_PASSWORD=local-password
+MARKETING_PANEL_2FA_CODE=000000
+```
+
+They also default to the local mock service URLs. Any of these values can be
+overridden with environment variables before invoking the script. No real
+secrets or external LLM key are required when `LLM_PROVIDER=mock`.
+
+Inspect the latest report:
+
+```bash
+ls -lt reports/
+sed -n '1,220p' "$(ls -t reports/*.md | head -n 1)"
+```
+
+Inspect recent workflow run history:
+
+```bash
+tail -n 5 run-history/workflow-runs.jsonl
+```
+
+Inspect approval requests when present:
+
+```bash
+tail -n 20 approval-requests/approval-requests.jsonl
+```
+
+Run quality checks:
+
+```bash
+./scripts/run_checks.sh
+```
+
+Clean generated runtime files:
+
+```bash
+./scripts/clean_runtime.sh
+```
+
+Stop the mock services:
+
+```bash
+docker compose down
+```
+
+Generated reports, run history and approval request files are ignored by git.
+
 ## Local mock environment
 
 Run all mock services:
 
 ```bash
 docker compose up --build
+```
+
+Or use the reviewer helper script:
+
+```bash
+./scripts/start_services.sh
 ```
 
 Services:
@@ -224,6 +317,12 @@ existing deterministic components:
 9. optionally create deterministic project management tasks.
 
 Manual local run after starting mock services:
+
+```bash
+./scripts/run_workflow.sh
+```
+
+The manual equivalent is:
 
 ```bash
 MARKETING_PANEL_USERNAME=demo@example.com \
@@ -436,17 +535,24 @@ LLM_PROVIDER=mock
 LLM_MODEL=deterministic-marketing-interpreter
 ```
 
+Reviewer helper:
+
+```bash
+./scripts/run_workflow_with_llm.sh
+```
+
 ## Tests and quality checks
 
 Run tests:
 
 ```bash
-uv run pytest
+./scripts/run_checks.sh
 ```
 
-Run linting and type checks:
+Equivalent individual commands:
 
 ```bash
+uv run pytest
 uv run ruff check .
 uv run mypy src
 ```

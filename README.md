@@ -147,14 +147,85 @@ The goal is to demonstrate the practical work expected from an AI Automation Dev
 
 ## How to Run Project 1
 
+Prerequisites:
+
+- Python 3.12+
+- `uv`
+- Docker and Docker Compose
+
 ```bash
 cd 01-ai-marketing-ops-agent
 uv sync
 uv run playwright install chromium
-docker compose up --build
 ```
 
-In another terminal:
+Start the local mock services:
+
+```bash
+./scripts/start_services.sh
+```
+
+Run the deterministic workflow:
+
+```bash
+./scripts/run_workflow.sh
+```
+
+Run the same workflow with the deterministic mock LLM interpretation layer:
+
+```bash
+./scripts/run_workflow_with_llm.sh
+```
+
+The scripts use local demo marketing panel credentials by default:
+
+```text
+MARKETING_PANEL_USERNAME=demo@example.com
+MARKETING_PANEL_PASSWORD=local-password
+MARKETING_PANEL_2FA_CODE=000000
+```
+
+Environment variables can override those defaults. No real secrets are required
+for the mock demo.
+
+Inspect generated outputs:
+
+```text
+reports/                                  Markdown reports
+run-history/workflow-runs.jsonl           Workflow run history
+approval-requests/approval-requests.jsonl Pending approval queue, when present
+```
+
+Useful inspection commands:
+
+```bash
+ls -lt reports/
+sed -n '1,220p' "$(ls -t reports/*.md | head -n 1)"
+tail -n 5 run-history/workflow-runs.jsonl
+tail -n 20 approval-requests/approval-requests.jsonl
+```
+
+Run quality checks:
+
+```bash
+./scripts/run_checks.sh
+```
+
+Clean generated runtime files:
+
+```bash
+./scripts/clean_runtime.sh
+```
+
+Stop services:
+
+```bash
+docker compose down
+```
+
+Generated reports, run history and approval request files are ignored by git.
+
+Manual equivalent workflow command:
 
 ```bash
 MARKETING_PANEL_USERNAME=demo@example.com \
@@ -163,42 +234,18 @@ MARKETING_PANEL_2FA_CODE=000000 \
 uv run python -m marketing_ops_agent.workflows.daily_marketing_report
 ```
 
-Generated reports are saved under:
-
-```text
-01-ai-marketing-ops-agent/reports/
-```
-
-Run history is saved under:
-
-```text
-01-ai-marketing-ops-agent/run-history/workflow-runs.jsonl
-```
-
-Approval requests are saved under:
-
-```text
-01-ai-marketing-ops-agent/approval-requests/approval-requests.jsonl
-```
-
-Inspect run history:
-
-```bash
-tail -n 5 run-history/workflow-runs.jsonl
-```
-
-Inspect approval requests:
-
-```bash
-tail -n 20 approval-requests/approval-requests.jsonl
-```
-
 ---
 
 ## Quality Checks
 
 ```bash
 cd 01-ai-marketing-ops-agent
+./scripts/run_checks.sh
+```
+
+Equivalent commands:
+
+```bash
 uv run pytest
 uv run ruff check .
 uv run mypy src

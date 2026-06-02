@@ -5,10 +5,68 @@
 ```bash
 uv sync
 cp .env.example .env
+uv run playwright install chromium
 ```
 
 Do not commit `.env`. The checked-in `.env.example` contains only local mock
 defaults and empty placeholders for optional integrations.
+
+## Reviewer Demo Flow
+
+The `scripts/` directory contains local wrappers for reviewers who do not have
+project-specific shell aliases.
+
+Start the local mock services:
+
+```bash
+./scripts/start_services.sh
+```
+
+Run the deterministic workflow:
+
+```bash
+./scripts/run_workflow.sh
+```
+
+Run the workflow with deterministic mock LLM interpretation:
+
+```bash
+./scripts/run_workflow_with_llm.sh
+```
+
+Both workflow scripts use local mock marketing panel credentials by default:
+
+| Environment variable | Default |
+| --- | --- |
+| `MARKETING_PANEL_USERNAME` | `demo@example.com` |
+| `MARKETING_PANEL_PASSWORD` | `local-password` |
+| `MARKETING_PANEL_2FA_CODE` | `000000` |
+
+Environment variables can override script defaults. Do not use real secrets for
+the local mock demo.
+
+Inspect generated outputs:
+
+```bash
+ls -lt reports/
+sed -n '1,220p' "$(ls -t reports/*.md | head -n 1)"
+tail -n 5 run-history/workflow-runs.jsonl
+tail -n 20 approval-requests/approval-requests.jsonl
+```
+
+Run quality checks:
+
+```bash
+./scripts/run_checks.sh
+```
+
+Clean generated runtime files:
+
+```bash
+./scripts/clean_runtime.sh
+```
+
+Generated reports, run history and approval request records are ignored by git.
 
 ## Mock Service Startup
 
@@ -16,6 +74,12 @@ Run all local mock services with Docker Compose:
 
 ```bash
 docker compose up --build
+```
+
+Detached helper:
+
+```bash
+./scripts/start_services.sh
 ```
 
 The Compose stack starts four independent FastAPI services:
@@ -149,10 +213,11 @@ curl -X POST http://localhost:8003/api/tasks \
 ## Verification
 
 ```bash
-uv run pytest
-uv run ruff check .
-uv run mypy src
+./scripts/run_checks.sh
 ```
+
+Equivalent individual commands are `uv run pytest`, `uv run ruff check .` and
+`uv run mypy src`.
 
 ## Typed Client Usage
 
