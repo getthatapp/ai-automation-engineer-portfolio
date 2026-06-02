@@ -1,6 +1,6 @@
 # AI Automation Engineer Portfolio
 
-Production-oriented portfolio demonstrating practical AI automation engineering: browser automation, API integrations, deterministic workflow orchestration, data validation, anomaly detection, reporting, observability, optional LLM interpretation, human approval flow, and future MCP extensions.
+Production-oriented portfolio demonstrating practical AI automation engineering: browser automation, API integrations, deterministic workflow orchestration, data validation, anomaly detection, reporting, observability, optional LLM interpretation, human approval flow, and MCP-style local tool extensions.
 
 This repository is not a chatbot demo. It is a staged AI automation ecosystem built to automate real business workflows safely and observably.
 
@@ -67,17 +67,18 @@ Optional approval-aware notification summary
 Next milestone:
 
 ```text
-Project 2 Milestone 2 — MCP server implementation
+Project 2 Milestone 3 — MCP runtime configuration examples and permission profiles
 ```
 
 ### Project 2: Agent Toolkit for Codex and Claude Code
 
-Status: **Started / scaffold ready**
+Status: **MCP tool layer implemented**
 
 Project 2 supports both Codex and Claude Code by providing reusable prompt
 templates, Claude Code command templates, shared skills, safety documentation
-and lightweight reviewer scripts. It is a toolkit for agentic automation
-workflows, not another business workflow app.
+lightweight reviewer scripts and a Python deterministic local MCP tool layer.
+It is a toolkit for agentic automation workflows, not another business workflow
+app.
 
 See [Project 2 README](02-agent-toolkit-mcp/README.md).
 
@@ -133,16 +134,23 @@ Project 1 is portfolio-ready and case-study-ready. For a reviewer-friendly walkt
 
 ### 02 — Agent Toolkit for Codex and Claude Code
 
-Started project focused on:
+Project focused on:
 
-- TypeScript / Node.js
-- MCP tools
+- Python deterministic local MCP tools
 - Codex prompt workflows
 - Claude Code commands
 - shared skills
 - `AGENTS.md` and `CLAUDE.md` guidance
 - shell wrappers for both Codex and Claude Code
 - safety model and tool permissions
+
+Current MCP tools inspect Project 1 artifacts locally and read-only:
+
+- validate Markdown report sections
+- read sanitized workflow run history
+- list sanitized pending approvals
+- report generated runtime files without deleting them
+- generate a deterministic Project 1 demo readiness brief
 
 ### 03 — AgentOps Control Tower
 

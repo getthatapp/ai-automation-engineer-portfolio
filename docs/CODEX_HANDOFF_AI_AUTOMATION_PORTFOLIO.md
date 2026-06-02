@@ -3,8 +3,8 @@
 Last updated: 2026-06-02
 Repository: `ai-automation-engineer-portfolio`  
 Current project: `02-agent-toolkit-mcp`
-Current status: Project 1 complete / portfolio-ready. Project 2 started with Milestone 1 scaffold.
-Next step: Project 2 Milestone 2 — MCP server implementation.
+Current status: Project 1 complete / portfolio-ready. Project 2 Milestone 2 implemented.
+Next step: Project 2 Milestone 3 — MCP runtime configuration examples and permission profiles.
 
 ---
 
@@ -16,6 +16,12 @@ Codex should read this document together with the root `AGENTS.md` before making
 
 Future projects should preserve curated milestone prompts under
 `docs/prompt-history/<project-slug>/` using the same structure as Project 1.
+
+Starting with Project 2 Milestone 2, every Project 2 milestone must create or
+update its own full prompt-history file under
+`02-agent-toolkit-mcp/docs/prompt-history/`. Each file must include the full
+prompt, expected verification, implementation result summary, verification
+results and commit or PR placeholders until the human completes them.
 
 ---
 
@@ -52,8 +58,13 @@ Project 2 now includes:
 - shared skill documentation
 - lightweight scaffold scripts
 - Project 1 example positioning page
+- Python MCP server package under `02-agent-toolkit-mcp/mcp-server/`
+- deterministic local read-only tools for Project 1 artifact inspection
+- typed Pydantic schemas, path safety helpers and output sanitization
+- MCP server tests, linting and type checks
+- Project 2 prompt history under `02-agent-toolkit-mcp/docs/prompt-history/`
 
-Current verified status after Milestone 13:
+Current verified Project 1 status after Milestone 13:
 
 ```text
 105 tests passing
@@ -61,6 +72,16 @@ ruff clean
 mypy clean
 docker compose config validates
 bash script syntax clean
+```
+
+Current verified Project 2 MCP status after Milestone 2:
+
+```text
+12 MCP server tests passing
+ruff clean
+mypy clean
+bash script syntax clean
+git diff --check clean
 ```
 
 ---
@@ -365,36 +386,55 @@ git diff --check clean
 
 ---
 
-## 7. Prompt for Codex: Project 2 Milestone 2
+## 7. Completed Project 2 Milestone: Milestone 2
 
-Use this prompt next:
+### Goal
+
+Implement the initial deterministic local MCP server layer for Project 2.
+
+### Milestone 2 — MCP Server Implementation
+
+Implemented:
+
+- `02-agent-toolkit-mcp/mcp-server/pyproject.toml`
+- Python package under `mcp-server/src/agent_toolkit_mcp/`
+- minimal local tool registry in `server.py`
+- deterministic tool logic in `tools.py`
+- typed Pydantic schemas in `models.py`
+- path validation helpers in `path_safety.py`
+- local custom errors in `errors.py`
+- pytest coverage under `mcp-server/tests/`
+- MCP verification script: `02-agent-toolkit-mcp/scripts/run_mcp_checks.sh`
+- prompt-history entry:
+  `02-agent-toolkit-mcp/docs/prompt-history/milestone-02-mcp-server.md`
+
+Tools:
+
+- `validate_report(report_path)`
+- `read_run_history(jsonl_path, limit=5)`
+- `list_pending_approvals(jsonl_path)`
+- `check_runtime_clean(project_path)`
+- `generate_demo_brief(project_path)`
+
+Behavior:
+
+- local and deterministic only
+- read-only filesystem inspection
+- no LLM calls
+- no external API calls
+- no credentials required
+- no destructive operations
+- JSONL output sanitization for secret-like keys and values
+- Project-level tools inspect only child paths below the provided project path
+
+Verification:
 
 ```text
-Read the root AGENTS.md and docs/CODEX_HANDOFF_AI_AUTOMATION_PORTFOLIO.md first.
-
-Continue Project 2: 02-agent-toolkit-mcp.
-
-Goal:
-Implement Project 2 Milestone 2: initial MCP server implementation.
-
-Current state:
-- Project 1 is complete and portfolio-ready.
-- Project 2 Milestone 1 scaffold is complete.
-- Do not modify Project 1 unless the task explicitly requires it.
-- Do not hardcode secrets.
-- Do not add real external service credentials.
-
-Implementation guidance:
-- Prefer TypeScript / Node.js for the MCP tooling.
-- Add the initial MCP server structure and deterministic local tools.
-- Keep MCP tools deterministic with typed inputs, validation and auditable outputs.
-- Do not place vague LLM reasoning inside tool implementations.
-- Maintain Codex and Claude Code support in docs and examples.
-- Add tests and explicit verification commands.
-- Update README files and this handoff.
-- Keep generated files out of git.
-
-After implementation, summarize files created, commands to run, verification results and next steps.
+12 tests passed
+ruff clean
+mypy clean
+bash script syntax clean
+git diff --check clean
 ```
 
 Project 2 permanent rules:
@@ -402,6 +442,8 @@ Project 2 permanent rules:
 - every new function, method and class created by Codex must include a clear Google-style docstring
 - every milestone must update relevant README files
 - every milestone must update this handoff
+- every milestone must create or update its own prompt-history file under `02-agent-toolkit-mcp/docs/prompt-history/`
+- prompt-history files must include the full prompt, expected verification, result summary, verification results and commit/PR placeholders
 - use branch-based workflow and do not assume direct work on `main`
 - do not hardcode secrets or add real external credentials
 - do not modify Project 1 code unless explicitly requested
@@ -464,6 +506,6 @@ Run Project 1 CI locally:
 ## 9. Future Milestones
 
 ```text
-Project 2     — Milestone 2: MCP server implementation
+Project 2     — Milestone 3: MCP runtime configuration examples and permission profiles
 Project 3     — AgentOps Control Tower
 ```

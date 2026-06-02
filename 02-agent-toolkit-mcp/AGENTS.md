@@ -22,6 +22,11 @@ workflows, shared skills and future deterministic MCP tools.
   Google-style docstring.
 - Every milestone must update the relevant README files.
 - Every milestone must update `docs/CODEX_HANDOFF_AI_AUTOMATION_PORTFOLIO.md`.
+- Starting with Milestone 2, every milestone must create or update its own
+  prompt-history file under `02-agent-toolkit-mcp/docs/prompt-history/`.
+- Prompt-history files must include the full milestone prompt, expected
+  verification, implementation result summary, verification results and commit
+  or PR placeholders until the human completes them.
 - Documentation must stay in English.
 - Do not hardcode secrets.
 - Do not add real external service credentials.
@@ -60,4 +65,3 @@ git diff --check
 
 Future milestones should add project-specific tests and checks as implementation
 scope grows.
-

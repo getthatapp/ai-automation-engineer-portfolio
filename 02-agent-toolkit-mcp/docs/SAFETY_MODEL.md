@@ -25,6 +25,15 @@ MCP tools should:
 - fail safely with clear error messages;
 - avoid vague LLM reasoning inside tool implementations.
 
+The current MCP server package is local and read-only. Its tools inspect only
+explicitly provided report, JSONL or project paths. Project-level tools inspect
+child paths under the provided project directory and return relative paths for
+auditability. They do not delete generated files, mutate approval records, call
+external APIs or require credentials.
+
+JSONL-reading tools sanitize secret-like keys and obvious bearer/API-token
+values before returning records to an agent.
+
 ## External Integrations
 
 This scaffold does not call external services. Future integrations should be
@@ -40,4 +49,3 @@ Workflows should preserve enough context for a reviewer to understand:
 - what changed;
 - what verification passed;
 - what requires human approval.
-

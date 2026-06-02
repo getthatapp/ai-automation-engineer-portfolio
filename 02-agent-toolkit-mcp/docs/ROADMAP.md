@@ -15,7 +15,9 @@ Scope:
 
 ## Milestone 2 - MCP Server Implementation
 
-Planned scope:
+Status: complete.
+
+Implemented scope:
 
 - add the initial MCP server project structure;
 - define deterministic local tools;
@@ -25,14 +27,20 @@ Planned scope:
 
 Milestone 2 should not add real external service integrations or credentials.
 
+## Milestone 3 - Runtime Configuration Examples
+
+Planned scope:
+
+- add example MCP client configuration for local deterministic tools;
+- document permission profiles and read-only boundaries;
+- add reviewer demo prompts that use Project 1 artifacts through the tool layer;
+- keep all examples local-only and credential-free.
+
 ## Later Milestones
 
 Potential later work:
 
-- tool permission profiles;
-- command and prompt execution examples;
 - hook examples for Claude Code workflows;
 - CI for Project 2;
 - reviewer demo scripts;
 - integration examples using Project 1 artifacts.
-
