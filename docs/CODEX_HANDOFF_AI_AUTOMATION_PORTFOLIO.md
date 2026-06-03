@@ -3,8 +3,8 @@
 Last updated: 2026-06-03
 Repository: `ai-automation-engineer-portfolio`  
 Current project: `02-agent-toolkit-mcp`
-Current status: Project 1 complete / portfolio-ready. Project 2 Milestone 4 implemented.
-Next step: Project 2 Milestone 5 — MCP tool hardening and richer validation.
+Current status: Project 1 complete / portfolio-ready. Project 2 Milestone 5 implemented.
+Next step: Project 2 Milestone 6 — Runtime packaging or Claude Code hook examples.
 
 ---
 
@@ -72,6 +72,10 @@ Project 2 now includes:
 - Codex and Claude Code permission profile documentation
 - local runtime configuration examples under
   `02-agent-toolkit-mcp/examples/runtime-config/`
+- hardened MCP tool outputs with report summaries, warnings, record counts,
+  artifact counts and readiness checklists
+- expanded MCP tests for path safety, malformed inputs, redaction and stable
+  ordering
 
 Current verified Project 1 status after Milestone 13:
 
@@ -115,6 +119,18 @@ mypy clean
 bash script syntax clean
 git diff --check clean
 permission profile helper ran read-only
+```
+
+Current verified Project 2 status after Milestone 5:
+
+```text
+Project 2 scaffold checks passed
+21 MCP server tests passing
+ruff clean
+mypy clean
+bash script syntax clean
+git diff --check clean
+adapter script serialized richer tool outputs
 ```
 
 ---
@@ -575,6 +591,55 @@ git diff --check clean
 permission profile helper ran read-only
 ```
 
+---
+
+## 10. Completed Project 2 Milestone: Milestone 5
+
+### Goal
+
+Improve reliability, safety and usefulness of the Project 2 deterministic local
+MCP tools.
+
+### Milestone 5 — MCP Tool Hardening and Richer Validation
+
+Implemented:
+
+- additive typed output fields for report summaries, report warnings, JSONL
+  record counts, pending approval counts, runtime artifact counts and demo
+  readiness checks
+- explicit symlink handling documentation in path safety helpers
+- structured handling for invalid run-history limits
+- non-fatal report warnings for empty reports, missing generated timestamps and
+  duplicate required headings
+- runtime artifact counts for reports, run history, approval requests,
+  `__pycache__/` directories and `*.pyc` files
+- expanded tests for path safety, malformed inputs, ordering, redaction,
+  summaries and readiness behavior
+- prompt-history entry:
+  `02-agent-toolkit-mcp/docs/prompt-history/milestone-05-tool-hardening.md`
+
+Behavior:
+
+- local and deterministic only
+- read-only Project 1 artifact inspection
+- no Project 1 code or runtime behavior changes
+- no external API calls
+- no secrets required
+- no destructive tools
+- no claim of deployed external MCP transport
+
+Verification:
+
+```text
+Project 2 scaffold checks passed
+21 MCP server tests passing
+ruff clean
+mypy clean
+bash script syntax clean
+git diff --check clean
+adapter script serialized richer tool outputs
+```
+
 Project 2 permanent rules:
 
 - every new function, method and class created by Codex must include a clear Google-style docstring
@@ -588,7 +653,7 @@ Project 2 permanent rules:
 
 ---
 
-## 10. Demo Commands
+## 11. Demo Commands
 
 Run mock services:
 
@@ -654,9 +719,9 @@ Show Project 2 local permission profiles:
 
 ---
 
-## 11. Future Milestones
+## 12. Future Milestones
 
 ```text
-Project 2     — Milestone 5: MCP tool hardening and richer validation
+Project 2     — Milestone 6: Runtime packaging or Claude Code hook examples
 Project 3     — AgentOps Control Tower
 ```

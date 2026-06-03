@@ -20,6 +20,7 @@ required_files=(
   "docs/prompt-history/milestone-02-mcp-server.md"
   "docs/prompt-history/milestone-03-agent-integration.md"
   "docs/prompt-history/milestone-04-runtime-config.md"
+  "docs/prompt-history/milestone-05-tool-hardening.md"
   "docs/runtime/MCP_RUNTIME_CONFIGURATION.md"
   "docs/runtime/CODEX_PERMISSION_PROFILES.md"
   "docs/runtime/CLAUDE_CODE_PERMISSION_PROFILES.md"
@@ -63,6 +64,7 @@ required_files=(
   "mcp-server/src/agent_toolkit_mcp/models.py"
   "mcp-server/src/agent_toolkit_mcp/errors.py"
   "mcp-server/src/agent_toolkit_mcp/path_safety.py"
+  "mcp-server/tests/conftest.py"
   "mcp-server/tests/test_tools.py"
 )
 

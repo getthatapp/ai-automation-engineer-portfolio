@@ -6,6 +6,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+import pytest
+
 from agent_toolkit_mcp.tools import (
     REQUIRED_REPORT_SECTIONS,
     check_runtime_clean,
@@ -27,6 +29,24 @@ def test_validate_report_accepts_all_required_sections(tmp_path: Path) -> None:
     assert result.valid is True
     assert result.file_exists is True
     assert result.missing_sections == []
+    assert result.warnings == ["Generated timestamp is missing."]
+
+
+def test_validate_report_extracts_summary_values(tmp_path: Path) -> None:
+    """Extract explicit report summary values without inference."""
+
+    report_path = tmp_path / "daily-marketing-report.md"
+    report_path.write_text(_build_report_with_summary(REQUIRED_REPORT_SECTIONS), encoding="utf-8")
+
+    result = validate_report(report_path)
+
+    assert result.valid is True
+    assert result.summary.generated_timestamp == "2026-06-02T11:16:10+00:00"
+    assert result.summary.campaigns_processed == 3
+    assert result.summary.critical_findings == 2
+    assert result.summary.warning_findings == 1
+    assert result.summary.campaigns_requiring_human_review == 1
+    assert result.warnings == []
 
 
 def test_validate_report_reports_missing_sections(tmp_path: Path) -> None:
@@ -56,6 +76,46 @@ def test_validate_report_handles_missing_path(tmp_path: Path) -> None:
     assert result.errors
 
 
+def test_validate_report_reports_duplicate_required_section(tmp_path: Path) -> None:
+    """Warn when a required report section heading is duplicated."""
+
+    report_path = tmp_path / "daily-marketing-report.md"
+    report_path.write_text(
+        _build_report_with_summary(["Executive Summary", "Executive Summary"]),
+        encoding="utf-8",
+    )
+
+    result = validate_report(report_path)
+
+    assert "Duplicate required section heading: Executive Summary." in result.warnings
+
+
+def test_validate_report_warns_for_empty_report(tmp_path: Path) -> None:
+    """Warn clearly for empty report files."""
+
+    report_path = tmp_path / "daily-marketing-report.md"
+    report_path.write_text("", encoding="utf-8")
+
+    result = validate_report(report_path)
+
+    assert result.valid is False
+    assert "Report is empty." in result.warnings
+    assert "Generated timestamp is missing." in result.warnings
+
+
+def test_validate_report_rejects_wrong_suffix(tmp_path: Path) -> None:
+    """Reject non-Markdown report paths with structured errors."""
+
+    report_path = tmp_path / "daily-marketing-report.txt"
+    report_path.write_text("# Report\n", encoding="utf-8")
+
+    result = validate_report(report_path)
+
+    assert result.valid is False
+    assert result.file_exists is True
+    assert result.errors
+
+
 def test_read_run_history_returns_recent_records(tmp_path: Path) -> None:
     """Read recent workflow records up to the provided limit."""
 
@@ -73,7 +133,23 @@ def test_read_run_history_returns_recent_records(tmp_path: Path) -> None:
 
     assert result.file_exists is True
     assert [record["run_id"] for record in result.records] == ["run-2", "run-3"]
+    assert result.total_records_read == 3
     assert result.malformed_lines == []
+
+
+def test_read_run_history_reports_invalid_limits(tmp_path: Path) -> None:
+    """Return structured errors for out-of-range limits."""
+
+    history_path = tmp_path / "workflow-runs.jsonl"
+    _write_jsonl(history_path, [{"run_id": "run-1"}])
+
+    zero_result = read_run_history(history_path, limit=0)
+    large_result = read_run_history(history_path, limit=101)
+
+    assert zero_result.records == []
+    assert zero_result.errors
+    assert large_result.records == []
+    assert large_result.errors
 
 
 def test_read_run_history_handles_missing_file(tmp_path: Path) -> None:
@@ -83,7 +159,18 @@ def test_read_run_history_handles_missing_file(tmp_path: Path) -> None:
 
     assert result.file_exists is False
     assert result.records == []
+    assert result.total_records_read == 0
     assert result.malformed_lines == []
+
+
+def test_read_run_history_rejects_directory_path(tmp_path: Path) -> None:
+    """Return a structured error when JSONL path is a directory."""
+
+    result = read_run_history(tmp_path)
+
+    assert result.file_exists is True
+    assert result.records == []
+    assert result.errors
 
 
 def test_read_run_history_reports_malformed_line(tmp_path: Path) -> None:
@@ -134,8 +221,35 @@ def test_list_pending_approvals_returns_summaries(tmp_path: Path) -> None:
 
     assert result.file_exists is True
     assert len(result.pending_approvals) == 1
+    assert result.total_records_read == 2
+    assert result.pending_count == 1
     assert result.pending_approvals[0].approval_id == "approval-1"
     assert not hasattr(result.pending_approvals[0], "source_evidence")
+
+
+def test_list_pending_approvals_filters_mixed_statuses(tmp_path: Path) -> None:
+    """Return only pending approval summaries from mixed status records."""
+
+    approvals_path = tmp_path / "approval-requests.jsonl"
+    _write_jsonl(
+        approvals_path,
+        [
+            {"approval_id": "approval-1", "status": "pending"},
+            {"approval_id": "approval-2", "status": "approved"},
+            {"approval_id": "approval-3", "status": "rejected"},
+            {"approval_id": "approval-4", "status": "pending", "title": "Bearer token123"},
+        ],
+    )
+
+    result = list_pending_approvals(approvals_path)
+
+    assert [approval.approval_id for approval in result.pending_approvals] == [
+        "approval-1",
+        "approval-4",
+    ]
+    assert result.pending_count == 2
+    assert result.total_records_read == 4
+    assert result.pending_approvals[1].title == "[REDACTED]"
 
 
 def test_list_pending_approvals_handles_missing_file(tmp_path: Path) -> None:
@@ -145,6 +259,7 @@ def test_list_pending_approvals_handles_missing_file(tmp_path: Path) -> None:
 
     assert result.file_exists is False
     assert result.pending_approvals == []
+    assert result.pending_count == 0
     assert result.malformed_lines == []
 
 
@@ -189,7 +304,34 @@ def test_check_runtime_clean_false_with_generated_files(tmp_path: Path) -> None:
         "src/__pycache__",
         "src/__pycache__/module.pyc",
     ]
+    assert result.artifact_counts.reports == 1
+    assert result.artifact_counts.run_history == 1
+    assert result.artifact_counts.approval_requests == 1
+    assert result.artifact_counts.pycache == 1
+    assert result.artifact_counts.pyc == 1
     assert (project_path / "run-history" / "workflow-runs.jsonl").exists()
+
+
+def test_check_runtime_clean_reports_symlink_escape(tmp_path: Path) -> None:
+    """Report symlink matches that resolve outside the provided project path."""
+
+    project_path = tmp_path / "project-1"
+    outside_path = tmp_path / "outside"
+    (project_path / "reports").mkdir(parents=True)
+    outside_path.mkdir()
+    outside_report = outside_path / "daily-marketing-report-20260602T000000Z.md"
+    outside_report.write_text("# Report\n", encoding="utf-8")
+    symlink_path = project_path / "reports" / "daily-marketing-report-20260602T000000Z.md"
+    try:
+        symlink_path.symlink_to(outside_report)
+    except OSError as exc:
+        pytest.skip(f"Symlink creation is unavailable: {exc}")
+
+    result = check_runtime_clean(project_path)
+
+    assert result.clean is False
+    assert result.found_paths == []
+    assert result.errors
 
 
 def test_generate_demo_brief_includes_expected_local_commands(tmp_path: Path) -> None:
@@ -204,6 +346,20 @@ def test_generate_demo_brief_includes_expected_local_commands(tmp_path: Path) ->
     assert "uv sync" in result.brief
     assert "./scripts/start_services.sh" in result.brief
     assert "NOTIFICATION_DELIVERY_ENABLED=true ./scripts/run_workflow.sh" in result.local_commands
+    assert all(check.ready for check in result.readiness_checklist)
+
+
+def test_generate_demo_brief_reports_missing_readiness_items(tmp_path: Path) -> None:
+    """Return missing files and checklist items for incomplete projects."""
+
+    project_path = tmp_path / "project-1"
+    project_path.mkdir()
+
+    result = generate_demo_brief(project_path)
+
+    assert result.ready is False
+    assert "README.md" in result.missing_paths
+    assert any(not check.ready for check in result.readiness_checklist)
 
 
 def test_secret_like_values_are_redacted_from_outputs(tmp_path: Path) -> None:
@@ -257,6 +413,30 @@ def _build_report(sections: list[str]) -> str:
     return f"# Daily Marketing Operations Report\n\n{section_text}\n"
 
 
+def _build_report_with_summary(sections: list[str]) -> str:
+    """Build a Markdown report fixture with explicit summary lines.
+
+    Args:
+        sections: Section headings to include.
+
+    Returns:
+        Markdown report text with extractable summary values.
+    """
+
+    summary = "\n".join(
+        [
+            "Generated timestamp: 2026-06-02T11:16:10+00:00",
+            "",
+            "- Campaigns processed: 3.",
+            "- Critical findings: 2.",
+            "- Warning findings: 1.",
+            "- Campaigns requiring human review: 1.",
+        ]
+    )
+    section_text = "\n\n".join(f"## {section}\nContent." for section in sections)
+    return f"# Daily Marketing Operations Report\n\n{summary}\n\n{section_text}\n"
+
+
 def _write_jsonl(path: Path, records: list[dict[str, Any]]) -> None:
     """Write JSONL fixture records.
 
@@ -295,3 +475,8 @@ def _create_expected_project_1_files(project_path: Path) -> None:
         file_path = project_path / relative_path
         file_path.parent.mkdir(parents=True, exist_ok=True)
         file_path.write_text("placeholder\n", encoding="utf-8")
+    for directory in ("reports", "run-history", "approval-requests"):
+        (project_path / directory).mkdir(parents=True, exist_ok=True)
+    ci_workflow_path = project_path.parent / ".github" / "workflows" / "project-1-ci.yml"
+    ci_workflow_path.parent.mkdir(parents=True, exist_ok=True)
+    ci_workflow_path.write_text("placeholder\n", encoding="utf-8")
