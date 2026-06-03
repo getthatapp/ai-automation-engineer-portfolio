@@ -60,13 +60,28 @@ runtime-enforced permission policy.
 
 ## Milestone 5 - MCP Tool Hardening and Richer Validation
 
-Planned scope:
+Status: complete.
+
+Implemented scope:
 
 - tighten deterministic tool validation and error reporting;
 - add richer report/run-history/approval schema checks where useful;
 - improve local invocation ergonomics without adding destructive tools;
 - expand tests around malformed inputs and boundary conditions;
 - keep the tool layer local-only and credential-free.
+
+Milestone 5 does not add external MCP transport, destructive tools or Project 1
+runtime behavior changes.
+
+## Milestone 6 - Runtime Packaging or Hook Examples
+
+Planned scope:
+
+- package local MCP runtime configuration examples more explicitly; or
+- add Claude Code hook examples that stay local-only and approval-aware;
+- keep deterministic tools read-only and credential-free;
+- avoid deployed external integrations unless a future milestone explicitly
+  implements and verifies them.
 
 ## Later Milestones
 

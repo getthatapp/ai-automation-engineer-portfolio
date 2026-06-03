@@ -10,6 +10,9 @@ from agent_toolkit_mcp.errors import InvalidPathError
 def resolve_existing_file(path: Path, *, expected_suffix: str | None = None) -> Path:
     """Resolve and validate an existing file path.
 
+    Symlinks are resolved before validation. A symlink is accepted only when its
+    target exists and is a file with the expected suffix.
+
     Args:
         path: Path provided by a tool caller.
         expected_suffix: Optional required file suffix, such as `.md`.
@@ -34,6 +37,9 @@ def resolve_existing_file(path: Path, *, expected_suffix: str | None = None) -> 
 def resolve_optional_file(path: Path) -> Path:
     """Resolve a path that may or may not exist but must not be a directory.
 
+    Symlinks are resolved before validation. A symlink is accepted only when its
+    target is absent or points to a file.
+
     Args:
         path: Path provided by a tool caller.
 
@@ -52,6 +58,9 @@ def resolve_optional_file(path: Path) -> Path:
 
 def resolve_existing_directory(path: Path) -> Path:
     """Resolve and validate an existing directory path.
+
+    Symlinks are resolved before validation. A symlink is accepted only when its
+    target exists and is a directory.
 
     Args:
         path: Path provided by a tool caller.
@@ -74,6 +83,9 @@ def resolve_existing_directory(path: Path) -> Path:
 def safe_relative_path(path: Path, base_path: Path) -> str:
     """Return a path relative to a validated base directory.
 
+    Symlinks are resolved before containment checks so links that point outside
+    the base directory are rejected.
+
     Args:
         path: Path to render.
         base_path: Directory that must contain the path.
@@ -95,6 +107,9 @@ def safe_relative_path(path: Path, base_path: Path) -> str:
 
 def ensure_child_path(path: Path, base_path: Path) -> Path:
     """Validate that a path is inside a base directory.
+
+    Symlinks are resolved before containment checks so links that point outside
+    the base directory are rejected.
 
     Args:
         path: Path to validate.

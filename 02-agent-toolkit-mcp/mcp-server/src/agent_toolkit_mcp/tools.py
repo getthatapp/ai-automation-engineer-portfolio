@@ -8,8 +8,6 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
-from pydantic import ValidationError
-
 from agent_toolkit_mcp.errors import InvalidPathError
 from agent_toolkit_mcp.models import (
     CheckRuntimeCleanInput,
@@ -20,10 +18,14 @@ from agent_toolkit_mcp.models import (
     ListPendingApprovalsInput,
     ListPendingApprovalsResult,
     PendingApprovalSummary,
+    ReadinessCheck,
     ReadRunHistoryInput,
     ReadRunHistoryResult,
+    ReportSummary,
+    RuntimeArtifactCounts,
     ValidateReportInput,
     ValidateReportResult,
+    ValidationError,
 )
 from agent_toolkit_mcp.path_safety import (
     ensure_child_path,
@@ -67,6 +69,32 @@ EXPECTED_PROJECT_1_PATHS = [
     "src/marketing_ops_agent/workflows/daily_marketing_report.py",
 ]
 
+READINESS_CHECK_GROUPS = [
+    (
+        "README exists",
+        ["README.md"],
+    ),
+    (
+        "reviewer scripts exist",
+        [
+            "scripts/start_services.sh",
+            "scripts/run_workflow.sh",
+            "scripts/run_workflow_with_llm.sh",
+            "scripts/run_checks.sh",
+        ],
+    ),
+    (
+        "Project 1 docs exist",
+        ["docs/ARCHITECTURE.md", "docs/RUNBOOK.md"],
+    ),
+    (
+        "runtime directories exist",
+        ["reports", "run-history", "approval-requests"],
+    ),
+]
+
+CI_WORKFLOW_RELATIVE_PATH = ".github/workflows/project-1-ci.yml"
+
 DEMO_COMMANDS = [
     "uv sync",
     "uv run playwright install chromium",
@@ -86,6 +114,17 @@ SECRET_VALUE_PATTERN = re.compile(
     re.IGNORECASE,
 )
 REDACTED = "[REDACTED]"
+
+SUMMARY_PATTERNS = {
+    "campaigns_processed": re.compile(r"Campaigns processed:\s*(\d+)", re.IGNORECASE),
+    "critical_findings": re.compile(r"Critical findings:\s*(\d+)", re.IGNORECASE),
+    "warning_findings": re.compile(r"Warning findings:\s*(\d+)", re.IGNORECASE),
+    "campaigns_requiring_human_review": re.compile(
+        r"Campaigns requiring human review:\s*(\d+)",
+        re.IGNORECASE,
+    ),
+}
+GENERATED_TIMESTAMP_PATTERN = re.compile(r"Generated timestamp:\s*(.+)", re.IGNORECASE)
 
 
 def validate_report(report_path: str | Path) -> ValidateReportResult:
@@ -118,6 +157,7 @@ def validate_report(report_path: str | Path) -> ValidateReportResult:
     missing_sections = [
         section for section in REQUIRED_REPORT_SECTIONS if section not in found_sections
     ]
+    warnings = _build_report_warnings(content, found_sections)
     return ValidateReportResult(
         valid=not missing_sections,
         report_path=str(report_file),
@@ -125,6 +165,8 @@ def validate_report(report_path: str | Path) -> ValidateReportResult:
         required_sections=REQUIRED_REPORT_SECTIONS,
         found_sections=found_sections,
         missing_sections=missing_sections,
+        summary=_extract_report_summary(content),
+        warnings=warnings,
     )
 
 
@@ -139,7 +181,18 @@ def read_run_history(jsonl_path: str | Path, limit: int = 5) -> ReadRunHistoryRe
         Structured result containing recent sanitized records and malformed line errors.
     """
 
-    input_model = ReadRunHistoryInput(jsonl_path=Path(jsonl_path), limit=limit)
+    resolved = Path(jsonl_path).expanduser().resolve(strict=False)
+    try:
+        input_model = ReadRunHistoryInput(jsonl_path=Path(jsonl_path), limit=limit)
+    except ValidationError as exc:
+        return ReadRunHistoryResult(
+            jsonl_path=str(resolved),
+            file_exists=resolved.exists(),
+            records=[],
+            total_records_read=0,
+            malformed_lines=[],
+            errors=_validation_error_messages(exc),
+        )
     resolved = input_model.jsonl_path.expanduser().resolve(strict=False)
     try:
         history_file = resolve_optional_file(input_model.jsonl_path)
@@ -148,6 +201,7 @@ def read_run_history(jsonl_path: str | Path, limit: int = 5) -> ReadRunHistoryRe
             jsonl_path=str(resolved),
             file_exists=resolved.exists(),
             records=[],
+            total_records_read=0,
             malformed_lines=[],
             errors=[str(exc)],
         )
@@ -156,6 +210,7 @@ def read_run_history(jsonl_path: str | Path, limit: int = 5) -> ReadRunHistoryRe
             jsonl_path=str(history_file),
             file_exists=False,
             records=[],
+            total_records_read=0,
             malformed_lines=[],
         )
 
@@ -164,6 +219,7 @@ def read_run_history(jsonl_path: str | Path, limit: int = 5) -> ReadRunHistoryRe
         jsonl_path=str(history_file),
         file_exists=True,
         records=[_sanitize_value(record) for record in records[-input_model.limit :]],
+        total_records_read=len(records),
         malformed_lines=malformed_lines,
     )
 
@@ -187,6 +243,8 @@ def list_pending_approvals(jsonl_path: str | Path) -> ListPendingApprovalsResult
             jsonl_path=str(resolved),
             file_exists=resolved.exists(),
             pending_approvals=[],
+            total_records_read=0,
+            pending_count=0,
             malformed_lines=[],
             errors=[str(exc)],
         )
@@ -195,6 +253,8 @@ def list_pending_approvals(jsonl_path: str | Path) -> ListPendingApprovalsResult
             jsonl_path=str(approvals_file),
             file_exists=False,
             pending_approvals=[],
+            total_records_read=0,
+            pending_count=0,
             malformed_lines=[],
         )
 
@@ -222,6 +282,8 @@ def list_pending_approvals(jsonl_path: str | Path) -> ListPendingApprovalsResult
         jsonl_path=str(approvals_file),
         file_exists=True,
         pending_approvals=pending_approvals,
+        total_records_read=len(records),
+        pending_count=len(pending_approvals),
         malformed_lines=malformed_lines,
     )
 
@@ -250,18 +312,42 @@ def check_runtime_clean(project_path: str | Path) -> CheckRuntimeCleanResult:
         )
 
     found_paths: set[str] = set()
-    _collect_glob_matches(project_dir, "reports/daily-marketing-report-*.md", found_paths)
-    _collect_explicit_file(project_dir, "run-history/workflow-runs.jsonl", found_paths)
-    _collect_explicit_file(project_dir, "approval-requests/approval-requests.jsonl", found_paths)
-    _collect_glob_matches(project_dir, "**/__pycache__", found_paths, directories_only=True)
-    _collect_glob_matches(project_dir, "**/*.pyc", found_paths)
+    errors: list[str] = []
+    report_paths = _collect_glob_matches(project_dir, "reports/daily-marketing-report-*.md", errors)
+    run_history_paths = _collect_explicit_file(
+        project_dir,
+        "run-history/workflow-runs.jsonl",
+        errors,
+    )
+    approval_paths = _collect_explicit_file(
+        project_dir,
+        "approval-requests/approval-requests.jsonl",
+        errors,
+    )
+    pycache_paths = _collect_glob_matches(
+        project_dir,
+        "**/__pycache__",
+        errors,
+        directories_only=True,
+    )
+    pyc_paths = _collect_glob_matches(project_dir, "**/*.pyc", errors)
+    for paths in (report_paths, run_history_paths, approval_paths, pycache_paths, pyc_paths):
+        found_paths.update(paths)
 
     sorted_paths = sorted(found_paths)
     return CheckRuntimeCleanResult(
-        clean=not sorted_paths,
+        clean=not sorted_paths and not errors,
         project_path=str(project_dir),
         found_paths=sorted_paths,
+        artifact_counts=RuntimeArtifactCounts(
+            reports=len(report_paths),
+            run_history=len(run_history_paths),
+            approval_requests=len(approval_paths),
+            pycache=len(pycache_paths),
+            pyc=len(pyc_paths),
+        ),
         checked_patterns=RUNTIME_PATTERNS,
+        errors=errors,
     )
 
 
@@ -299,12 +385,17 @@ def generate_demo_brief(project_path: str | Path) -> GenerateDemoBriefResult:
         else:
             missing_paths.append(relative_path)
 
-    ready = not missing_paths
+    readiness_checklist = _build_readiness_checklist(project_dir)
+    ready = not missing_paths and all(check.ready for check in readiness_checklist)
     status = "ready" if ready else "not ready"
     brief_lines = [
         f"Project 1 demo readiness: {status}.",
         f"Present expected files: {len(present_paths)}.",
         f"Missing expected files: {len(missing_paths)}.",
+        (
+            f"Readiness checks passed: {_count_ready_checks(readiness_checklist)} "
+            f"of {len(readiness_checklist)}."
+        ),
         "Local demo commands:",
         *[f"- {command}" for command in DEMO_COMMANDS],
         "This brief is deterministic, local-only and does not call an LLM or external API.",
@@ -315,8 +406,63 @@ def generate_demo_brief(project_path: str | Path) -> GenerateDemoBriefResult:
         brief="\n".join(brief_lines),
         present_paths=present_paths,
         missing_paths=missing_paths,
+        readiness_checklist=readiness_checklist,
         local_commands=DEMO_COMMANDS,
     )
+
+
+def _extract_report_summary(content: str) -> ReportSummary:
+    """Extract explicit report summary values from Markdown content.
+
+    Args:
+        content: Markdown report content.
+
+    Returns:
+        Structured report summary with only explicitly present values.
+    """
+
+    summary_values: dict[str, int] = {}
+    for field_name, pattern in SUMMARY_PATTERNS.items():
+        match = pattern.search(content)
+        if match is not None:
+            summary_values[field_name] = int(match.group(1))
+
+    timestamp_match = GENERATED_TIMESTAMP_PATTERN.search(content)
+    generated_timestamp = None
+    if timestamp_match is not None:
+        generated_timestamp = timestamp_match.group(1).strip().removesuffix(".")
+
+    return ReportSummary(
+        generated_timestamp=generated_timestamp,
+        campaigns_processed=summary_values.get("campaigns_processed"),
+        critical_findings=summary_values.get("critical_findings"),
+        warning_findings=summary_values.get("warning_findings"),
+        campaigns_requiring_human_review=summary_values.get(
+            "campaigns_requiring_human_review"
+        ),
+    )
+
+
+def _build_report_warnings(content: str, found_sections: list[str]) -> list[str]:
+    """Build non-fatal warnings for suspicious report content.
+
+    Args:
+        content: Markdown report content.
+        found_sections: Extracted level-two section headings.
+
+    Returns:
+        Deterministically ordered warning messages.
+    """
+
+    warnings: list[str] = []
+    if not content.strip():
+        warnings.append("Report is empty.")
+    if GENERATED_TIMESTAMP_PATTERN.search(content) is None:
+        warnings.append("Generated timestamp is missing.")
+    for section in REQUIRED_REPORT_SECTIONS:
+        if found_sections.count(section) > 1:
+            warnings.append(f"Duplicate required section heading: {section}.")
+    return warnings
 
 
 def _extract_markdown_sections(content: str) -> list[str]:
@@ -405,41 +551,132 @@ def _optional_string(value: Any) -> str | None:
     return str(value)
 
 
-def _collect_explicit_file(project_dir: Path, relative_path: str, found_paths: set[str]) -> None:
+def _validation_error_messages(exc: ValidationError) -> list[str]:
+    """Convert Pydantic validation errors into concise safe messages.
+
+    Args:
+        exc: Validation error raised while validating tool inputs.
+
+    Returns:
+        Safe validation messages that omit raw input values.
+    """
+
+    messages: list[str] = []
+    for error in exc.errors():
+        location = ".".join(str(item) for item in error.get("loc", ()))
+        message = str(error.get("msg", "Invalid input"))
+        if location:
+            messages.append(f"{location}: {message}")
+        else:
+            messages.append(message)
+    return messages
+
+
+def _build_readiness_checklist(project_dir: Path) -> list[ReadinessCheck]:
+    """Build deterministic readiness checks for a Project 1 directory.
+
+    Args:
+        project_dir: Validated Project 1 directory.
+
+    Returns:
+        Readiness checks with present and missing expected paths.
+    """
+
+    checks: list[ReadinessCheck] = []
+    for name, relative_paths in READINESS_CHECK_GROUPS:
+        present_paths: list[str] = []
+        missing_paths: list[str] = []
+        for relative_path in relative_paths:
+            child_path = ensure_child_path(project_dir / relative_path, project_dir)
+            if child_path.exists():
+                present_paths.append(relative_path)
+            else:
+                missing_paths.append(relative_path)
+        checks.append(
+            ReadinessCheck(
+                name=name,
+                ready=not missing_paths,
+                present_paths=present_paths,
+                missing_paths=missing_paths,
+            )
+        )
+
+    repo_root = project_dir.parent
+    ci_workflow_path = ensure_child_path(repo_root / CI_WORKFLOW_RELATIVE_PATH, repo_root)
+    checks.append(
+        ReadinessCheck(
+            name="CI workflow exists",
+            ready=ci_workflow_path.exists(),
+            present_paths=[CI_WORKFLOW_RELATIVE_PATH] if ci_workflow_path.exists() else [],
+            missing_paths=[] if ci_workflow_path.exists() else [CI_WORKFLOW_RELATIVE_PATH],
+        )
+    )
+    return checks
+
+
+def _count_ready_checks(readiness_checklist: list[ReadinessCheck]) -> int:
+    """Count passing readiness checks.
+
+    Args:
+        readiness_checklist: Readiness checks to count.
+
+    Returns:
+        Number of checks with `ready=True`.
+    """
+
+    return sum(1 for check in readiness_checklist if check.ready)
+
+
+def _collect_explicit_file(project_dir: Path, relative_path: str, errors: list[str]) -> set[str]:
     """Collect an explicit child file when it exists.
 
     Args:
         project_dir: Validated project directory.
         relative_path: Relative file path to check.
-        found_paths: Mutable set receiving safe relative paths.
+        errors: Mutable list receiving path safety errors.
+
+    Returns:
+        Set containing the relative path when it exists and is safe.
     """
 
-    candidate = ensure_child_path(project_dir / relative_path, project_dir)
-    if candidate.is_file():
-        found_paths.add(safe_relative_path(candidate, project_dir))
+    try:
+        candidate = ensure_child_path(project_dir / relative_path, project_dir)
+        if candidate.is_file():
+            return {safe_relative_path(candidate, project_dir)}
+    except InvalidPathError as exc:
+        errors.append(str(exc))
+    return set()
 
 
 def _collect_glob_matches(
     project_dir: Path,
     pattern: str,
-    found_paths: set[str],
+    errors: list[str],
     *,
     directories_only: bool = False,
-) -> None:
+) -> set[str]:
     """Collect glob matches below a project directory.
 
     Args:
         project_dir: Validated project directory.
         pattern: Glob pattern to evaluate under the project directory.
-        found_paths: Mutable set receiving safe relative paths.
+        errors: Mutable list receiving path safety errors.
         directories_only: Whether to include only directories.
+
+    Returns:
+        Set of safe relative paths.
     """
 
+    found_paths: set[str] = set()
     for candidate in project_dir.glob(pattern):
-        safe_candidate = ensure_child_path(candidate, project_dir)
-        if directories_only and not safe_candidate.is_dir():
-            continue
-        found_paths.add(safe_relative_path(safe_candidate, project_dir))
+        try:
+            safe_candidate = ensure_child_path(candidate, project_dir)
+            if directories_only and not safe_candidate.is_dir():
+                continue
+            found_paths.add(safe_relative_path(safe_candidate, project_dir))
+        except InvalidPathError as exc:
+            errors.append(str(exc))
+    return found_paths
 
 
 def call_tool(tool_name: str, arguments: dict[str, Any]) -> Any:

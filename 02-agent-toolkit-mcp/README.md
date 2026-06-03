@@ -9,7 +9,7 @@ that will support future workflow development.
 
 ## Current Status
 
-Milestone 4 is implemented.
+Milestone 5 is implemented.
 
 Implemented:
 
@@ -34,6 +34,10 @@ Implemented:
   and Claude Code.
 - Example local runtime configuration docs for read-only, workspace-write and
   approval-required workflows.
+- Hardened MCP tool outputs with report summaries, warnings, runtime artifact
+  counts, record counts and demo readiness checklists.
+- Expanded MCP edge-case tests for path safety, malformed inputs, redaction and
+  deterministic ordering.
 
 Not implemented yet:
 
@@ -80,6 +84,9 @@ The first local tool layer lives in `mcp-server/`. It exposes:
 
 These tools inspect local Project 1 artifacts only. They do not call an LLM,
 call external APIs, require secrets, delete files or mutate runtime artifacts.
+
+Milestone 5 hardens these tools with richer structured outputs and stronger
+edge-case validation while preserving the local-only read-only boundary.
 
 ## Agent Integration Adapters
 
@@ -203,5 +210,6 @@ scaffold helpers for reviewers and future development.
 
 ## Next Milestone
 
-Project 2 Milestone 5 should focus on MCP tool hardening and richer validation
-while keeping the local-only safety model explicit.
+Project 2 Milestone 6 should focus on packaging the local MCP runtime
+configuration or adding Claude Code hook examples without adding external
+service integrations.

@@ -99,9 +99,14 @@ Current tools inspect Project 1 local artifacts:
 - Runtime artifact cleanliness checks.
 - Deterministic Project 1 demo readiness briefs.
 
+Milestone 5 hardens the tool layer with richer typed outputs: report summary
+extraction, validation warnings, record counts, runtime artifact counts and
+structured demo readiness checks. Path helpers explicitly resolve symlinks
+before validating files, directories and child paths.
+
 ## Milestone Boundary
 
-Milestone 4 does not add external service integrations, notification providers,
+Milestone 5 does not add external service integrations, notification providers,
 destructive tools, cloud deployment, frontend UI or live external MCP transport
-integration. The MCP tool layer, adapter scripts and runtime examples are local,
-read-only by default and deterministic.
+integration. The MCP tool layer, adapter scripts and runtime examples remain
+local, read-only by default and deterministic.

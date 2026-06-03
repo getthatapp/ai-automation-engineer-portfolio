@@ -7,6 +7,8 @@ Project 1 artifacts without external side effects.
 
 - Tools inspect local filesystem paths supplied by the user or scripts.
 - Project-level checks stay under the provided Project 1 directory.
+- Symlinks are resolved before path validation; links that resolve outside a
+  validated project path are rejected and reported.
 - JSONL-reading tools sanitize secret-like keys and obvious bearer/API-token
   values.
 - Adapter scripts report generated files but do not remove them.
@@ -44,3 +46,16 @@ Current Project 2 scripts may inspect:
   `generate_demo_brief`.
 
 They must not mutate those artifacts.
+
+## Hardened Output Boundaries
+
+Milestone 5 adds richer typed outputs while preserving the same local boundary:
+
+- report validation warnings and explicit summary extraction;
+- total JSONL record counts and malformed-line reporting;
+- pending approval counts without full sensitive payloads;
+- runtime artifact counts by type;
+- structured demo readiness checks.
+
+These outputs are evidence aids. They must not be treated as production
+telemetry or proof of external service delivery.

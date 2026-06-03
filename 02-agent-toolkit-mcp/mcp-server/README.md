@@ -11,15 +11,29 @@ artifacts or implement destructive tools.
 ## Tools
 
 - `validate_report(report_path)`: validates required sections in a Project 1
-  Markdown report.
+  Markdown report, extracts explicit summary values and reports non-fatal
+  warnings such as empty content, missing generated timestamp or duplicate
+  required headings.
 - `read_run_history(jsonl_path, limit=5)`: returns recent sanitized workflow
-  run records from JSONL.
+  run records from JSONL with total valid record count and explicit malformed
+  line reporting.
 - `list_pending_approvals(jsonl_path)`: returns sanitized pending approval
-  summaries from JSONL.
+  summaries from JSONL with total and pending record counts.
 - `check_runtime_clean(project_path)`: reports generated runtime files such as
-  reports, run history, approval queue files, `__pycache__/` and `*.pyc`.
+  reports, run history, approval queue files, `__pycache__/` and `*.pyc`, plus
+  deterministic counts by artifact type.
 - `generate_demo_brief(project_path)`: creates a deterministic local-only
-  Project 1 demo readiness summary.
+  Project 1 demo readiness summary with a structured readiness checklist.
+
+## Hardening Notes
+
+- Inputs use Pydantic validation and explicit path checks.
+- Symlinks are resolved before file, directory and child-path validation.
+- Project-level runtime checks reject symlink matches that resolve outside the
+  inspected project path.
+- Secret-like JSON keys and obvious bearer/API-token values are redacted before
+  records are returned to an agent.
+- Tools report generated files; they never delete or mutate them.
 
 ## Local Checks
 

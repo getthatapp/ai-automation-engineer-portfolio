@@ -39,6 +39,11 @@ external APIs or require credentials.
 JSONL-reading tools sanitize secret-like keys and obvious bearer/API-token
 values before returning records to an agent.
 
+Milestone 5 strengthens the current tools with explicit symlink resolution,
+structured non-fatal report warnings, record counts, artifact counts and
+readiness checklists. These additions improve auditability without adding write
+operations or external calls.
+
 ## External Integrations
 
 This scaffold does not call external services. Future integrations should be
