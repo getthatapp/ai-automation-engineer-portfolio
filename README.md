@@ -67,16 +67,18 @@ Optional approval-aware notification summary
 Next milestone:
 
 ```text
-Project 2 Milestone 3 — MCP runtime configuration examples and permission profiles
+Project 2 Milestone 5 — MCP tool hardening and richer validation
 ```
 
 ### Project 2: Agent Toolkit for Codex and Claude Code
 
-Status: **MCP tool layer implemented**
+Status: **MCP tool layer and runtime profile docs implemented**
 
 Project 2 supports both Codex and Claude Code by providing reusable prompt
 templates, Claude Code command templates, shared skills, safety documentation
 lightweight reviewer scripts and a Python deterministic local MCP tool layer.
+It also documents local Codex and Claude Code permission profiles for read-only,
+workspace-write and approval-required workflows.
 It is a toolkit for agentic automation workflows, not another business workflow
 app.
 

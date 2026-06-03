@@ -36,6 +36,7 @@ call external services.
 - Do not hardcode secrets.
 - Do not run destructive commands without explicit approval.
 - Keep all changes scoped to the requested project area.
+- Select the narrowest documented permission profile for the task.
 
 ## MCP Tool Usage
 
@@ -76,3 +77,24 @@ summarize:
 These scripts do not invoke Codex, call external APIs or require secrets. Codex
 should treat missing reports, run history or approval queue files as missing
 evidence and should not invent data to fill those gaps.
+
+## Permission Profiles
+
+Milestone 4 documents Codex runtime profiles in
+`docs/runtime/CODEX_PERMISSION_PROFILES.md`:
+
+- read-only inspection;
+- workspace-write development;
+- approval-required operations;
+- blocked/destructive operation policy.
+
+Preview the local profiles:
+
+```bash
+./scripts/show_permission_profiles.sh
+```
+
+Use read-only inspection for report and artifact reviews. Use workspace-write
+only for scoped Project 2 development. Treat dependency resolution, branch
+operations and broader local permissions as approval-required. Destructive
+operations remain unsupported.

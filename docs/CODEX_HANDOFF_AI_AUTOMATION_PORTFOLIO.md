@@ -3,8 +3,8 @@
 Last updated: 2026-06-03
 Repository: `ai-automation-engineer-portfolio`  
 Current project: `02-agent-toolkit-mcp`
-Current status: Project 1 complete / portfolio-ready. Project 2 Milestone 3 implemented.
-Next step: Project 2 Milestone 4 — MCP runtime configuration examples and permission profiles.
+Current status: Project 1 complete / portfolio-ready. Project 2 Milestone 4 implemented.
+Next step: Project 2 Milestone 5 — MCP tool hardening and richer validation.
 
 ---
 
@@ -68,6 +68,10 @@ Project 2 now includes:
 - Claude Code command templates for the same Project 1 review flows
 - examples that explain how to interpret Project 1 reports, run history and
   approval queues
+- runtime configuration docs under `02-agent-toolkit-mcp/docs/runtime/`
+- Codex and Claude Code permission profile documentation
+- local runtime configuration examples under
+  `02-agent-toolkit-mcp/examples/runtime-config/`
 
 Current verified Project 1 status after Milestone 13:
 
@@ -99,6 +103,18 @@ mypy clean
 bash script syntax clean
 git diff --check clean
 adapter scripts ran read-only against current Project 1 artifacts
+```
+
+Current verified Project 2 status after Milestone 4:
+
+```text
+Project 2 scaffold checks passed
+12 MCP server tests passing
+ruff clean
+mypy clean
+bash script syntax clean
+git diff --check clean
+permission profile helper ran read-only
 ```
 
 ---
@@ -509,6 +525,56 @@ git diff --check clean
 adapter scripts ran read-only against current Project 1 artifacts
 ```
 
+---
+
+## 9. Completed Project 2 Milestone: Milestone 4
+
+### Goal
+
+Add runtime configuration examples and permission-profile documentation for
+using Project 2 safely with Codex and Claude Code.
+
+### Milestone 4 — Runtime Configuration Examples and Permission Profiles
+
+Implemented:
+
+- runtime docs under `02-agent-toolkit-mcp/docs/runtime/`
+- Codex permission profiles for:
+  - read-only inspection
+  - workspace-write development
+  - approval-required operations
+  - blocked/destructive operation policy
+- Claude Code permission profiles with matching local-only boundaries
+- local runtime configuration examples under
+  `02-agent-toolkit-mcp/examples/runtime-config/`
+- read-only helper script:
+  `02-agent-toolkit-mcp/scripts/show_permission_profiles.sh`
+- prompt-history entry:
+  `02-agent-toolkit-mcp/docs/prompt-history/milestone-04-runtime-config.md`
+
+Behavior:
+
+- documentation-first only
+- local and deterministic only
+- no Project 1 code or runtime behavior changes
+- no MCP tool behavior changes
+- no external API calls
+- no secrets required
+- no destructive tools
+- no claim of deployed external MCP transport
+
+Verification:
+
+```text
+Project 2 scaffold checks passed
+12 MCP server tests passing
+ruff clean
+mypy clean
+bash script syntax clean
+git diff --check clean
+permission profile helper ran read-only
+```
+
 Project 2 permanent rules:
 
 - every new function, method and class created by Codex must include a clear Google-style docstring
@@ -522,7 +588,7 @@ Project 2 permanent rules:
 
 ---
 
-## 9. Demo Commands
+## 10. Demo Commands
 
 Run mock services:
 
@@ -580,11 +646,17 @@ Run Project 2 local agent adapter demos:
 02-agent-toolkit-mcp/scripts/run_project1_tool_review.sh
 ```
 
+Show Project 2 local permission profiles:
+
+```bash
+02-agent-toolkit-mcp/scripts/show_permission_profiles.sh
+```
+
 ---
 
-## 10. Future Milestones
+## 11. Future Milestones
 
 ```text
-Project 2     — Milestone 4: MCP runtime configuration examples and permission profiles
+Project 2     — Milestone 5: MCP tool hardening and richer validation
 Project 3     — AgentOps Control Tower
 ```

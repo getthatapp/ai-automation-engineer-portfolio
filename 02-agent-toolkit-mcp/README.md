@@ -9,7 +9,7 @@ that will support future workflow development.
 
 ## Current Status
 
-Milestone 3 is implemented.
+Milestone 4 is implemented.
 
 Implemented:
 
@@ -30,6 +30,10 @@ Implemented:
 - Claude Code command templates that mirror the Codex review flows.
 - Project 1 tool-review examples for interpreting reports, run history and
   approval queues.
+- Runtime configuration docs and local permission profile guidance for Codex
+  and Claude Code.
+- Example local runtime configuration docs for read-only, workspace-write and
+  approval-required workflows.
 
 Not implemented yet:
 
@@ -97,6 +101,26 @@ Run a read-only Project 1 artifact review:
 Both scripts default to `../01-ai-marketing-ops-agent` when run from Project 2.
 They fail clearly if expected directories are missing, report missing runtime
 artifacts as missing evidence and never delete Project 1 files.
+
+## Runtime Configuration and Permission Profiles
+
+Milestone 4 documents safe local runtime profiles for using Project 2 with
+Codex and Claude Code. These profiles are operating guidance and examples, not
+enforced runtime policy.
+
+Runtime docs:
+
+- [MCP runtime configuration](docs/runtime/MCP_RUNTIME_CONFIGURATION.md)
+- [Codex permission profiles](docs/runtime/CODEX_PERMISSION_PROFILES.md)
+- [Claude Code permission profiles](docs/runtime/CLAUDE_CODE_PERMISSION_PROFILES.md)
+- [Local-only security boundaries](docs/runtime/LOCAL_ONLY_SECURITY_BOUNDARIES.md)
+- [Troubleshooting](docs/runtime/TROUBLESHOOTING.md)
+
+Preview the local permission profiles:
+
+```bash
+./scripts/show_permission_profiles.sh
+```
 
 ## Project Structure
 
@@ -179,6 +203,5 @@ scaffold helpers for reviewers and future development.
 
 ## Next Milestone
 
-Project 2 Milestone 4 should add MCP runtime configuration examples and
-permission-profile documentation for using the deterministic local tools from
-Codex and Claude Code without adding external integrations.
+Project 2 Milestone 5 should focus on MCP tool hardening and richer validation
+while keeping the local-only safety model explicit.

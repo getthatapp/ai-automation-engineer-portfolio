@@ -46,12 +46,27 @@ calls or destructive tools.
 
 ## Milestone 4 - Runtime Configuration Examples
 
-Planned scope:
+Status: complete.
+
+Implemented scope:
 
 - add example MCP client configuration for local deterministic tools;
 - document permission profiles and read-only boundaries;
 - add more explicit Codex and Claude Code setup notes for local tool access;
 - keep all examples local-only and credential-free.
+
+Milestone 4 does not add deployed MCP transport, external service calls or
+runtime-enforced permission policy.
+
+## Milestone 5 - MCP Tool Hardening and Richer Validation
+
+Planned scope:
+
+- tighten deterministic tool validation and error reporting;
+- add richer report/run-history/approval schema checks where useful;
+- improve local invocation ergonomics without adding destructive tools;
+- expand tests around malformed inputs and boundary conditions;
+- keep the tool layer local-only and credential-free.
 
 ## Later Milestones
 
