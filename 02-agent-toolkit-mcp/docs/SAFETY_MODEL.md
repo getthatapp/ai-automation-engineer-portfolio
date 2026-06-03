@@ -14,6 +14,8 @@ Project 2 is intended to help agents run useful automation without hiding risk.
 - No destructive action should run without explicit approval.
 - Future shell wrappers should make side effects clear before execution.
 - Future MCP tools should expose permission boundaries in documentation.
+- Current Project 1 adapter scripts are read-only and must report runtime files
+  without deleting or modifying them.
 
 ## Tool Behavior
 
@@ -39,6 +41,9 @@ values before returning records to an agent.
 This scaffold does not call external services. Future integrations should be
 mocked by default in tests and local demos, with real credentials supplied only
 through environment variables.
+
+Milestone 3 adapter scripts and prompt/command templates are local-only. They
+do not invoke Codex, Claude Code, external MCP clients or third-party APIs.
 
 ## Auditability
 

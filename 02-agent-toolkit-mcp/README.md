@@ -9,7 +9,7 @@ that will support future workflow development.
 
 ## Current Status
 
-Milestone 2 is implemented.
+Milestone 3 is implemented.
 
 Implemented:
 
@@ -24,6 +24,12 @@ Implemented:
 - Typed Pydantic input and output models.
 - Path validation and output sanitization.
 - MCP server tests, linting and type checks.
+- Read-only adapter scripts for Project 1 artifact reviews.
+- Codex prompt templates for Project 1 runtime, report and demo-readiness
+  reviews.
+- Claude Code command templates that mirror the Codex review flows.
+- Project 1 tool-review examples for interpreting reports, run history and
+  approval queues.
 
 Not implemented yet:
 
@@ -32,6 +38,7 @@ Not implemented yet:
 - Deployment or CI for Project 2.
 - Destructive tools, notification integrations or frontend UI.
 - Full external MCP SDK transport integration.
+- External tool invocation from Codex or Claude Code.
 
 ## Toolkit Concepts
 
@@ -69,6 +76,27 @@ The first local tool layer lives in `mcp-server/`. It exposes:
 
 These tools inspect local Project 1 artifacts only. They do not call an LLM,
 call external APIs, require secrets, delete files or mutate runtime artifacts.
+
+## Agent Integration Adapters
+
+Milestone 3 adds practical local adapters for agent-assisted reviews. These are
+scripts and templates, not a claim of live external MCP client integration.
+
+Run a local tool registry and demo-readiness preview:
+
+```bash
+./scripts/demo_mcp_tools.sh
+```
+
+Run a read-only Project 1 artifact review:
+
+```bash
+./scripts/run_project1_tool_review.sh
+```
+
+Both scripts default to `../01-ai-marketing-ops-agent` when run from Project 2.
+They fail clearly if expected directories are missing, report missing runtime
+artifacts as missing evidence and never delete Project 1 files.
 
 ## Project Structure
 
@@ -123,12 +151,18 @@ Preview a Codex prompt template:
 
 ```bash
 ./scripts/run_codex_prompt.sh review-workflow
+./scripts/run_codex_prompt.sh inspect-project1-runtime
+./scripts/run_codex_prompt.sh review-project1-report
+./scripts/run_codex_prompt.sh summarize-project1-demo-readiness
 ```
 
 Preview a Claude Code command template:
 
 ```bash
 ./scripts/run_claude_command.sh review-workflow
+./scripts/run_claude_command.sh inspect-project1-runtime
+./scripts/run_claude_command.sh review-project1-report
+./scripts/run_claude_command.sh summarize-project1-demo-readiness
 ```
 
 These scripts do not invoke Codex, Claude Code or external services. They are
@@ -145,6 +179,6 @@ scaffold helpers for reviewers and future development.
 
 ## Next Milestone
 
-Project 2 Milestone 3 should add MCP runtime configuration examples and
+Project 2 Milestone 4 should add MCP runtime configuration examples and
 permission-profile documentation for using the deterministic local tools from
 Codex and Claude Code without adding external integrations.

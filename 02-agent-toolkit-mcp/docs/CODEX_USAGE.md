@@ -21,6 +21,9 @@ Preview a prompt from the project directory:
 
 ```bash
 ./scripts/run_codex_prompt.sh review-workflow
+./scripts/run_codex_prompt.sh inspect-project1-runtime
+./scripts/run_codex_prompt.sh review-project1-report
+./scripts/run_codex_prompt.sh summarize-project1-demo-readiness
 ```
 
 The helper prints the template path and content. It does not invoke Codex or
@@ -50,3 +53,26 @@ Current transport wiring is intentionally minimal. Run package checks with:
 ```bash
 ./scripts/run_mcp_checks.sh
 ```
+
+## Project 1 Agent Review Flows
+
+Milestone 3 adds Codex prompt templates for Project 1 artifact reviews:
+
+- `inspect-project1-runtime`: summarize runtime artifacts, run history and
+  approval queue evidence.
+- `review-project1-report`: validate a local Markdown report and summarize
+  missing sections or review risks.
+- `summarize-project1-demo-readiness`: use the deterministic demo brief and
+  runtime checks to summarize local demo readiness.
+
+Use the local scripts to produce deterministic evidence before asking Codex to
+summarize:
+
+```bash
+./scripts/demo_mcp_tools.sh
+./scripts/run_project1_tool_review.sh
+```
+
+These scripts do not invoke Codex, call external APIs or require secrets. Codex
+should treat missing reports, run history or approval queue files as missing
+evidence and should not invent data to fill those gaps.
