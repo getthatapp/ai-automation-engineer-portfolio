@@ -16,6 +16,9 @@ Project 2 is intended to help agents run useful automation without hiding risk.
 - Future MCP tools should expose permission boundaries in documentation.
 - Current Project 1 adapter scripts are read-only and must report runtime files
   without deleting or modifying them.
+- Milestone 4 permission profiles document read-only, workspace-write,
+  approval-required and blocked/destructive operating modes for local agent
+  workflows.
 
 ## Tool Behavior
 
@@ -45,6 +48,9 @@ through environment variables.
 Milestone 3 adapter scripts and prompt/command templates are local-only. They
 do not invoke Codex, Claude Code, external MCP clients or third-party APIs.
 
+Milestone 4 runtime examples are documentation only. They do not add external
+MCP deployment, external service calls, credentials or destructive operations.
+
 ## Auditability
 
 Workflows should preserve enough context for a reviewer to understand:
@@ -54,3 +60,13 @@ Workflows should preserve enough context for a reviewer to understand:
 - what changed;
 - what verification passed;
 - what requires human approval.
+
+## Runtime Profile Documentation
+
+See `docs/runtime/` for:
+
+- local MCP/runtime configuration;
+- Codex permission profiles;
+- Claude Code permission profiles;
+- local-only security boundaries;
+- troubleshooting guidance.

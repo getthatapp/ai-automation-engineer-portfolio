@@ -34,6 +34,9 @@ Claude Code commands should be useful for repeatable engineering tasks such as
 reviewing workflows, generating runbooks and investigating CI failures. Future
 milestones may add hooks and executable command integration.
 
+Select the narrowest documented permission profile for the task. Current
+profiles are guidance for local use, not enforced runtime policy.
+
 ## MCP Tool Usage
 
 The local MCP tool package under `mcp-server/` is designed to become a
@@ -72,3 +75,24 @@ Use the local adapter scripts to gather evidence:
 
 These commands are local-only and read-only. They do not invoke Claude Code,
 call external APIs, require secrets or mutate Project 1 runtime artifacts.
+
+## Permission Profiles
+
+Milestone 4 documents Claude Code runtime profiles in
+`docs/runtime/CLAUDE_CODE_PERMISSION_PROFILES.md`:
+
+- read-only inspection;
+- workspace-write development;
+- approval-required operations;
+- blocked/destructive operation policy.
+
+Preview the local profiles:
+
+```bash
+./scripts/show_permission_profiles.sh
+```
+
+Use read-only inspection for local artifact review. Use workspace-write for
+scoped Project 2 command, docs and non-destructive script updates. Use
+approval-required operations for dependency resolution, branch work or future
+elevated local setup. Destructive operations remain unsupported.

@@ -10,6 +10,8 @@ Codex prompts          Claude Code commands
         \              /
          shared skills
               |
+ runtime permission docs
+              |
      local adapter scripts
               |
        MCP tools
@@ -27,6 +29,10 @@ Milestone 3 adds Project 1 review prompts for runtime inspection, report review
 and demo-readiness summaries. These prompts tell Codex to use deterministic
 local tool outputs as evidence and avoid inventing missing artifact data.
 
+Milestone 4 adds Codex permission profile documentation for read-only
+inspection, workspace-write development, approval-required operations and
+blocked/destructive operation policy.
+
 ## Claude Code Layer
 
 Claude Code workflows use `CLAUDE.md`-oriented guidance plus command templates.
@@ -36,6 +42,22 @@ contains reusable command documentation.
 Milestone 3 adds matching command templates for the same Project 1 review
 flows. They are framed for Claude Code usage but still rely on local scripts and
 deterministic tool output rather than external services.
+
+Milestone 4 adds matching Claude Code permission profile documentation so both
+agent surfaces share the same local-only safety boundaries.
+
+## Runtime Permission Documentation Layer
+
+Runtime configuration docs under `docs/runtime/` describe how the current local
+tooling can be used safely. They cover:
+
+- local MCP/tool runtime shape;
+- Codex and Claude Code permission profiles;
+- local-only security boundaries;
+- troubleshooting for local verification and artifact inspection.
+
+These docs do not enforce permissions in code and do not claim an external MCP
+deployment. They are operating guidance for local agent workflows.
 
 ## Local Adapter Script Layer
 
@@ -79,7 +101,7 @@ Current tools inspect Project 1 local artifacts:
 
 ## Milestone Boundary
 
-Milestone 3 does not add external service integrations, notification providers,
+Milestone 4 does not add external service integrations, notification providers,
 destructive tools, cloud deployment, frontend UI or live external MCP transport
-integration. The MCP tool layer and adapter scripts are local, read-only and
-deterministic.
+integration. The MCP tool layer, adapter scripts and runtime examples are local,
+read-only by default and deterministic.
