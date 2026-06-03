@@ -20,6 +20,9 @@ Preview a command from the project directory:
 
 ```bash
 ./scripts/run_claude_command.sh review-workflow
+./scripts/run_claude_command.sh inspect-project1-runtime
+./scripts/run_claude_command.sh review-project1-report
+./scripts/run_claude_command.sh summarize-project1-demo-readiness
 ```
 
 The helper prints the template path and content. It does not invoke Claude Code
@@ -47,3 +50,25 @@ Run package checks with:
 ```bash
 ./scripts/run_mcp_checks.sh
 ```
+
+## Project 1 Agent Review Flows
+
+Milestone 3 adds Claude Code command templates that mirror the Codex Project 1
+review prompts:
+
+- `inspect-project1-runtime`: inspect local runtime artifacts, run history and
+  pending approval summaries.
+- `review-project1-report`: validate a local report and summarize deterministic
+  evidence.
+- `summarize-project1-demo-readiness`: summarize local demo readiness without
+  claiming production deployment or external integration.
+
+Use the local adapter scripts to gather evidence:
+
+```bash
+./scripts/demo_mcp_tools.sh
+./scripts/run_project1_tool_review.sh
+```
+
+These commands are local-only and read-only. They do not invoke Claude Code,
+call external APIs, require secrets or mutate Project 1 runtime artifacts.

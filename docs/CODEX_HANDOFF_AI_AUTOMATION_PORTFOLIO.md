@@ -1,10 +1,10 @@
 # Codex Handoff: AI Automation Engineer Portfolio
 
-Last updated: 2026-06-02
+Last updated: 2026-06-03
 Repository: `ai-automation-engineer-portfolio`  
 Current project: `02-agent-toolkit-mcp`
-Current status: Project 1 complete / portfolio-ready. Project 2 Milestone 2 implemented.
-Next step: Project 2 Milestone 3 — MCP runtime configuration examples and permission profiles.
+Current status: Project 1 complete / portfolio-ready. Project 2 Milestone 3 implemented.
+Next step: Project 2 Milestone 4 — MCP runtime configuration examples and permission profiles.
 
 ---
 
@@ -63,6 +63,11 @@ Project 2 now includes:
 - typed Pydantic schemas, path safety helpers and output sanitization
 - MCP server tests, linting and type checks
 - Project 2 prompt history under `02-agent-toolkit-mcp/docs/prompt-history/`
+- read-only adapter scripts for Project 1 artifact reviews
+- Codex prompts for Project 1 runtime, report and demo-readiness reviews
+- Claude Code command templates for the same Project 1 review flows
+- examples that explain how to interpret Project 1 reports, run history and
+  approval queues
 
 Current verified Project 1 status after Milestone 13:
 
@@ -82,6 +87,18 @@ ruff clean
 mypy clean
 bash script syntax clean
 git diff --check clean
+```
+
+Current verified Project 2 status after Milestone 3:
+
+```text
+Project 2 scaffold checks passed
+12 MCP server tests passing
+ruff clean
+mypy clean
+bash script syntax clean
+git diff --check clean
+adapter scripts ran read-only against current Project 1 artifacts
 ```
 
 ---
@@ -437,6 +454,61 @@ bash script syntax clean
 git diff --check clean
 ```
 
+---
+
+## 8. Completed Project 2 Milestone: Milestone 3
+
+### Goal
+
+Add practical local agent integration adapters and demo flows showing how Codex
+and Claude Code can use Project 2 deterministic tools against Project 1
+artifacts.
+
+### Milestone 3 — Agent Integration Adapters
+
+Implemented:
+
+- read-only script: `02-agent-toolkit-mcp/scripts/demo_mcp_tools.sh`
+- read-only script:
+  `02-agent-toolkit-mcp/scripts/run_project1_tool_review.sh`
+- Codex prompts:
+  - `inspect-project1-runtime`
+  - `review-project1-report`
+  - `summarize-project1-demo-readiness`
+- Claude Code commands:
+  - `inspect-project1-runtime`
+  - `review-project1-report`
+  - `summarize-project1-demo-readiness`
+- Project 1 examples:
+  - `TOOL_REVIEW_FLOW.md`
+  - `SAMPLE_AGENT_REVIEW.md`
+- prompt-history entry:
+  `02-agent-toolkit-mcp/docs/prompt-history/milestone-03-agent-integration.md`
+
+Behavior:
+
+- local and deterministic only
+- read-only Project 1 artifact inspection
+- no external API calls
+- no secrets required
+- no destructive tools
+- no frontend UI
+- no claim of external Codex or Claude Code MCP transport integration
+- missing reports, run history and approval queues are treated as missing
+  evidence, not invented data
+
+Verification:
+
+```text
+Project 2 scaffold checks passed
+12 MCP server tests passing
+ruff clean
+mypy clean
+bash script syntax clean
+git diff --check clean
+adapter scripts ran read-only against current Project 1 artifacts
+```
+
 Project 2 permanent rules:
 
 - every new function, method and class created by Codex must include a clear Google-style docstring
@@ -450,7 +522,7 @@ Project 2 permanent rules:
 
 ---
 
-## 8. Demo Commands
+## 9. Demo Commands
 
 Run mock services:
 
@@ -501,11 +573,18 @@ Run Project 1 CI locally:
 ./scripts/run_ci_locally.sh
 ```
 
+Run Project 2 local agent adapter demos:
+
+```bash
+02-agent-toolkit-mcp/scripts/demo_mcp_tools.sh
+02-agent-toolkit-mcp/scripts/run_project1_tool_review.sh
+```
+
 ---
 
-## 9. Future Milestones
+## 10. Future Milestones
 
 ```text
-Project 2     — Milestone 3: MCP runtime configuration examples and permission profiles
+Project 2     — Milestone 4: MCP runtime configuration examples and permission profiles
 Project 3     — AgentOps Control Tower
 ```

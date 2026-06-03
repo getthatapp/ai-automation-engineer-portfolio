@@ -20,3 +20,4 @@ Use `TEMPLATE.md` for future milestone prompt-history files.
 ## Milestones
 
 - [Milestone 2 - MCP Server Implementation](milestone-02-mcp-server.md)
+- [Milestone 3 - Agent Integration Adapters](milestone-03-agent-integration.md)
