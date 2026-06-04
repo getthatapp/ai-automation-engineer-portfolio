@@ -2,7 +2,7 @@
 
 This document outlines how Project 3 can be demonstrated locally as it matures.
 
-Milestone 2 adds a local ingestion demo using temporary sample files.
+Milestone 3 adds a local summary and timeline demo using temporary sample files.
 
 ## Scaffold Walkthrough
 
@@ -15,8 +15,9 @@ Milestone 2 adds a local ingestion demo using temporary sample files.
    local evidence into Project 3.
 5. Run `03-agentops-control-tower/scripts/run_checks.sh`.
 6. Run `03-agentops-control-tower/scripts/run_ingestion_demo.sh`.
-7. Explain that the demo creates temporary local evidence, parses it into typed
-   records and prints record, warning and error counts.
+7. Run `03-agentops-control-tower/scripts/run_summary_demo.sh`.
+8. Explain that the demos create temporary local evidence, parse it into typed
+   records and print deterministic ingestion and summary counts.
 
 ## Future Demo Direction
 
@@ -30,7 +31,6 @@ Current ingestion demo shows:
 
 Future milestones should show:
 
-- local summary views over ingested records
 - retry and failure summaries
 - token or cost metadata summaries when available
 - Project 2 tool evidence summaries
@@ -39,4 +39,4 @@ Future milestones should show:
 ## Current Limitations
 
 No dashboard, UI, database, external service, scheduler or deployed AgentOps
-control plane exists in Milestone 2.
+control plane exists in Milestone 3.

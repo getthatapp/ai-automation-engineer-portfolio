@@ -21,3 +21,4 @@ implemented and verified over time.
 
 - `milestone-01-scaffold.md`
 - `milestone-02-ingestion-models.md`
+- `milestone-03-summaries-timeline.md`
