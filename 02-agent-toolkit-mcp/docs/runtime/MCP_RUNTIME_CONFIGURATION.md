@@ -47,6 +47,17 @@ Run MCP package tests, linting and typing:
 02-agent-toolkit-mcp/scripts/run_mcp_checks.sh
 ```
 
+Run the Project 2 CI mirror locally:
+
+```bash
+02-agent-toolkit-mcp/scripts/run_ci_locally.sh
+```
+
+This mirrors the Project 2 GitHub Actions workflow as closely as practical with
+local deterministic checks and read-only CLI smoke checks. It does not require
+secrets, call external APIs, run Docker services, deploy anything, publish
+packages or mutate Project 1 artifacts.
+
 Preview local deterministic tools and Project 1 demo readiness:
 
 ```bash

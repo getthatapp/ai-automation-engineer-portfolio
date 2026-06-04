@@ -9,7 +9,7 @@ that will support future workflow development.
 
 ## Current Status
 
-Milestone 6 is implemented.
+Milestone 7 is implemented.
 
 Implemented:
 
@@ -40,12 +40,14 @@ Implemented:
   deterministic ordering.
 - Local CLI entrypoint `agent-toolkit-mcp` for invoking deterministic tools
   without writing Python.
+- GitHub Actions CI for Project 2 deterministic scaffold, MCP server and CLI
+  quality checks.
+- Local CI mirror script for running the same Project 2 checks before review.
 
 Not implemented yet:
 
 - External service integrations.
 - Real credentials or secret-backed providers.
-- Deployment or CI for Project 2.
 - Destructive tools, notification integrations or frontend UI.
 - Full external MCP SDK transport integration.
 - External MCP client transport invocation from Codex or Claude Code.
@@ -193,6 +195,23 @@ From the repository root:
 
 The MCP checks run pytest, ruff, mypy and shell script syntax validation.
 
+Run the Project 2 CI mirror locally:
+
+```bash
+./scripts/run_ci_locally.sh
+```
+
+From the repository root:
+
+```bash
+02-agent-toolkit-mcp/scripts/run_ci_locally.sh
+```
+
+The local CI mirror runs scaffold checks, MCP server tests/lint/type checks,
+shell syntax validation and read-only CLI smoke checks. These checks do not
+call external APIs, require secrets, run Docker services, deploy anything,
+publish packages or mutate Project 1 runtime artifacts.
+
 ## Prompt and Command Helpers
 
 Preview a Codex prompt template:
@@ -227,6 +246,5 @@ scaffold helpers for reviewers and future development.
 
 ## Next Milestone
 
-Project 2 Milestone 7 can focus on Claude Code hook examples, CI for Project 2
-or additional local runtime packaging without adding external service
-integrations.
+Project 2 Milestone 8 can focus on Claude Code hook examples or additional
+local runtime packaging without adding external service integrations.

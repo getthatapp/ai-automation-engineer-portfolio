@@ -55,6 +55,16 @@ Current transport wiring is intentionally minimal. Run package checks with:
 ./scripts/run_mcp_checks.sh
 ```
 
+Run the full Project 2 CI mirror locally:
+
+```bash
+./scripts/run_ci_locally.sh
+```
+
+The CI mirror runs local deterministic scaffold, MCP server and CLI smoke
+checks. It does not call external APIs, require secrets, run Docker services,
+deploy anything or mutate Project 1 artifacts.
+
 Milestone 6 adds direct local CLI invocation for deterministic tool evidence:
 
 ```bash

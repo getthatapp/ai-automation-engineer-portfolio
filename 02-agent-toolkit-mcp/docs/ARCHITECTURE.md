@@ -12,6 +12,8 @@ Codex prompts          Claude Code commands
               |
  runtime permission docs
               |
+    CI and local quality checks
+              |
      local adapter scripts
               |
           local CLI
@@ -60,6 +62,14 @@ tooling can be used safely. They cover:
 
 These docs do not enforce permissions in code and do not claim an external MCP
 deployment. They are operating guidance for local agent workflows.
+
+## CI and Local Quality Layer
+
+Milestone 7 adds GitHub Actions CI and a local `run_ci_locally.sh` mirror for
+Project 2. The checks run scaffold validation, MCP server tests, linting,
+typing, shell syntax validation and read-only CLI smoke checks. They do not
+call external APIs, require secrets, run Docker services, deploy packages or
+mutate Project 1 artifacts.
 
 ## Local Adapter Script Layer
 
@@ -119,7 +129,7 @@ local invocation.
 
 ## Milestone Boundary
 
-Milestone 6 does not add external service integrations, notification providers,
+Milestone 7 does not add external service integrations, notification providers,
 destructive tools, cloud deployment, frontend UI or live external MCP transport
 integration. The MCP tool layer, CLI, adapter scripts and runtime examples
 remain local, read-only by default and deterministic.

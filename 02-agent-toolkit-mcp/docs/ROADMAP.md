@@ -2,7 +2,7 @@
 
 ## Milestone 1 - Scaffold
 
-Status: complete after this milestone.
+Status: complete.
 
 Scope:
 
@@ -89,10 +89,24 @@ Implemented scope:
 Milestone 6 does not add deployed external MCP transport, external service
 calls, destructive tools, Project 1 behavior changes or frontend UI.
 
+## Milestone 7 - CI for Agent Toolkit MCP
+
+Status: complete.
+
+Implemented scope:
+
+- add GitHub Actions CI for Project 2 scaffold, MCP server and CLI checks;
+- add a local CI mirror script for reviewer-friendly verification;
+- run deterministic local checks only;
+- keep CI credential-free and read-only against Project 1 artifacts.
+
+Milestone 7 does not add external service calls, secrets, Docker service runs,
+deployment, package publishing, destructive tools or Project 1 behavior
+changes.
+
 ## Later Milestones
 
 Potential later work:
 
 - hook examples for Claude Code workflows;
-- CI for Project 2;
 - expanded integration examples using Project 1 artifacts.
