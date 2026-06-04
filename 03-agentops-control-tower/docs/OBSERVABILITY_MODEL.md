@@ -5,7 +5,23 @@ Project 3 will model operational signals from local AI automation workflows.
 The model is planned around the facts that a reviewer or operator needs in
 order to understand workflow health, governance state and auditability.
 
-## Planned Signal Types
+## Implemented Record Types
+
+Milestone 2 adds typed records for:
+
+- `WorkflowRunRecord`
+- `ApprovalRequestRecord`
+- `ReportSummaryRecord`
+- `ToolEvidenceRecord`
+- `GuardrailEvidenceRecord`
+- `IngestionResult`
+- `IngestionWarning`
+- `IngestionError`
+
+These records are ingestion outputs for future summaries and dashboards. They
+are not a database schema and do not provide UI behavior.
+
+## Signal Types
 
 - Workflow runs: run identifiers, timestamps, status and produced artifacts.
 - Approval states: pending, approved, rejected or review-required work.
@@ -16,12 +32,14 @@ order to understand workflow health, governance state and auditability.
 - LLM metadata: token usage and cost metadata when available from local
   workflow outputs.
 - Agent actions: local tool, command or guardrail activity when available.
-- Guardrail outcomes: pass/fail results from local safety and audit checks.
+- Guardrail outcomes: pass/fail/block/unknown results from local safety and
+  audit check text.
 
-## Non-Goals for the Scaffold
+## Current Non-Goals
 
-The scaffold does not yet implement event schemas, parsers, storage, dashboard
-views or alerting. Those will be introduced in later milestones.
+Project 3 does not yet implement storage, dashboard views, alerting, a scheduler
+or a deployed AgentOps platform. Those will be introduced only if future
+milestones explicitly add them.
 
 ## Auditability Goals
 

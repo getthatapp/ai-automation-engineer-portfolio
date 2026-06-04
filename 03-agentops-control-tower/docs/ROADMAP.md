@@ -9,15 +9,21 @@ model docs, source documentation, examples and a local scaffold check script.
 
 ## Milestone 2 - Local Data Ingestion Models
 
-Status: **Next**
+Status: **Complete**
 
 Define typed local models for workflow runs, approval requests, generated
 reports, tool evidence and guardrail outcomes. Add deterministic parsers for
 selected local artifacts without adding external integrations.
 
+## Milestone 3 - Local AgentOps Summaries and Timeline
+
+Status: **Next**
+
+Use the typed ingestion layer to build local summaries and a deterministic
+AgentOps timeline for runs, approvals, report summaries and guardrail outcomes.
+
 ## Future Milestones
 
-- Local artifact ingestion and validation.
 - Normalized AgentOps event timeline.
 - Retry, failure and approval state summaries.
 - Token and cost metadata summaries when available.

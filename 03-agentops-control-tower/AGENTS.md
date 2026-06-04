@@ -36,10 +36,10 @@ It will eventually aggregate local workflow signals from Project 1 and Project 2
 
 ## Current Scope
 
-Milestone 1 is scaffold and documentation only.
+Milestone 2 adds local deterministic ingestion models and parsers.
 
-Do not implement backend ingestion, dashboards, UI, external integrations,
-notification providers or package dependencies in this milestone.
+Do not implement dashboards, UI, database persistence, external integrations or
+notification providers in this milestone.
 
 ## Safety Boundaries
 

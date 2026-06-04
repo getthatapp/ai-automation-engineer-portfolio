@@ -3,8 +3,8 @@
 Last updated: 2026-06-04
 Repository: `ai-automation-engineer-portfolio`  
 Current project: `03-agentops-control-tower`
-Current status: Project 1 complete / portfolio-ready. Project 2 complete / portfolio-ready. Project 3 started / scaffold ready.
-Next step: Project 3 Milestone 2 — local data ingestion models.
+Current status: Project 1 complete / portfolio-ready. Project 2 complete / portfolio-ready. Project 3 local ingestion models ready.
+Next step: Project 3 Milestone 3 — local AgentOps summaries and timeline.
 
 ---
 
@@ -97,11 +97,21 @@ Project 3 now includes:
 - Project 3 `README.md` and `AGENTS.md`
 - architecture, roadmap, observability model, data source, safety model and
   local demo plan docs
+- Python package under `03-agentops-control-tower/src/agentops_control_tower/`
+- typed Pydantic ingestion models for workflow runs, approval requests, report
+  summaries, tool evidence, guardrail evidence, warnings and errors
+- deterministic local parsers for Project 1 run-history JSONL, approval request
+  JSONL and Markdown reports
+- deterministic local parsers for saved Project 2 CLI JSON evidence and
+  guardrail output text
+- conservative secret-like key and value redaction for ingested payloads
 - prompt history under `03-agentops-control-tower/docs/prompt-history/`
 - example documentation for future Project 1 run-history evidence
 - example documentation for future Project 2 tool and guardrail evidence
 - local scaffold verification script under
   `03-agentops-control-tower/scripts/run_checks.sh`
+- local ingestion demo script under
+  `03-agentops-control-tower/scripts/run_ingestion_demo.sh`
 
 Project 3 purpose:
 
@@ -112,8 +122,9 @@ AgentOps Control Tower is a local observability and governance layer for AI auto
 Project 3 will focus on workflow run history, approval states, failure records,
 retry and cadence metadata, notification status, LLM and token usage metadata
 when available, guardrail outcomes and local auditability. It is local-first and
-deterministic. The current scaffold does not yet implement ingestion,
-dashboards or UI.
+deterministic. It now implements local ingestion models and parsers, but does
+not yet implement dashboards, UI, database persistence, schedulers or external
+AgentOps integrations.
 
 Current verified Project 1 status after Milestone 13:
 
@@ -234,6 +245,18 @@ bash script syntax clean
 git diff --check clean
 ```
 
+Current verified Project 3 status after Milestone 2:
+
+```text
+Project 3 ingestion checks passed
+16 tests passing
+ruff clean
+mypy clean
+bash script syntax clean
+git diff --check clean
+local ingestion demo passed
+```
+
 ---
 
 ## 3. Current Pipeline
@@ -272,9 +295,10 @@ Project 3 relationship to earlier projects:
 
 Project 3 does not yet have:
 
-- backend ingestion
 - dashboards
 - frontend UI
+- database persistence
+- scheduler
 - external integrations
 - deployed AgentOps service
 
@@ -1081,4 +1105,5 @@ uv run agent-toolkit-mcp generate-demo-brief ../../01-ai-marketing-ops-agent --p
 Project 1     — Portfolio-ready / case-study-ready
 Project 2     — Portfolio-ready / case-study-ready
 Project 3     — AgentOps Control Tower
+Next          — Project 3 Milestone 3: local AgentOps summaries and timeline
 ```

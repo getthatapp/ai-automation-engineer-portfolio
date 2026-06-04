@@ -16,3 +16,8 @@ Each milestone file should include:
 
 Prompt history is part of the portfolio evidence. It shows how work was scoped,
 implemented and verified over time.
+
+## Milestones
+
+- `milestone-01-scaffold.md`
+- `milestone-02-ingestion-models.md`
