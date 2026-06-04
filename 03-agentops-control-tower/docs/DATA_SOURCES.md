@@ -2,12 +2,12 @@
 
 Project 3 will consume local evidence from Project 1 and Project 2.
 
-The current scaffold documents the intended sources only. It does not yet parse
-or ingest them.
+Milestone 2 adds deterministic local parsers for selected source files. The
+parsers read local files only and return typed records, warnings and errors.
 
 ## Project 1 Sources
 
-Planned local inputs:
+Supported local inputs:
 
 - `01-ai-marketing-ops-agent/run-history/*.jsonl`
 - `01-ai-marketing-ops-agent/approval-requests/*.jsonl`
@@ -18,7 +18,7 @@ business reports.
 
 ## Project 2 Sources
 
-Planned local inputs:
+Supported local inputs:
 
 - Project 2 MCP-style tool outputs.
 - `agent-toolkit-mcp` CLI output.
@@ -27,7 +27,17 @@ Planned local inputs:
 - prompt-history records.
 
 These files and command outputs represent local review evidence, safety checks
-and deterministic tool-layer observations.
+and deterministic tool-layer observations. Project 3 parses saved evidence only;
+it does not invoke Project 2 tools as part of ingestion.
+
+## Ingestion Behavior
+
+- Missing optional files return warnings.
+- Malformed JSON and JSONL files return explicit ingestion errors.
+- Markdown reports are parsed only for supported deterministic summary fields.
+- Guardrail output status is classified only when text contains simple pass,
+  fail or block signals.
+- Secret-like keys and values are conservatively redacted.
 
 ## Source Boundaries
 

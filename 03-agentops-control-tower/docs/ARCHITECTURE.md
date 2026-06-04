@@ -20,17 +20,29 @@ Project 2 local tool evidence
   - CLI smoke output
   - guardrail check output
         ↓
-Project 3 local ingestion models
+Project 3 local ingestion models and parsers
         ↓
 deterministic normalization and aggregation
         ↓
 control tower views, summaries and audit records
 ```
 
-## Initial Boundaries
+## Current Implementation
 
-Milestone 1 creates only the scaffold and documentation. It does not implement
-ingestion, persistence, dashboards, UI or external integrations.
+Milestone 2 implements typed local ingestion records and deterministic parsers
+for selected Project 1 and Project 2 artifacts. The ingestion layer returns
+records, warnings and errors in typed `IngestionResult` objects.
+
+Implemented parser inputs:
+
+- Project 1 run-history JSONL
+- Project 1 approval requests JSONL
+- Project 1 deterministic Markdown reports
+- saved Project 2 CLI JSON evidence
+- saved Project 2 guardrail output text
+
+The project still does not implement persistence, dashboards, UI, schedulers or
+external integrations.
 
 ## Design Principles
 
@@ -40,6 +52,8 @@ ingestion, persistence, dashboards, UI or external integrations.
 - Non-destructive: inspect workflow evidence without deleting or mutating it.
 - Portfolio-focused: demonstrate AgentOps thinking without overclaiming a
   deployed production control plane.
+- User-facing ingestion errors: malformed local files produce typed errors
+  instead of unhandled exceptions.
 
 ## Relationship to Earlier Projects
 

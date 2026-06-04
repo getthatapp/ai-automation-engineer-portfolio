@@ -2,8 +2,7 @@
 
 This document outlines how Project 3 can be demonstrated locally as it matures.
 
-Milestone 1 is scaffold-only, so the current demo focuses on orientation and
-boundaries.
+Milestone 2 adds a local ingestion demo using temporary sample files.
 
 ## Scaffold Walkthrough
 
@@ -15,19 +14,29 @@ boundaries.
 4. Show `docs/DATA_SOURCES.md` to explain how Project 1 and Project 2 will feed
    local evidence into Project 3.
 5. Run `03-agentops-control-tower/scripts/run_checks.sh`.
+6. Run `03-agentops-control-tower/scripts/run_ingestion_demo.sh`.
+7. Explain that the demo creates temporary local evidence, parses it into typed
+   records and prints record, warning and error counts.
 
 ## Future Demo Direction
 
+Current ingestion demo shows:
+
+- parsing run-history JSONL
+- parsing approval request JSONL
+- parsing a deterministic Markdown report
+- parsing guardrail output text
+- returning one combined local ingestion result
+
 Future milestones should show:
 
-- ingesting Project 1 run-history JSONL
-- listing approval states
-- summarizing failure and retry records
-- displaying token or cost metadata when available
-- summarizing Project 2 guardrail outcomes
-- producing a local audit view without external services
+- local summary views over ingested records
+- retry and failure summaries
+- token or cost metadata summaries when available
+- Project 2 tool evidence summaries
+- a local audit view without external services
 
 ## Current Limitations
 
-No ingestion, dashboard, UI, external service or deployed AgentOps control plane
-exists in Milestone 1.
+No dashboard, UI, database, external service, scheduler or deployed AgentOps
+control plane exists in Milestone 2.
