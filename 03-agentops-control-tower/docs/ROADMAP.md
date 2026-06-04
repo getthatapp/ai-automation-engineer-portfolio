@@ -17,14 +17,20 @@ selected local artifacts without adding external integrations.
 
 ## Milestone 3 - Local AgentOps Summaries and Timeline
 
-Status: **Next**
+Status: **Complete**
 
 Use the typed ingestion layer to build local summaries and a deterministic
 AgentOps timeline for runs, approvals, report summaries and guardrail outcomes.
 
+## Milestone 4 - Local Report Export or Dashboard-Ready CLI
+
+Status: **Next**
+
+Expose the local AgentOps summary and timeline through a reviewer-friendly CLI
+or static export format without adding a frontend UI, database or service.
+
 ## Future Milestones
 
-- Normalized AgentOps event timeline.
 - Retry, failure and approval state summaries.
 - Token and cost metadata summaries when available.
 - Local dashboard or report surface.

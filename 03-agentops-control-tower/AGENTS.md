@@ -36,7 +36,7 @@ It will eventually aggregate local workflow signals from Project 1 and Project 2
 
 ## Current Scope
 
-Milestone 2 adds local deterministic ingestion models and parsers.
+Milestone 3 adds deterministic local AgentOps summaries and timeline generation.
 
 Do not implement dashboards, UI, database persistence, external integrations or
 notification providers in this milestone.

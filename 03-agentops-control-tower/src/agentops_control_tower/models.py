@@ -53,6 +53,27 @@ class GuardrailStatus(StrEnum):
     UNKNOWN = "unknown"
 
 
+class TimelineEventType(StrEnum):
+    """Dashboard-ready event categories produced from ingested evidence."""
+
+    WORKFLOW_RUN = "workflow_run"
+    APPROVAL_REQUEST = "approval_request"
+    REPORT_SUMMARY = "report_summary"
+    TOOL_EVIDENCE = "tool_evidence"
+    GUARDRAIL_EVIDENCE = "guardrail_evidence"
+    INGESTION_WARNING = "ingestion_warning"
+    INGESTION_ERROR = "ingestion_error"
+
+
+class SummarySeverity(StrEnum):
+    """Overall local health severity for AgentOps summaries."""
+
+    HEALTHY = "healthy"
+    WARNING = "warning"
+    NEEDS_ATTENTION = "needs_attention"
+    ERROR = "error"
+
+
 class IngestionWarning(BaseModel):
     """Non-fatal warning emitted while parsing local evidence."""
 
@@ -246,3 +267,128 @@ class IngestionResult(BaseModel):
             Count of records stored in this result.
         """
         return len(self.records)
+
+
+class AgentOpsTimelineEvent(BaseModel):
+    """One deterministic AgentOps timeline event derived from local evidence."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    event_type: TimelineEventType
+    source_type: IngestionSourceType
+    identifier: str = Field(min_length=1)
+    title: str = Field(min_length=1)
+    timestamp: datetime | None = None
+    severity: SummarySeverity = SummarySeverity.HEALTHY
+    details: SanitizedPayload = Field(default_factory=dict)
+
+    @field_validator("timestamp")
+    @classmethod
+    def normalize_optional_timestamp(cls, value: datetime | None) -> datetime | None:
+        """Normalize optional event timestamps to UTC.
+
+        Args:
+            value: Optional event timestamp.
+
+        Returns:
+            UTC-normalized timestamp or `None`.
+        """
+        if value is None:
+            return None
+        if value.tzinfo is None:
+            return value.replace(tzinfo=UTC)
+        return value.astimezone(UTC)
+
+
+class AgentOpsTimeline(BaseModel):
+    """Deterministic timeline of local AgentOps evidence events."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    events: tuple[AgentOpsTimelineEvent, ...] = ()
+
+    @property
+    def event_count(self) -> int:
+        """Return timeline event count.
+
+        Returns:
+            Number of timeline events.
+        """
+        return len(self.events)
+
+
+class WorkflowRunSummary(BaseModel):
+    """Summary counts for ingested workflow run records."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    total: int = Field(ge=0)
+    by_status: dict[WorkflowStatus, int] = Field(default_factory=dict)
+    failed_count: int = Field(ge=0)
+    human_review_required_count: int = Field(ge=0)
+
+
+class ApprovalSummary(BaseModel):
+    """Summary counts for ingested approval request records."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    total: int = Field(ge=0)
+    by_status: dict[ApprovalStatus, int] = Field(default_factory=dict)
+    pending_count: int = Field(ge=0)
+
+
+class ReportHealthSummary(BaseModel):
+    """Summary counts for ingested deterministic report summaries."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    total: int = Field(ge=0)
+    requiring_human_review_count: int = Field(ge=0)
+    missing_required_section_count: int = Field(ge=0)
+
+
+class ToolEvidenceSummary(BaseModel):
+    """Summary counts for ingested local Project 2 tool evidence."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    total: int = Field(ge=0)
+    ready_count: int = Field(ge=0)
+    not_ready_count: int = Field(ge=0)
+
+
+class GuardrailSummary(BaseModel):
+    """Summary counts for ingested guardrail evidence records."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    total: int = Field(ge=0)
+    by_status: dict[GuardrailStatus, int] = Field(default_factory=dict)
+    failed_or_blocked_count: int = Field(ge=0)
+
+
+class AgentOpsSummary(BaseModel):
+    """Dashboard-ready deterministic summary over local AgentOps evidence."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    overall_status: SummarySeverity
+    workflow_runs: WorkflowRunSummary
+    approvals: ApprovalSummary
+    reports: ReportHealthSummary
+    tools: ToolEvidenceSummary
+    guardrails: GuardrailSummary
+    ingestion_warning_count: int = Field(ge=0)
+    ingestion_error_count: int = Field(ge=0)
+    recommended_actions: tuple[str, ...] = ()
+
+
+class AgentOpsControlTowerView(BaseModel):
+    """Combined local AgentOps ingestion, summary and timeline view."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    ingestion_result: IngestionResult
+    summary: AgentOpsSummary
+    timeline: AgentOpsTimeline

@@ -1,6 +1,6 @@
 # AgentOps Control Tower
 
-Status: **Ingestion models ready**
+Status: **Local summaries and timeline ready**
 
 AgentOps Control Tower is a local observability and governance layer for AI
 automation workflows.
@@ -30,7 +30,7 @@ Project 3 will focus on:
 
 ## Current Milestone
 
-Milestone 2 adds the first local deterministic ingestion layer.
+Milestone 3 adds deterministic local AgentOps summaries and timeline generation.
 
 Project 3 can now parse local evidence into typed records:
 
@@ -39,6 +39,13 @@ Project 3 can now parse local evidence into typed records:
 - Project 1 deterministic Markdown reports
 - saved Project 2 CLI JSON evidence
 - saved Project 2 guardrail output text
+
+It can also convert ingested records into:
+
+- dashboard-ready summary counts
+- a deterministic AgentOps timeline
+- an overall local health status
+- deterministic local follow-up actions
 
 Missing optional files are reported as warnings. Malformed files are reported as
 explicit ingestion errors. Parsed payloads are sanitized with conservative
@@ -59,8 +66,8 @@ Project 3 is planned as local-first and deterministic. The initial scaffold does
 not require secrets, call external APIs, mutate Project 1 artifacts or mutate
 Project 2 artifacts.
 
-The Milestone 2 ingestion layer remains local-only and read-only. It does not
-call LLMs, send notifications, create tasks or modify source artifacts.
+The Milestone 3 summary and timeline layer remains local-only and read-only. It
+does not call LLMs, send notifications, create tasks or modify source artifacts.
 
 ## Repository Structure
 
@@ -91,6 +98,12 @@ Run the local ingestion demo:
 03-agentops-control-tower/scripts/run_ingestion_demo.sh
 ```
 
+Run the local summary demo:
+
+```bash
+03-agentops-control-tower/scripts/run_summary_demo.sh
+```
+
 ## Next Milestone
 
-Project 3 Milestone 3: local AgentOps summaries and timeline.
+Project 3 Milestone 4: local report export or dashboard-ready CLI.

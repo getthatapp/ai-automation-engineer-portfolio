@@ -67,7 +67,7 @@ Optional approval-aware notification summary
 Current next project:
 
 ```text
-Project 3 — AgentOps Control Tower, local ingestion models ready
+Project 3 — AgentOps Control Tower, local summaries and timeline ready
 ```
 
 ### Project 2: Agent Toolkit for Codex and Claude Code
@@ -102,7 +102,7 @@ See:
 
 ### Project 3: AgentOps Control Tower
 
-Status: **Local ingestion models ready**
+Status: **Local summaries and timeline ready**
 
 AgentOps Control Tower is a local observability and governance layer for AI
 automation workflows. It will aggregate and observe local signals from Project 1
@@ -115,7 +115,8 @@ Current implementation:
 - documents local data sources
 - documents safety boundaries
 - parses local Project 1 and Project 2 evidence into typed records
-- adds local verification and ingestion demo scripts
+- builds deterministic summary counts, health status and timeline events
+- adds local verification, ingestion demo and summary demo scripts
 - does not yet implement dashboards, UI or database persistence
 
 See:
@@ -223,8 +224,8 @@ Started project focused on:
 - token/cost tracking
 - agent observability dashboard
 
-Current status: local ingestion models ready. Project 3 does not yet implement
-dashboards, UI or database persistence.
+Current status: local summaries and timeline ready. Project 3 does not yet
+implement dashboards, UI or database persistence.
 
 ---
 

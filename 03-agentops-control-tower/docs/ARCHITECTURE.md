@@ -22,16 +22,16 @@ Project 2 local tool evidence
         ↓
 Project 3 local ingestion models and parsers
         ↓
-deterministic normalization and aggregation
+deterministic summaries and timeline generation
         ↓
 control tower views, summaries and audit records
 ```
 
 ## Current Implementation
 
-Milestone 2 implements typed local ingestion records and deterministic parsers
-for selected Project 1 and Project 2 artifacts. The ingestion layer returns
-records, warnings and errors in typed `IngestionResult` objects.
+Milestone 2 implemented typed local ingestion records and deterministic parsers
+for selected Project 1 and Project 2 artifacts. Milestone 3 adds deterministic
+summary and timeline generation over typed `IngestionResult` objects.
 
 Implemented parser inputs:
 
@@ -44,6 +44,15 @@ Implemented parser inputs:
 The project still does not implement persistence, dashboards, UI, schedulers or
 external integrations.
 
+Implemented derived views:
+
+- `AgentOpsSummary`
+- `AgentOpsTimeline`
+- `AgentOpsControlTowerView`
+
+The control tower view combines ingestion records, summary counts and timeline
+events without persisting data or starting a service.
+
 ## Design Principles
 
 - Local-first: read local artifacts before considering any external source.
@@ -54,6 +63,8 @@ external integrations.
   deployed production control plane.
 - User-facing ingestion errors: malformed local files produce typed errors
   instead of unhandled exceptions.
+- Deterministic derived views: health status and recommended actions are
+  generated from local typed records only.
 
 ## Relationship to Earlier Projects
 

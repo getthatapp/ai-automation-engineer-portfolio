@@ -21,6 +21,41 @@ Milestone 2 adds typed records for:
 These records are ingestion outputs for future summaries and dashboards. They
 are not a database schema and do not provide UI behavior.
 
+## Implemented Derived Views
+
+Milestone 3 adds:
+
+- `AgentOpsTimelineEvent`
+- `AgentOpsTimeline`
+- `WorkflowRunSummary`
+- `ApprovalSummary`
+- `ReportHealthSummary`
+- `ToolEvidenceSummary`
+- `GuardrailSummary`
+- `AgentOpsSummary`
+- `AgentOpsControlTowerView`
+
+Timeline event types:
+
+- `workflow_run`
+- `approval_request`
+- `report_summary`
+- `tool_evidence`
+- `guardrail_evidence`
+- `ingestion_warning`
+- `ingestion_error`
+
+Overall health status is derived deterministically:
+
+- `error` when ingestion errors exist
+- `needs_attention` when failed or blocked guardrails, pending approvals,
+  failed workflow runs or human-review report signals exist
+- `warning` when ingestion warnings or unknown statuses exist
+- `healthy` otherwise
+
+Recommended actions are deterministic local follow-ups. They are not
+LLM-generated recommendations.
+
 ## Signal Types
 
 - Workflow runs: run identifiers, timestamps, status and produced artifacts.
@@ -37,9 +72,9 @@ are not a database schema and do not provide UI behavior.
 
 ## Current Non-Goals
 
-Project 3 does not yet implement storage, dashboard views, alerting, a scheduler
-or a deployed AgentOps platform. Those will be introduced only if future
-milestones explicitly add them.
+Project 3 does not yet implement storage, frontend dashboard views, alerting, a
+scheduler or a deployed AgentOps platform. Those will be introduced only if
+future milestones explicitly add them.
 
 ## Auditability Goals
 
