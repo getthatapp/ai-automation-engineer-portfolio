@@ -30,6 +30,9 @@ The available deterministic tools are:
 They inspect local Project 1 artifacts. They do not call an LLM, call external
 APIs, require secrets, delete files or mutate approval/run-history records.
 
+Milestone 6 exposes the same local tools through the `agent-toolkit-mcp`
+console script. This is a local package CLI, not a deployed MCP service.
+
 ## Local Commands
 
 Run Project 2 scaffold checks:
@@ -61,6 +64,21 @@ Show local permission profile documentation:
 ```bash
 02-agent-toolkit-mcp/scripts/show_permission_profiles.sh
 ```
+
+Invoke deterministic tools directly from the package directory:
+
+```bash
+cd 02-agent-toolkit-mcp/mcp-server
+uv run agent-toolkit-mcp validate-report ../../01-ai-marketing-ops-agent/reports/example.md
+uv run agent-toolkit-mcp read-run-history ../../01-ai-marketing-ops-agent/run-history/workflow-runs.jsonl --limit 5
+uv run agent-toolkit-mcp list-pending-approvals ../../01-ai-marketing-ops-agent/approval-requests/approval-requests.jsonl
+uv run agent-toolkit-mcp check-runtime-clean ../../01-ai-marketing-ops-agent
+uv run agent-toolkit-mcp generate-demo-brief ../../01-ai-marketing-ops-agent --pretty
+```
+
+The CLI prints JSON evidence and returns non-zero status codes for failed local
+status checks such as invalid reports, dirty runtime artifacts, malformed JSONL
+or incomplete demo readiness.
 
 ## Codex Usage
 
@@ -94,6 +112,7 @@ future milestone implements and verifies those capabilities.
 
 - External MCP deployment.
 - External Codex or Claude Code tool invocation.
+- External MCP client transport.
 - Real service integrations.
 - Secrets-backed providers.
 - Destructive tools.
