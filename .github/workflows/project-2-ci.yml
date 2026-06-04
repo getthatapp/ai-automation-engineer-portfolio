@@ -1,0 +1,59 @@
+name: Project 2 CI
+
+on:
+  pull_request:
+    paths:
+      - "02-agent-toolkit-mcp/**"
+      - ".github/workflows/project-2-ci.yml"
+      - "AGENTS.md"
+      - "docs/CODEX_HANDOFF_AI_AUTOMATION_PORTFOLIO.md"
+      - "README.md"
+  push:
+    branches:
+      - main
+    paths:
+      - "02-agent-toolkit-mcp/**"
+      - ".github/workflows/project-2-ci.yml"
+      - "AGENTS.md"
+      - "docs/CODEX_HANDOFF_AI_AUTOMATION_PORTFOLIO.md"
+      - "README.md"
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Quality Checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: 02-agent-toolkit-mcp/mcp-server/uv.lock
+
+      - name: Run Project 2 scaffold checks
+        run: 02-agent-toolkit-mcp/scripts/run_checks.sh
+
+      - name: Run Project 2 MCP server checks
+        run: 02-agent-toolkit-mcp/scripts/run_mcp_checks.sh
+
+      - name: Check Project 2 shell script syntax
+        run: bash -n 02-agent-toolkit-mcp/scripts/*.sh
+
+      - name: Run CLI smoke checks
+        working-directory: 02-agent-toolkit-mcp/mcp-server
+        run: |
+          uv run agent-toolkit-mcp --help
+          uv run agent-toolkit-mcp generate-demo-brief ../../01-ai-marketing-ops-agent --pretty
+          uv run agent-toolkit-mcp check-runtime-clean ../../01-ai-marketing-ops-agent --pretty

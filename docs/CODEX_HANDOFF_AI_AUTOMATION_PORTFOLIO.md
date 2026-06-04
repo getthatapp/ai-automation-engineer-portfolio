@@ -3,8 +3,8 @@
 Last updated: 2026-06-04
 Repository: `ai-automation-engineer-portfolio`  
 Current project: `02-agent-toolkit-mcp`
-Current status: Project 1 complete / portfolio-ready. Project 2 Milestone 6 implemented.
-Next step: Project 2 Milestone 7 — Claude Code hook examples, Project 2 CI or local runtime packaging.
+Current status: Project 1 complete / portfolio-ready. Project 2 Milestone 7 implemented.
+Next step: Project 2 Milestone 8 — Claude Code hook examples or local runtime packaging.
 
 ---
 
@@ -79,6 +79,8 @@ Project 2 now includes:
 - local `agent-toolkit-mcp` CLI for invoking deterministic tools without
   writing Python
 - CLI tests for JSON payloads, pretty output and status-check exit codes
+- GitHub Actions CI for Project 2 scaffold, MCP server and CLI checks
+- local CI mirror script for Project 2 reviewer verification
 
 Current verified Project 1 status after Milestone 13:
 
@@ -146,6 +148,19 @@ mypy clean
 bash script syntax clean
 git diff --check clean
 CLI smoke test generated pretty JSON demo-readiness evidence
+```
+
+Current verified Project 2 status after Milestone 7:
+
+```text
+Project 2 scaffold checks passed
+32 MCP server tests passing
+ruff clean
+mypy clean
+bash script syntax clean
+git diff --check clean
+local CI mirror passed
+CLI smoke checks generated pretty JSON demo-readiness and runtime-clean evidence
 ```
 
 ---
@@ -701,6 +716,52 @@ git diff --check clean
 CLI smoke test generated pretty JSON demo-readiness evidence
 ```
 
+---
+
+## 12. Completed Project 2 Milestone: Milestone 7
+
+### Goal
+
+Add GitHub Actions CI for Project 2 so external reviewers can see automated
+quality checks for the Agent Toolkit MCP package.
+
+### Milestone 7 — CI for Agent Toolkit MCP
+
+Implemented:
+
+- GitHub Actions workflow for Project 2 scaffold, MCP server and CLI checks
+- path-filtered workflow triggers for Project 2, shared repository docs and
+  the Project 2 CI workflow file
+- local `run_ci_locally.sh` mirror script for reviewer-friendly verification
+- scaffold check coverage for the CI workflow, local CI script and Milestone 7
+  prompt-history file
+- prompt-history entry:
+  `02-agent-toolkit-mcp/docs/prompt-history/milestone-07-ci.md`
+
+Behavior:
+
+- local and deterministic checks only
+- read-only CLI smoke checks against Project 1 artifacts
+- no Project 1 code or runtime behavior changes
+- no external API calls
+- no secrets required
+- no Docker services
+- no deployment or package publishing
+- no destructive tools
+
+Verification:
+
+```text
+Project 2 scaffold checks passed
+32 MCP server tests passing
+ruff clean
+mypy clean
+bash script syntax clean
+git diff --check clean
+local CI mirror passed
+CLI smoke checks generated pretty JSON demo-readiness and runtime-clean evidence
+```
+
 Project 2 permanent rules:
 
 - every new function, method and class created by Codex must include a clear Google-style docstring
@@ -714,7 +775,7 @@ Project 2 permanent rules:
 
 ---
 
-## 12. Demo Commands
+## 13. Demo Commands
 
 Run mock services:
 
@@ -778,6 +839,12 @@ Show Project 2 local permission profiles:
 02-agent-toolkit-mcp/scripts/show_permission_profiles.sh
 ```
 
+Run Project 2 CI locally:
+
+```bash
+02-agent-toolkit-mcp/scripts/run_ci_locally.sh
+```
+
 Run Project 2 CLI tool evidence locally:
 
 ```bash
@@ -787,9 +854,9 @@ uv run agent-toolkit-mcp generate-demo-brief ../../01-ai-marketing-ops-agent --p
 
 ---
 
-## 13. Future Milestones
+## 14. Future Milestones
 
 ```text
-Project 2     — Milestone 7: Claude Code hook examples, Project 2 CI or local runtime packaging
+Project 2     — Milestone 8: Claude Code hook examples or local runtime packaging
 Project 3     — AgentOps Control Tower
 ```

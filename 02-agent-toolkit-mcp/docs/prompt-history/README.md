@@ -24,3 +24,4 @@ Use `TEMPLATE.md` for future milestone prompt-history files.
 - [Milestone 4 - Runtime Configuration Examples and Permission Profiles](milestone-04-runtime-config.md)
 - [Milestone 5 - MCP Tool Hardening and Richer Validation](milestone-05-tool-hardening.md)
 - [Milestone 6 - MCP Server CLI Interface](milestone-06-cli-interface.md)
+- [Milestone 7 - CI for Agent Toolkit MCP](milestone-07-ci.md)

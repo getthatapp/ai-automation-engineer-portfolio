@@ -22,6 +22,7 @@ required_files=(
   "docs/prompt-history/milestone-04-runtime-config.md"
   "docs/prompt-history/milestone-05-tool-hardening.md"
   "docs/prompt-history/milestone-06-cli-interface.md"
+  "docs/prompt-history/milestone-07-ci.md"
   "docs/runtime/MCP_RUNTIME_CONFIGURATION.md"
   "docs/runtime/CODEX_PERMISSION_PROFILES.md"
   "docs/runtime/CLAUDE_CODE_PERMISSION_PROFILES.md"
@@ -45,6 +46,7 @@ required_files=(
   "scripts/run_codex_prompt.sh"
   "scripts/run_claude_command.sh"
   "scripts/run_checks.sh"
+  "scripts/run_ci_locally.sh"
   "scripts/run_mcp_checks.sh"
   "scripts/demo_mcp_tools.sh"
   "scripts/run_project1_tool_review.sh"
@@ -69,6 +71,7 @@ required_files=(
   "mcp-server/tests/conftest.py"
   "mcp-server/tests/test_cli.py"
   "mcp-server/tests/test_tools.py"
+  "../.github/workflows/project-2-ci.yml"
 )
 
 for path in "${required_files[@]}"; do
