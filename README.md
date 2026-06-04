@@ -64,15 +64,15 @@ Human approval requests for high-risk outputs
 Optional approval-aware notification summary
 ```
 
-Next milestone:
+Next major project:
 
 ```text
-Project 2 Milestone 9 — expanded integration examples or local runtime packaging
+Project 3 — AgentOps Control Tower
 ```
 
 ### Project 2: Agent Toolkit for Codex and Claude Code
 
-Status: **Local MCP-style tool CLI, CI and guardrails implemented**
+Status: **Portfolio-ready / case-study-ready**
 
 Project 2 supports both Codex and Claude Code by providing reusable prompt
 templates, Claude Code command templates, shared skills, safety documentation
@@ -88,10 +88,17 @@ Project 2 has GitHub Actions CI plus a local CI mirror script for scaffold,
 MCP server, shell syntax and read-only CLI smoke checks.
 Project 2 also includes dual-agent local guardrail examples for Claude Code
 hook-style workflows and Codex hook-equivalent wrappers.
+Project 2 is now packaged with a recruiter-friendly case study, demo script
+and requirements coverage matrix.
 It is a toolkit for agentic automation workflows, not another business workflow
 app.
 
-See [Project 2 README](02-agent-toolkit-mcp/README.md).
+See:
+
+- [Project 2 README](02-agent-toolkit-mcp/README.md)
+- [Project 2 Case Study](02-agent-toolkit-mcp/docs/PROJECT_2_CASE_STUDY.md)
+- [Project 2 Demo Script](02-agent-toolkit-mcp/docs/DEMO_SCRIPT.md)
+- [Project 2 Requirements Coverage Matrix](02-agent-toolkit-mcp/docs/REQUIREMENTS_COVERAGE_MATRIX.md)
 
 ---
 
@@ -379,6 +386,9 @@ Project-level documentation:
 
 02-agent-toolkit-mcp/docs/
 ├── ARCHITECTURE.md
+├── PROJECT_2_CASE_STUDY.md
+├── DEMO_SCRIPT.md
+├── REQUIREMENTS_COVERAGE_MATRIX.md
 ├── CODEX_USAGE.md
 ├── CLAUDE_CODE_USAGE.md
 ├── SAFETY_MODEL.md
@@ -390,6 +400,7 @@ Project-level documentation:
 ## Current Roadmap
 
 ```text
-Project 2     — Milestone 2: MCP server implementation
+Project 1     — Portfolio-ready / case-study-ready
+Project 2     — Portfolio-ready / case-study-ready
 Project 3     — AgentOps Control Tower
 ```
