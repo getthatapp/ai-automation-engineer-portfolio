@@ -1,0 +1,18 @@
+# Project 3 Prompt History
+
+This directory stores curated milestone prompts for Project 3.
+
+Each milestone file should include:
+
+- title
+- status
+- branch
+- full prompt
+- expected verification
+- result summary
+- verification results
+- commit or PR placeholder
+- notes
+
+Prompt history is part of the portfolio evidence. It shows how work was scoped,
+implemented and verified over time.
