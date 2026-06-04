@@ -75,7 +75,7 @@ Project 3 — AgentOps Control Tower
 Status: **Portfolio-ready / case-study-ready**
 
 Project 2 supports both Codex and Claude Code by providing reusable prompt
-templates, Claude Code command templates, shared skills, safety documentation
+templates, Claude Code command templates, shared skills, safety documentation,
 lightweight reviewer scripts and a Python deterministic local MCP tool layer.
 It also documents local Codex and Claude Code permission profiles for read-only,
 workspace-write and approval-required workflows.

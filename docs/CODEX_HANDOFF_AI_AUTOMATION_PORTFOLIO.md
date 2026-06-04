@@ -227,7 +227,6 @@ persistent run recording + local JSONL history
 Project 1 does not yet have:
 
 - Telegram/Slack/email notification
-- final interview demo script
 
 ---
 
