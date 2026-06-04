@@ -9,7 +9,9 @@ that will support future workflow development.
 
 ## Current Status
 
-Milestone 8 is implemented.
+Status: **Portfolio-ready / case-study-ready**
+
+Milestone 9 is implemented.
 
 Implemented:
 
@@ -46,6 +48,7 @@ Implemented:
 - Dual-agent hook and guardrail examples for Claude Code and Codex workflows.
 - Shared local guardrail checks for prompt history, runtime cleanliness and
   obvious secret-like patterns.
+- Recruiter-friendly case study, demo script and requirements coverage matrix.
 
 Not implemented yet:
 
@@ -55,6 +58,12 @@ Not implemented yet:
 - Full external MCP SDK transport integration.
 - External MCP client transport invocation from Codex or Claude Code.
 - Complete security enforcement or exact Codex/Claude Code hook parity.
+
+Reviewer docs:
+
+- [Project 2 Case Study](docs/PROJECT_2_CASE_STUDY.md)
+- [Demo Script](docs/DEMO_SCRIPT.md)
+- [Requirements Coverage Matrix](docs/REQUIREMENTS_COVERAGE_MATRIX.md)
 
 ## Toolkit Concepts
 
@@ -267,7 +276,7 @@ scaffold helpers for reviewers and future development.
 - Preserve auditability through clear inputs, outputs and logs.
 - Keep README and handoff documentation current for every milestone.
 
-## Next Milestone
+## Next Portfolio Step
 
-Project 2 Milestone 9 can focus on expanded integration examples or additional
-local runtime packaging without adding external service integrations.
+Project 2 is portfolio-ready. The next major portfolio step is Project 3:
+AgentOps Control Tower.

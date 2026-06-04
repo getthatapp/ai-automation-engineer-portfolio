@@ -118,8 +118,33 @@ Implemented scope:
 Milestone 8 does not add external integrations, secrets, destructive tools,
 frontend UI, Project 1 behavior changes or complete security enforcement.
 
-## Later Milestones
+## Milestone 9 - Final Demo Package and Recruiter Walkthrough
 
-Potential later work:
+Status: complete.
 
-- expanded integration examples using Project 1 artifacts.
+Implemented scope:
+
+- add a Project 2 case study for external reviewers;
+- add a 5-10 minute demo script;
+- add a requirements coverage matrix mapping role skills to repo evidence;
+- update README and handoff docs to mark Project 2 portfolio-ready;
+- keep the milestone documentation-first without changing Project 1 behavior,
+  Project 2 tool behavior, external integrations or CLI behavior.
+
+Milestone 9 does not add deployed external MCP transport, external service
+calls, secrets, destructive tools, frontend UI, new dependencies or complete
+security enforcement.
+
+## Optional Future Enhancements
+
+Potential future Project 2 maintenance work:
+
+- expanded packaged examples using Project 1 artifacts;
+- additional hook or guardrail templates;
+- more local deterministic inspection tools;
+- external MCP transport wiring only if it is clearly documented, safe and not
+  presented as already implemented.
+
+## Next Portfolio Step
+
+Project 3 - AgentOps Control Tower.

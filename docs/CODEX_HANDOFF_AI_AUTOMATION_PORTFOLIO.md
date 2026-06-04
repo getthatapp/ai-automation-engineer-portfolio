@@ -2,9 +2,9 @@
 
 Last updated: 2026-06-04
 Repository: `ai-automation-engineer-portfolio`  
-Current project: `02-agent-toolkit-mcp`
-Current status: Project 1 complete / portfolio-ready. Project 2 Milestone 8 implemented.
-Next step: Project 2 Milestone 9 — expanded integration examples or local runtime packaging.
+Current project: `03-agentops-control-tower`
+Current status: Project 1 complete / portfolio-ready. Project 2 complete / portfolio-ready.
+Next step: Project 3 — AgentOps Control Tower.
 
 ---
 
@@ -84,6 +84,8 @@ Project 2 now includes:
 - dual-agent hook and guardrail examples for Codex and Claude Code
 - shared guardrail checks for prompt history, runtime cleanliness and obvious
   secret-like patterns
+- Project 2 case study, demo script and requirements coverage matrix for
+  reviewer walkthroughs
 
 Current verified Project 1 status after Milestone 13:
 
@@ -179,6 +181,21 @@ git diff --check clean
 local CI mirror passed
 guardrail suite passed
 Claude Code destructive-command smoke check failed closed as expected
+```
+
+Current verified Project 2 status after Milestone 9:
+
+```text
+Project 2 scaffold checks passed
+32 MCP server tests passing
+ruff clean
+mypy clean
+bash script syntax clean
+hook script syntax clean
+git diff --check clean
+local CI mirror passed
+guardrail suite passed
+CLI smoke checks generated pretty JSON demo-readiness and runtime-clean evidence
 ```
 
 ---
@@ -845,7 +862,69 @@ Project 2 permanent rules:
 
 ---
 
-## 14. Demo Commands
+## 14. Completed Project 2 Milestone: Milestone 9
+
+### Goal
+
+Finalize Project 2 as a recruiter-friendly case study and demo package before
+starting Project 3.
+
+### Milestone 9 — Final Demo Package and Recruiter Walkthrough
+
+Implemented:
+
+- Project 2 case study:
+  `02-agent-toolkit-mcp/docs/PROJECT_2_CASE_STUDY.md`
+- 5-10 minute demo script:
+  `02-agent-toolkit-mcp/docs/DEMO_SCRIPT.md`
+- requirements coverage matrix:
+  `02-agent-toolkit-mcp/docs/REQUIREMENTS_COVERAGE_MATRIX.md`
+- README and roadmap updates marking Project 2 portfolio-ready
+- prompt-history entry:
+  `02-agent-toolkit-mcp/docs/prompt-history/milestone-09-demo-package.md`
+
+Behavior:
+
+- documentation/demo packaging only
+- no Project 1 code or runtime behavior changes
+- no Project 2 Python, CLI or guardrail behavior changes
+- no external API calls
+- no secrets required
+- no destructive tools
+- no deployed external MCP service claim
+- no claim of exact Codex and Claude Code hook parity
+- guardrails remain examples, not complete security enforcement
+
+Verification:
+
+```text
+Project 2 scaffold checks passed
+32 MCP server tests passing
+ruff clean
+mypy clean
+bash script syntax clean
+hook script syntax clean
+git diff --check clean
+local CI mirror passed
+guardrail suite passed
+CLI smoke checks generated pretty JSON demo-readiness and runtime-clean evidence
+```
+
+Project 2 permanent rules:
+
+- every new function, method and class created by Codex must include a clear Google-style docstring
+- every Project 2 maintenance milestone must update relevant README files
+- every Project 2 maintenance milestone must update this handoff
+- every Project 2 maintenance milestone must create or update its own prompt-history file under `02-agent-toolkit-mcp/docs/prompt-history/`
+- prompt-history files must include the full prompt, expected verification, result summary, verification results and commit/PR placeholders
+- use branch-based workflow and do not assume direct work on `main`
+- do not hardcode secrets or add real external credentials
+- do not modify Project 1 code unless explicitly requested
+- do not overclaim deployed MCP transport, complete security enforcement or Codex/Claude Code hook parity
+
+---
+
+## 15. Demo Commands
 
 Run mock services:
 
@@ -930,9 +1009,10 @@ uv run agent-toolkit-mcp generate-demo-brief ../../01-ai-marketing-ops-agent --p
 
 ---
 
-## 15. Future Milestones
+## 16. Future Milestones
 
 ```text
-Project 2     — Milestone 9: expanded integration examples or local runtime packaging
+Project 1     — Portfolio-ready / case-study-ready
+Project 2     — Portfolio-ready / case-study-ready
 Project 3     — AgentOps Control Tower
 ```
