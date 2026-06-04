@@ -67,12 +67,12 @@ Optional approval-aware notification summary
 Next milestone:
 
 ```text
-Project 2 Milestone 8 — Claude Code hook examples or local runtime packaging
+Project 2 Milestone 9 — expanded integration examples or local runtime packaging
 ```
 
 ### Project 2: Agent Toolkit for Codex and Claude Code
 
-Status: **Local MCP-style tool CLI and CI implemented**
+Status: **Local MCP-style tool CLI, CI and guardrails implemented**
 
 Project 2 supports both Codex and Claude Code by providing reusable prompt
 templates, Claude Code command templates, shared skills, safety documentation
@@ -86,6 +86,8 @@ reviewers can print JSON evidence and use status-check exit codes without
 writing Python.
 Project 2 has GitHub Actions CI plus a local CI mirror script for scaffold,
 MCP server, shell syntax and read-only CLI smoke checks.
+Project 2 also includes dual-agent local guardrail examples for Claude Code
+hook-style workflows and Codex hook-equivalent wrappers.
 It is a toolkit for agentic automation workflows, not another business workflow
 app.
 
@@ -172,6 +174,12 @@ Run Project 2 CI locally:
 
 ```bash
 02-agent-toolkit-mcp/scripts/run_ci_locally.sh
+```
+
+Run Project 2 guardrail checks locally:
+
+```bash
+02-agent-toolkit-mcp/scripts/run_guardrail_checks.sh
 ```
 
 ### 03 — AgentOps Control Tower

@@ -76,6 +76,16 @@ Show local permission profile documentation:
 02-agent-toolkit-mcp/scripts/show_permission_profiles.sh
 ```
 
+Run dual-agent guardrail examples:
+
+```bash
+02-agent-toolkit-mcp/scripts/run_guardrail_checks.sh
+```
+
+These checks are local-only and read-only. Claude Code examples are hook-style
+scripts; Codex examples are hook-equivalent wrappers, not identical lifecycle
+hooks.
+
 Invoke deterministic tools directly from the package directory:
 
 ```bash

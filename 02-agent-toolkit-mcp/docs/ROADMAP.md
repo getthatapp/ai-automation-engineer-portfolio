@@ -104,9 +104,22 @@ Milestone 7 does not add external service calls, secrets, Docker service runs,
 deployment, package publishing, destructive tools or Project 1 behavior
 changes.
 
+## Milestone 8 - Dual-Agent Hook and Guardrail Examples
+
+Status: complete.
+
+Implemented scope:
+
+- add Claude Code hook-style examples for local lifecycle guardrails;
+- add Codex hook-equivalent guardrail wrappers;
+- add shared read-only guardrail checks;
+- document differences between Codex and Claude Code lifecycle models.
+
+Milestone 8 does not add external integrations, secrets, destructive tools,
+frontend UI, Project 1 behavior changes or complete security enforcement.
+
 ## Later Milestones
 
 Potential later work:
 
-- hook examples for Claude Code workflows;
 - expanded integration examples using Project 1 artifacts.

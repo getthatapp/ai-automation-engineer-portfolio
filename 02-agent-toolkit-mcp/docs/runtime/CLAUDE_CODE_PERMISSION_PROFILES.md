@@ -14,6 +14,7 @@ Allowed operations:
 - Read repository files.
 - Preview Claude Code command templates.
 - Run read-only Project 2 adapter scripts.
+- Run hook-style examples in read-only mode.
 - Summarize deterministic outputs.
 
 Blocked operations:
@@ -58,6 +59,9 @@ the implementation surface.
 
 Suggested Claude Code usage: keep command updates explicit, auditable and
 paired with verification.
+
+Suggested hook usage: adapt `hooks/claude-code/` examples for local lifecycle
+checks without adding destructive behavior or external calls.
 
 Use this profile for safe Project 2 development.
 

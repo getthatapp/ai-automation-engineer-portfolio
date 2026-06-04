@@ -40,6 +40,9 @@ Milestone 6 adds a CLI wrapper around these same tools. The wrapper prints JSON
 evidence and returns status-check exit codes, but does not add new tool
 capabilities, external calls or write operations.
 
+Milestone 8 adds hook and guardrail examples around the same local boundaries.
+They are read-only examples and do not provide complete security enforcement.
+
 JSONL-reading tools sanitize secret-like keys and obvious bearer/API-token
 values before returning records to an agent.
 
@@ -62,6 +65,9 @@ MCP deployment, external service calls, credentials or destructive operations.
 
 Milestone 6 CLI usage remains local-only and should not be described as a real
 deployed MCP service.
+
+Milestone 8 guardrails should not be described as exact Codex/Claude Code hook
+parity or as comprehensive secret/security scanning.
 
 ## Auditability
 

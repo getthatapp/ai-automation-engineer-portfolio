@@ -3,8 +3,8 @@
 Last updated: 2026-06-04
 Repository: `ai-automation-engineer-portfolio`  
 Current project: `02-agent-toolkit-mcp`
-Current status: Project 1 complete / portfolio-ready. Project 2 Milestone 7 implemented.
-Next step: Project 2 Milestone 8 — Claude Code hook examples or local runtime packaging.
+Current status: Project 1 complete / portfolio-ready. Project 2 Milestone 8 implemented.
+Next step: Project 2 Milestone 9 — expanded integration examples or local runtime packaging.
 
 ---
 
@@ -81,6 +81,9 @@ Project 2 now includes:
 - CLI tests for JSON payloads, pretty output and status-check exit codes
 - GitHub Actions CI for Project 2 scaffold, MCP server and CLI checks
 - local CI mirror script for Project 2 reviewer verification
+- dual-agent hook and guardrail examples for Codex and Claude Code
+- shared guardrail checks for prompt history, runtime cleanliness and obvious
+  secret-like patterns
 
 Current verified Project 1 status after Milestone 13:
 
@@ -161,6 +164,21 @@ bash script syntax clean
 git diff --check clean
 local CI mirror passed
 CLI smoke checks generated pretty JSON demo-readiness and runtime-clean evidence
+```
+
+Current verified Project 2 status after Milestone 8:
+
+```text
+Project 2 scaffold checks passed
+32 MCP server tests passing
+ruff clean
+mypy clean
+bash script syntax clean
+hook script syntax clean
+git diff --check clean
+local CI mirror passed
+guardrail suite passed
+Claude Code destructive-command smoke check failed closed as expected
 ```
 
 ---
@@ -762,6 +780,58 @@ local CI mirror passed
 CLI smoke checks generated pretty JSON demo-readiness and runtime-clean evidence
 ```
 
+---
+
+## 13. Completed Project 2 Milestone: Milestone 8
+
+### Goal
+
+Add local, deterministic, read-only guardrail and hook examples for both Codex
+and Claude Code.
+
+### Milestone 8 — Dual-Agent Hook and Guardrail Examples
+
+Implemented:
+
+- Claude Code hook-style examples for pre-tool checks, post-tool audits and
+  stop-on-dirty-runtime checks
+- Codex hook-equivalent guardrail wrappers for preflight, post-run audit and
+  prompt-history enforcement
+- shared guardrail scripts for conservative no-secrets scanning, Project 1
+  runtime cleanliness and prompt-history structure checks
+- guardrail documentation that distinguishes Claude Code hooks from Codex
+  hook-equivalent wrappers
+- local guardrail check runner:
+  `02-agent-toolkit-mcp/scripts/run_guardrail_checks.sh`
+- prompt-history entry:
+  `02-agent-toolkit-mcp/docs/prompt-history/milestone-08-dual-agent-guardrails.md`
+
+Behavior:
+
+- local and deterministic checks only
+- read-only Project 1 artifact inspection
+- no Project 1 code or runtime behavior changes
+- no external API calls
+- no secrets required
+- no destructive tools
+- no claim of complete security enforcement
+- no claim of exact Codex and Claude Code hook parity
+
+Verification:
+
+```text
+Project 2 scaffold checks passed
+32 MCP server tests passing
+ruff clean
+mypy clean
+bash script syntax clean
+hook script syntax clean
+git diff --check clean
+local CI mirror passed
+guardrail suite passed
+Claude Code destructive-command smoke check failed closed as expected
+```
+
 Project 2 permanent rules:
 
 - every new function, method and class created by Codex must include a clear Google-style docstring
@@ -775,7 +845,7 @@ Project 2 permanent rules:
 
 ---
 
-## 13. Demo Commands
+## 14. Demo Commands
 
 Run mock services:
 
@@ -845,6 +915,12 @@ Run Project 2 CI locally:
 02-agent-toolkit-mcp/scripts/run_ci_locally.sh
 ```
 
+Run Project 2 guardrail checks locally:
+
+```bash
+02-agent-toolkit-mcp/scripts/run_guardrail_checks.sh
+```
+
 Run Project 2 CLI tool evidence locally:
 
 ```bash
@@ -854,9 +930,9 @@ uv run agent-toolkit-mcp generate-demo-brief ../../01-ai-marketing-ops-agent --p
 
 ---
 
-## 14. Future Milestones
+## 15. Future Milestones
 
 ```text
-Project 2     — Milestone 8: Claude Code hook examples or local runtime packaging
+Project 2     — Milestone 9: expanded integration examples or local runtime packaging
 Project 3     — AgentOps Control Tower
 ```
