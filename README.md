@@ -64,10 +64,10 @@ Human approval requests for high-risk outputs
 Optional approval-aware notification summary
 ```
 
-Next major project:
+Current next project:
 
 ```text
-Project 3 — AgentOps Control Tower
+Project 3 — AgentOps Control Tower, started / scaffold ready
 ```
 
 ### Project 2: Agent Toolkit for Codex and Claude Code
@@ -99,6 +99,27 @@ See:
 - [Project 2 Case Study](02-agent-toolkit-mcp/docs/PROJECT_2_CASE_STUDY.md)
 - [Project 2 Demo Script](02-agent-toolkit-mcp/docs/DEMO_SCRIPT.md)
 - [Project 2 Requirements Coverage Matrix](02-agent-toolkit-mcp/docs/REQUIREMENTS_COVERAGE_MATRIX.md)
+
+### Project 3: AgentOps Control Tower
+
+Status: **Started / scaffold ready**
+
+AgentOps Control Tower is a local observability and governance layer for AI
+automation workflows. It will aggregate and observe local signals from Project 1
+workflow artifacts and Project 2 tool/guardrail evidence without duplicating
+either project.
+
+Current scaffold:
+
+- documents the planned observability model
+- documents local data sources
+- documents safety boundaries
+- adds a local scaffold verification script
+- does not yet implement ingestion, dashboards or UI
+
+See:
+
+- [Project 3 README](03-agentops-control-tower/README.md)
 
 ---
 
@@ -191,7 +212,7 @@ Run Project 2 guardrail checks locally:
 
 ### 03 — AgentOps Control Tower
 
-Planned project focused on:
+Started project focused on:
 
 - workflow monitoring
 - run history
@@ -200,6 +221,9 @@ Planned project focused on:
 - human approval queue
 - token/cost tracking
 - agent observability dashboard
+
+Current status: scaffold and documentation only. Project 3 does not yet
+implement ingestion, dashboards or UI.
 
 ---
 

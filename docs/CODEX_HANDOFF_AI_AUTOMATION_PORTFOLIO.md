@@ -3,8 +3,8 @@
 Last updated: 2026-06-04
 Repository: `ai-automation-engineer-portfolio`  
 Current project: `03-agentops-control-tower`
-Current status: Project 1 complete / portfolio-ready. Project 2 complete / portfolio-ready.
-Next step: Project 3 — AgentOps Control Tower.
+Current status: Project 1 complete / portfolio-ready. Project 2 complete / portfolio-ready. Project 3 started / scaffold ready.
+Next step: Project 3 Milestone 2 — local data ingestion models.
 
 ---
 
@@ -22,6 +22,10 @@ update its own full prompt-history file under
 `02-agent-toolkit-mcp/docs/prompt-history/`. Each file must include the full
 prompt, expected verification, implementation result summary, verification
 results and commit or PR placeholders until the human completes them.
+
+Every Project 3 milestone must create or update its own full prompt-history
+file under `03-agentops-control-tower/docs/prompt-history/` with the same
+required sections.
 
 ---
 
@@ -86,6 +90,30 @@ Project 2 now includes:
   secret-like patterns
 - Project 2 case study, demo script and requirements coverage matrix for
   reviewer walkthroughs
+
+Project 3 now includes:
+
+- project scaffold under `03-agentops-control-tower/`
+- Project 3 `README.md` and `AGENTS.md`
+- architecture, roadmap, observability model, data source, safety model and
+  local demo plan docs
+- prompt history under `03-agentops-control-tower/docs/prompt-history/`
+- example documentation for future Project 1 run-history evidence
+- example documentation for future Project 2 tool and guardrail evidence
+- local scaffold verification script under
+  `03-agentops-control-tower/scripts/run_checks.sh`
+
+Project 3 purpose:
+
+```text
+AgentOps Control Tower is a local observability and governance layer for AI automation workflows.
+```
+
+Project 3 will focus on workflow run history, approval states, failure records,
+retry and cadence metadata, notification status, LLM and token usage metadata
+when available, guardrail outcomes and local auditability. It is local-first and
+deterministic. The current scaffold does not yet implement ingestion,
+dashboards or UI.
 
 Current verified Project 1 status after Milestone 13:
 
@@ -198,6 +226,14 @@ guardrail suite passed
 CLI smoke checks generated pretty JSON demo-readiness and runtime-clean evidence
 ```
 
+Current verified Project 3 status after Milestone 1:
+
+```text
+Project 3 scaffold checks passed
+bash script syntax clean
+git diff --check clean
+```
+
 ---
 
 ## 3. Current Pipeline
@@ -227,6 +263,37 @@ persistent run recording + local JSONL history
 Project 1 does not yet have:
 
 - Telegram/Slack/email notification
+
+Project 3 relationship to earlier projects:
+
+- Project 1 produces workflow artifacts.
+- Project 2 provides local tools and guardrails.
+- Project 3 will aggregate and observe these signals.
+
+Project 3 does not yet have:
+
+- backend ingestion
+- dashboards
+- frontend UI
+- external integrations
+- deployed AgentOps service
+
+## 3.1 Project 3 Permanent Rules
+
+- Work on feature branches, not directly on `main`.
+- Every new function, method and class created by Codex must include a clear
+  Google-style docstring.
+- Every milestone must update relevant `README.md` files.
+- Every milestone must update this handoff file.
+- Every milestone must create or update its own prompt-history file under
+  `03-agentops-control-tower/docs/prompt-history/`.
+- Prompt-history files must include the full prompt, expected verification,
+  result summary, verification results and commit or PR placeholder.
+- Documentation must stay in English.
+- Do not hardcode secrets.
+- Do not add real external service credentials.
+- Do not overclaim features that are not implemented.
+- Keep verification commands explicit.
 
 ---
 
