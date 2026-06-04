@@ -14,8 +14,12 @@ This file is the primary handoff for Codex / AI coding agents working on this po
 
 Codex should read this document together with the root `AGENTS.md` before making changes.
 
-Future projects should preserve curated milestone prompts under
-`docs/prompt-history/<project-slug>/` using the same structure as Project 1.
+The portfolio also includes a technical recruiter defense package at
+`docs/TECHNICAL_RECRUITER_DEFENSE_GUIDE.md`, with per-project milestone
+defense notes under `docs/milestone-defense/`.
+
+Prompt histories are distributed by project and indexed in
+`docs/prompt-history/README.md`.
 
 Starting with Project 2 Milestone 2, every Project 2 milestone must create or
 update its own full prompt-history file under

@@ -4,6 +4,9 @@ Production-oriented portfolio demonstrating practical AI automation engineering:
 
 This repository is not a chatbot demo. It is a staged AI automation ecosystem built to automate real business workflows safely and observably.
 
+For interview preparation, see the
+[Technical Recruiter Defense Guide](docs/TECHNICAL_RECRUITER_DEFENSE_GUIDE.md).
+
 ---
 
 ## Current Status
@@ -400,6 +403,12 @@ Global handoff for Codex and AI coding agents:
 
 ```text
 docs/CODEX_HANDOFF_AI_AUTOMATION_PORTFOLIO.md
+```
+
+Prompt-history index:
+
+```text
+docs/prompt-history/README.md
 ```
 
 Project-level documentation:
