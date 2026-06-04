@@ -21,6 +21,7 @@ required_files=(
   "docs/prompt-history/milestone-03-agent-integration.md"
   "docs/prompt-history/milestone-04-runtime-config.md"
   "docs/prompt-history/milestone-05-tool-hardening.md"
+  "docs/prompt-history/milestone-06-cli-interface.md"
   "docs/runtime/MCP_RUNTIME_CONFIGURATION.md"
   "docs/runtime/CODEX_PERMISSION_PROFILES.md"
   "docs/runtime/CLAUDE_CODE_PERMISSION_PROFILES.md"
@@ -59,12 +60,14 @@ required_files=(
   "mcp-server/README.md"
   "mcp-server/pyproject.toml"
   "mcp-server/src/agent_toolkit_mcp/__init__.py"
+  "mcp-server/src/agent_toolkit_mcp/cli.py"
   "mcp-server/src/agent_toolkit_mcp/server.py"
   "mcp-server/src/agent_toolkit_mcp/tools.py"
   "mcp-server/src/agent_toolkit_mcp/models.py"
   "mcp-server/src/agent_toolkit_mcp/errors.py"
   "mcp-server/src/agent_toolkit_mcp/path_safety.py"
   "mcp-server/tests/conftest.py"
+  "mcp-server/tests/test_cli.py"
   "mcp-server/tests/test_tools.py"
 )
 

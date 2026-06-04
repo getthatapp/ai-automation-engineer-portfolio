@@ -9,7 +9,7 @@ that will support future workflow development.
 
 ## Current Status
 
-Milestone 5 is implemented.
+Milestone 6 is implemented.
 
 Implemented:
 
@@ -38,6 +38,8 @@ Implemented:
   counts, record counts and demo readiness checklists.
 - Expanded MCP edge-case tests for path safety, malformed inputs, redaction and
   deterministic ordering.
+- Local CLI entrypoint `agent-toolkit-mcp` for invoking deterministic tools
+  without writing Python.
 
 Not implemented yet:
 
@@ -46,7 +48,7 @@ Not implemented yet:
 - Deployment or CI for Project 2.
 - Destructive tools, notification integrations or frontend UI.
 - Full external MCP SDK transport integration.
-- External tool invocation from Codex or Claude Code.
+- External MCP client transport invocation from Codex or Claude Code.
 
 ## Toolkit Concepts
 
@@ -87,6 +89,21 @@ call external APIs, require secrets, delete files or mutate runtime artifacts.
 
 Milestone 5 hardens these tools with richer structured outputs and stronger
 edge-case validation while preserving the local-only read-only boundary.
+
+Milestone 6 adds a local console interface for the same deterministic tools:
+
+```bash
+cd 02-agent-toolkit-mcp/mcp-server
+uv run agent-toolkit-mcp validate-report ../../01-ai-marketing-ops-agent/reports/example.md
+uv run agent-toolkit-mcp read-run-history ../../01-ai-marketing-ops-agent/run-history/workflow-runs.jsonl --limit 5
+uv run agent-toolkit-mcp list-pending-approvals ../../01-ai-marketing-ops-agent/approval-requests/approval-requests.jsonl
+uv run agent-toolkit-mcp check-runtime-clean ../../01-ai-marketing-ops-agent
+uv run agent-toolkit-mcp generate-demo-brief ../../01-ai-marketing-ops-agent --pretty
+```
+
+The CLI prints structured JSON evidence. It returns non-zero status codes for
+invalid reports, dirty runtime artifact checks, malformed JSONL, invalid paths,
+invalid limits or incomplete demo-readiness structure.
 
 ## Agent Integration Adapters
 
@@ -210,6 +227,6 @@ scaffold helpers for reviewers and future development.
 
 ## Next Milestone
 
-Project 2 Milestone 6 should focus on packaging the local MCP runtime
-configuration or adding Claude Code hook examples without adding external
-service integrations.
+Project 2 Milestone 7 can focus on Claude Code hook examples, CI for Project 2
+or additional local runtime packaging without adding external service
+integrations.

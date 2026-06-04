@@ -54,6 +54,20 @@ Run package checks with:
 ./scripts/run_mcp_checks.sh
 ```
 
+Milestone 6 adds direct local CLI invocation for deterministic tool evidence:
+
+```bash
+cd 02-agent-toolkit-mcp/mcp-server
+uv run agent-toolkit-mcp validate-report ../../01-ai-marketing-ops-agent/reports/example.md
+uv run agent-toolkit-mcp read-run-history ../../01-ai-marketing-ops-agent/run-history/workflow-runs.jsonl --limit 5
+uv run agent-toolkit-mcp list-pending-approvals ../../01-ai-marketing-ops-agent/approval-requests/approval-requests.jsonl
+uv run agent-toolkit-mcp check-runtime-clean ../../01-ai-marketing-ops-agent
+uv run agent-toolkit-mcp generate-demo-brief ../../01-ai-marketing-ops-agent --pretty
+```
+
+The CLI is local-only and prints JSON. It is a shell interface to existing
+deterministic functions, not a deployed MCP transport or external integration.
+
 ## Project 1 Agent Review Flows
 
 Milestone 3 adds Claude Code command templates that mirror the Codex Project 1

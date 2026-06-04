@@ -73,15 +73,21 @@ Implemented scope:
 Milestone 5 does not add external MCP transport, destructive tools or Project 1
 runtime behavior changes.
 
-## Milestone 6 - Runtime Packaging or Hook Examples
+## Milestone 6 - MCP Server CLI Interface
 
-Planned scope:
+Status: complete after this milestone.
 
-- package local MCP runtime configuration examples more explicitly; or
-- add Claude Code hook examples that stay local-only and approval-aware;
-- keep deterministic tools read-only and credential-free;
-- avoid deployed external integrations unless a future milestone explicitly
-  implements and verifies them.
+Implemented scope:
+
+- add a local package console script for deterministic tool invocation;
+- expose report validation, run-history reading, pending approval listing,
+  runtime cleanliness checks and demo brief generation as subcommands;
+- print JSON evidence by default with optional pretty JSON output;
+- return meaningful local status-check exit codes;
+- keep deterministic tools read-only and credential-free.
+
+Milestone 6 does not add deployed external MCP transport, external service
+calls, destructive tools, Project 1 behavior changes or frontend UI.
 
 ## Later Milestones
 

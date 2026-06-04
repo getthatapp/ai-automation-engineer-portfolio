@@ -14,6 +14,8 @@ Codex prompts          Claude Code commands
               |
      local adapter scripts
               |
+          local CLI
+              |
        MCP tools
               |
  deterministic local operations
@@ -73,6 +75,14 @@ These scripts do not delete runtime files, mutate Project 1, call external APIs
 or require secrets. They are local adapters around the deterministic Python tool
 package, not external MCP client integrations.
 
+## Local CLI Layer
+
+Milestone 6 adds `agent-toolkit-mcp`, a package console script for invoking the
+same deterministic tool functions from a shell. The CLI prints JSON evidence
+and maps tool status fields to useful process exit codes. It does not add
+external transport, external service calls, secrets, destructive operations or
+Project 1 runtime mutations.
+
 ## Shared Skill Layer
 
 Shared skills describe repeatable engineering practices that can be used by
@@ -104,9 +114,12 @@ extraction, validation warnings, record counts, runtime artifact counts and
 structured demo readiness checks. Path helpers explicitly resolve symlinks
 before validating files, directories and child paths.
 
+Milestone 6 keeps the same tool layer and adds only a thin CLI wrapper for
+local invocation.
+
 ## Milestone Boundary
 
-Milestone 5 does not add external service integrations, notification providers,
+Milestone 6 does not add external service integrations, notification providers,
 destructive tools, cloud deployment, frontend UI or live external MCP transport
-integration. The MCP tool layer, adapter scripts and runtime examples remain
-local, read-only by default and deterministic.
+integration. The MCP tool layer, CLI, adapter scripts and runtime examples
+remain local, read-only by default and deterministic.

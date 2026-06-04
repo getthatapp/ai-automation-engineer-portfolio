@@ -36,6 +36,10 @@ child paths under the provided project directory and return relative paths for
 auditability. They do not delete generated files, mutate approval records, call
 external APIs or require credentials.
 
+Milestone 6 adds a CLI wrapper around these same tools. The wrapper prints JSON
+evidence and returns status-check exit codes, but does not add new tool
+capabilities, external calls or write operations.
+
 JSONL-reading tools sanitize secret-like keys and obvious bearer/API-token
 values before returning records to an agent.
 
@@ -55,6 +59,9 @@ do not invoke Codex, Claude Code, external MCP clients or third-party APIs.
 
 Milestone 4 runtime examples are documentation only. They do not add external
 MCP deployment, external service calls, credentials or destructive operations.
+
+Milestone 6 CLI usage remains local-only and should not be described as a real
+deployed MCP service.
 
 ## Auditability
 

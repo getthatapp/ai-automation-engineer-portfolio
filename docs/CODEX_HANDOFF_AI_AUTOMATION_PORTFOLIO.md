@@ -1,10 +1,10 @@
 # Codex Handoff: AI Automation Engineer Portfolio
 
-Last updated: 2026-06-03
+Last updated: 2026-06-04
 Repository: `ai-automation-engineer-portfolio`  
 Current project: `02-agent-toolkit-mcp`
-Current status: Project 1 complete / portfolio-ready. Project 2 Milestone 5 implemented.
-Next step: Project 2 Milestone 6 — Runtime packaging or Claude Code hook examples.
+Current status: Project 1 complete / portfolio-ready. Project 2 Milestone 6 implemented.
+Next step: Project 2 Milestone 7 — Claude Code hook examples, Project 2 CI or local runtime packaging.
 
 ---
 
@@ -76,6 +76,9 @@ Project 2 now includes:
   artifact counts and readiness checklists
 - expanded MCP tests for path safety, malformed inputs, redaction and stable
   ordering
+- local `agent-toolkit-mcp` CLI for invoking deterministic tools without
+  writing Python
+- CLI tests for JSON payloads, pretty output and status-check exit codes
 
 Current verified Project 1 status after Milestone 13:
 
@@ -131,6 +134,18 @@ mypy clean
 bash script syntax clean
 git diff --check clean
 adapter script serialized richer tool outputs
+```
+
+Current verified Project 2 status after Milestone 6:
+
+```text
+Project 2 scaffold checks passed
+32 MCP server tests passing
+ruff clean
+mypy clean
+bash script syntax clean
+git diff --check clean
+CLI smoke test generated pretty JSON demo-readiness evidence
 ```
 
 ---
@@ -640,6 +655,52 @@ git diff --check clean
 adapter script serialized richer tool outputs
 ```
 
+---
+
+## 11. Completed Project 2 Milestone: Milestone 6
+
+### Goal
+
+Make the Project 2 deterministic local MCP-style tools easy to invoke from the
+command line without writing Python.
+
+### Milestone 6 — MCP Server CLI Interface
+
+Implemented:
+
+- local `agent-toolkit-mcp` console script under the MCP server package
+- CLI subcommands for report validation, run-history reading, pending approval
+  listing, runtime cleanliness checks and demo brief generation
+- compact JSON output by default and `--pretty` indented JSON output
+- status-check exit codes for invalid reports, dirty runtime checks, malformed
+  JSONL, invalid limits, invalid paths and incomplete demo-readiness structure
+- CLI tests for JSON payloads, pretty output, missing evidence behavior and
+  exit codes
+- prompt-history entry:
+  `02-agent-toolkit-mcp/docs/prompt-history/milestone-06-cli-interface.md`
+
+Behavior:
+
+- local and deterministic only
+- read-only Project 1 artifact inspection
+- no Project 1 code or runtime behavior changes
+- no external API calls
+- no secrets required
+- no destructive tools
+- no claim of deployed external MCP transport
+
+Verification:
+
+```text
+Project 2 scaffold checks passed
+32 MCP server tests passing
+ruff clean
+mypy clean
+bash script syntax clean
+git diff --check clean
+CLI smoke test generated pretty JSON demo-readiness evidence
+```
+
 Project 2 permanent rules:
 
 - every new function, method and class created by Codex must include a clear Google-style docstring
@@ -653,7 +714,7 @@ Project 2 permanent rules:
 
 ---
 
-## 11. Demo Commands
+## 12. Demo Commands
 
 Run mock services:
 
@@ -717,11 +778,18 @@ Show Project 2 local permission profiles:
 02-agent-toolkit-mcp/scripts/show_permission_profiles.sh
 ```
 
+Run Project 2 CLI tool evidence locally:
+
+```bash
+cd 02-agent-toolkit-mcp/mcp-server
+uv run agent-toolkit-mcp generate-demo-brief ../../01-ai-marketing-ops-agent --pretty
+```
+
 ---
 
-## 12. Future Milestones
+## 13. Future Milestones
 
 ```text
-Project 2     — Milestone 6: Runtime packaging or Claude Code hook examples
+Project 2     — Milestone 7: Claude Code hook examples, Project 2 CI or local runtime packaging
 Project 3     — AgentOps Control Tower
 ```

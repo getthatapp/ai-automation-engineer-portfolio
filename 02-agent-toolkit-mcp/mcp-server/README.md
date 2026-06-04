@@ -51,6 +51,32 @@ From the repository root:
 02-agent-toolkit-mcp/scripts/run_mcp_checks.sh
 ```
 
+## CLI Usage
+
+Run local tools through the package console script:
+
+```bash
+uv run agent-toolkit-mcp validate-report ../../01-ai-marketing-ops-agent/reports/example.md
+uv run agent-toolkit-mcp read-run-history ../../01-ai-marketing-ops-agent/run-history/workflow-runs.jsonl --limit 5
+uv run agent-toolkit-mcp list-pending-approvals ../../01-ai-marketing-ops-agent/approval-requests/approval-requests.jsonl
+uv run agent-toolkit-mcp check-runtime-clean ../../01-ai-marketing-ops-agent
+uv run agent-toolkit-mcp generate-demo-brief ../../01-ai-marketing-ops-agent --pretty
+```
+
+Default output is compact JSON. `--pretty` may be passed before or after the
+subcommand to print indented JSON.
+
+Exit codes are intended for local status checks:
+
+- `validate-report`: zero only when `valid=true`.
+- `check-runtime-clean`: zero only when `clean=true`.
+- `read-run-history`: zero for readable files and handled missing-file
+  evidence; non-zero for malformed JSONL, invalid paths or invalid limits.
+- `list-pending-approvals`: zero for readable files and handled missing-file
+  evidence; non-zero for malformed JSONL or invalid paths.
+- `generate-demo-brief`: zero only when the expected demo-readiness structure
+  is present.
+
 ## Manual Registry Inspection
 
 ```bash
