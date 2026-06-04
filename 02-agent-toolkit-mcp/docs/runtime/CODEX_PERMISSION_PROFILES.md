@@ -11,6 +11,7 @@ Allowed operations:
 
 - Read repository files.
 - Run `run_checks.sh`, `demo_mcp_tools.sh` and `run_project1_tool_review.sh`.
+- Run local guardrail wrappers in read-only mode.
 - Preview Codex prompt templates.
 - Summarize deterministic tool outputs.
 
@@ -52,6 +53,10 @@ Blocked operations:
 
 Suggested Codex usage: implement scoped Project 2 milestones and run explicit
 verification before summarizing.
+
+Suggested guardrail usage: run `hooks/codex/preflight-codex-run.sh` before
+implementation and `hooks/codex/postrun-codex-audit.sh` after implementation
+when the task scope calls for extra local checks.
 
 Suggested Claude Code usage: use command templates for repeatable local tasks,
 but keep writes scoped to Project 2 unless explicitly instructed otherwise.

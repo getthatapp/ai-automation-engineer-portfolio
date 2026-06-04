@@ -122,3 +122,16 @@ Use read-only inspection for report and artifact reviews. Use workspace-write
 only for scoped Project 2 development. Treat dependency resolution, branch
 operations and broader local permissions as approval-required. Destructive
 operations remain unsupported.
+
+## Hook-Equivalent Guardrails
+
+Codex does not have the same lifecycle hook model as Claude Code. Project 2
+provides local guardrail wrappers that can be run before and after Codex work:
+
+```bash
+PROMPT_HISTORY_FILE=02-agent-toolkit-mcp/docs/prompt-history/milestone-08-dual-agent-guardrails.md \
+  ./hooks/codex/preflight-codex-run.sh
+./hooks/codex/postrun-codex-audit.sh
+```
+
+See [Codex hook equivalents](CODEX_HOOK_EQUIVALENTS.md).

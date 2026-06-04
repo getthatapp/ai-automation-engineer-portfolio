@@ -10,6 +10,8 @@ Codex prompts          Claude Code commands
         \              /
          shared skills
               |
+    hooks and guardrail examples
+              |
  runtime permission docs
               |
     CI and local quality checks
@@ -37,6 +39,10 @@ Milestone 4 adds Codex permission profile documentation for read-only
 inspection, workspace-write development, approval-required operations and
 blocked/destructive operation policy.
 
+Milestone 8 adds Codex hook-equivalent guardrail wrappers for preflight,
+post-run audit and prompt-history checks. These wrappers do not claim Codex has
+the same lifecycle hook model as Claude Code.
+
 ## Claude Code Layer
 
 Claude Code workflows use `CLAUDE.md`-oriented guidance plus command templates.
@@ -49,6 +55,17 @@ deterministic tool output rather than external services.
 
 Milestone 4 adds matching Claude Code permission profile documentation so both
 agent surfaces share the same local-only safety boundaries.
+
+Milestone 8 adds Claude Code hook-style examples for pre-tool checks,
+post-tool audit and runtime artifact guardrails.
+
+## Hooks and Guardrail Layer
+
+Hook and guardrail examples live under `hooks/`. Shared scripts provide
+read-only checks for obvious secret-like patterns, Project 1 runtime cleanliness
+and prompt-history structure. Codex scripts wrap those checks as preflight and
+post-run guardrails. Claude Code scripts demonstrate hook-style lifecycle
+checks. These are examples, not complete security enforcement.
 
 ## Runtime Permission Documentation Layer
 
@@ -129,7 +146,7 @@ local invocation.
 
 ## Milestone Boundary
 
-Milestone 7 does not add external service integrations, notification providers,
+Milestone 8 does not add external service integrations, notification providers,
 destructive tools, cloud deployment, frontend UI or live external MCP transport
-integration. The MCP tool layer, CLI, adapter scripts and runtime examples
-remain local, read-only by default and deterministic.
+integration. The MCP tool layer, CLI, hook examples, adapter scripts and
+runtime examples remain local, read-only by default and deterministic.

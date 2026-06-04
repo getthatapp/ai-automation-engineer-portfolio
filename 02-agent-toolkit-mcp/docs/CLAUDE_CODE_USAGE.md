@@ -120,3 +120,16 @@ Use read-only inspection for local artifact review. Use workspace-write for
 scoped Project 2 command, docs and non-destructive script updates. Use
 approval-required operations for dependency resolution, branch work or future
 elevated local setup. Destructive operations remain unsupported.
+
+## Hook Examples
+
+Project 2 includes Claude Code hook-style examples for local guardrails:
+
+```bash
+COMMAND='uv run pytest' ./hooks/claude-code/pre-tool-use-check.sh
+./hooks/claude-code/post-tool-use-audit.sh
+./hooks/claude-code/stop-on-dirty-runtime.sh
+```
+
+These examples are local-only and incomplete by design. See
+[Claude Code hooks](CLAUDE_CODE_HOOKS.md).

@@ -13,6 +13,9 @@ required_files=(
   "docs/ARCHITECTURE.md"
   "docs/CODEX_USAGE.md"
   "docs/CLAUDE_CODE_USAGE.md"
+  "docs/CLAUDE_CODE_HOOKS.md"
+  "docs/CODEX_HOOK_EQUIVALENTS.md"
+  "docs/HOOKS_AND_GUARDRAILS.md"
   "docs/SAFETY_MODEL.md"
   "docs/ROADMAP.md"
   "docs/prompt-history/README.md"
@@ -23,6 +26,7 @@ required_files=(
   "docs/prompt-history/milestone-05-tool-hardening.md"
   "docs/prompt-history/milestone-06-cli-interface.md"
   "docs/prompt-history/milestone-07-ci.md"
+  "docs/prompt-history/milestone-08-dual-agent-guardrails.md"
   "docs/runtime/MCP_RUNTIME_CONFIGURATION.md"
   "docs/runtime/CODEX_PERMISSION_PROFILES.md"
   "docs/runtime/CLAUDE_CODE_PERMISSION_PROFILES.md"
@@ -47,6 +51,7 @@ required_files=(
   "scripts/run_claude_command.sh"
   "scripts/run_checks.sh"
   "scripts/run_ci_locally.sh"
+  "scripts/run_guardrail_checks.sh"
   "scripts/run_mcp_checks.sh"
   "scripts/demo_mcp_tools.sh"
   "scripts/run_project1_tool_review.sh"
@@ -72,6 +77,19 @@ required_files=(
   "mcp-server/tests/test_cli.py"
   "mcp-server/tests/test_tools.py"
   "../.github/workflows/project-2-ci.yml"
+  "hooks/README.md"
+  "hooks/claude-code/README.md"
+  "hooks/claude-code/pre-tool-use-check.sh"
+  "hooks/claude-code/post-tool-use-audit.sh"
+  "hooks/claude-code/stop-on-dirty-runtime.sh"
+  "hooks/codex/README.md"
+  "hooks/codex/preflight-codex-run.sh"
+  "hooks/codex/postrun-codex-audit.sh"
+  "hooks/codex/require-prompt-history.sh"
+  "hooks/shared/README.md"
+  "hooks/shared/check-no-secrets.sh"
+  "hooks/shared/check-runtime-clean.sh"
+  "hooks/shared/check-prompt-history-updated.sh"
 )
 
 for path in "${required_files[@]}"; do
@@ -83,6 +101,7 @@ done
 
 echo "Validating shell script syntax..."
 bash -n scripts/*.sh
+find hooks -name "*.sh" -exec bash -n {} \;
 
 echo
 echo "Project 2 structure:"

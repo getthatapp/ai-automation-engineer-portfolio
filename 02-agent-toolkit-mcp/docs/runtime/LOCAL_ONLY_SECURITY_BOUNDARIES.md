@@ -14,6 +14,8 @@ Project 1 artifacts without external side effects.
 - Adapter scripts report generated files but do not remove them.
 - The `agent-toolkit-mcp` CLI wraps the same read-only tools and only prints
   JSON evidence plus process exit codes.
+- Hook and guardrail examples run local read-only checks and do not mutate
+  Project 1 or Project 2 source files.
 - Prompt and command templates are instructions, not external integrations.
 
 ## Not Allowed
@@ -24,6 +26,8 @@ Project 1 artifacts without external side effects.
 - Project 1 code or behavior changes during Project 2 runtime review.
 - Claims that external MCP transport is deployed.
 - Claims that the local CLI is a deployed MCP service.
+- Claims that guardrail examples provide complete security enforcement.
+- Claims that Codex has exact Claude Code hook lifecycle parity.
 - Claims that pending approvals are approved actions.
 
 ## Evidence Rules

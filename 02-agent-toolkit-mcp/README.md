@@ -9,7 +9,7 @@ that will support future workflow development.
 
 ## Current Status
 
-Milestone 7 is implemented.
+Milestone 8 is implemented.
 
 Implemented:
 
@@ -43,6 +43,9 @@ Implemented:
 - GitHub Actions CI for Project 2 deterministic scaffold, MCP server and CLI
   quality checks.
 - Local CI mirror script for running the same Project 2 checks before review.
+- Dual-agent hook and guardrail examples for Claude Code and Codex workflows.
+- Shared local guardrail checks for prompt history, runtime cleanliness and
+  obvious secret-like patterns.
 
 Not implemented yet:
 
@@ -51,6 +54,7 @@ Not implemented yet:
 - Destructive tools, notification integrations or frontend UI.
 - Full external MCP SDK transport integration.
 - External MCP client transport invocation from Codex or Claude Code.
+- Complete security enforcement or exact Codex/Claude Code hook parity.
 
 ## Toolkit Concepts
 
@@ -159,6 +163,7 @@ Preview the local permission profiles:
 ├── codex-prompts/
 ├── docs/
 ├── examples/
+├── hooks/
 ├── mcp-server/
 ├── scripts/
 └── skills/
@@ -212,6 +217,24 @@ shell syntax validation and read-only CLI smoke checks. These checks do not
 call external APIs, require secrets, run Docker services, deploy anything,
 publish packages or mutate Project 1 runtime artifacts.
 
+Run local guardrail checks:
+
+```bash
+./scripts/run_guardrail_checks.sh
+```
+
+From the repository root:
+
+```bash
+02-agent-toolkit-mcp/scripts/run_guardrail_checks.sh
+```
+
+Guardrail docs:
+
+- [Hooks and guardrails](docs/HOOKS_AND_GUARDRAILS.md)
+- [Codex hook equivalents](docs/CODEX_HOOK_EQUIVALENTS.md)
+- [Claude Code hooks](docs/CLAUDE_CODE_HOOKS.md)
+
 ## Prompt and Command Helpers
 
 Preview a Codex prompt template:
@@ -246,5 +269,5 @@ scaffold helpers for reviewers and future development.
 
 ## Next Milestone
 
-Project 2 Milestone 8 can focus on Claude Code hook examples or additional
+Project 2 Milestone 9 can focus on expanded integration examples or additional
 local runtime packaging without adding external service integrations.
