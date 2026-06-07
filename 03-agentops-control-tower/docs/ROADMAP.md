@@ -24,16 +24,17 @@ AgentOps timeline for runs, approvals, report summaries and guardrail outcomes.
 
 ## Milestone 4 - Local Report Export or Dashboard-Ready CLI
 
-Status: **Next**
+Status: **Complete**
 
 Expose the local AgentOps summary and timeline through a reviewer-friendly CLI
-or static export format without adding a frontend UI, database or service.
+and static Markdown export format without adding a frontend UI, database or
+service.
 
 ## Future Milestones
 
 - Retry, failure and approval state summaries.
 - Token and cost metadata summaries when available.
-- Local dashboard or report surface.
+- Local dashboard surface if explicitly scoped.
 - CI checks for Project 3.
 - Final recruiter demo package and case study.
 

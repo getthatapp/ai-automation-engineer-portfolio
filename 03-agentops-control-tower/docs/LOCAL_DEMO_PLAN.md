@@ -2,7 +2,8 @@
 
 This document outlines how Project 3 can be demonstrated locally as it matures.
 
-Milestone 3 adds a local summary and timeline demo using temporary sample files.
+Milestone 4 adds a local CLI demo using temporary sample files and deterministic
+report export.
 
 ## Scaffold Walkthrough
 
@@ -16,8 +17,11 @@ Milestone 3 adds a local summary and timeline demo using temporary sample files.
 5. Run `03-agentops-control-tower/scripts/run_checks.sh`.
 6. Run `03-agentops-control-tower/scripts/run_ingestion_demo.sh`.
 7. Run `03-agentops-control-tower/scripts/run_summary_demo.sh`.
-8. Explain that the demos create temporary local evidence, parse it into typed
+8. Run `03-agentops-control-tower/scripts/run_cli_demo.sh`.
+9. Explain that the demos create temporary local evidence, parse it into typed
    records and print deterministic ingestion and summary counts.
+10. Show that the CLI can print JSON for `summary` and `timeline`, then export
+    a deterministic Markdown report to a temporary local file.
 
 ## Future Demo Direction
 
@@ -29,14 +33,22 @@ Current ingestion demo shows:
 - parsing guardrail output text
 - returning one combined local ingestion result
 
+Current CLI demo shows:
+
+- `agentops-control-tower summary --pretty`
+- `agentops-control-tower timeline --pretty`
+- `agentops-control-tower export-report --output PATH`
+- overwrite protection by implementation contract, with `--overwrite` available
+  for explicit replacement
+
 Future milestones should show:
 
 - retry and failure summaries
 - token or cost metadata summaries when available
 - Project 2 tool evidence summaries
-- a local audit view without external services
+- a local dashboard surface only if explicitly scoped
 
 ## Current Limitations
 
 No dashboard, UI, database, external service, scheduler or deployed AgentOps
-control plane exists in Milestone 3.
+control plane exists in Milestone 4.

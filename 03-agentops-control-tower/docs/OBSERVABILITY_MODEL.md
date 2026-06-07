@@ -56,6 +56,26 @@ Overall health status is derived deterministically:
 Recommended actions are deterministic local follow-ups. They are not
 LLM-generated recommendations.
 
+## Implemented Export Views
+
+Milestone 4 exposes the derived views through a local CLI:
+
+- `summary` prints `AgentOpsSummary`-compatible JSON.
+- `timeline` prints `AgentOpsTimeline`-compatible JSON.
+- `export-report` renders a deterministic Markdown report over the combined
+  local control tower view.
+
+The Markdown report includes local source paths, overall health, summary
+sections, ingestion warnings and errors, timeline events, deterministic
+recommended actions and clear limitations or missing-data notes.
+
+CLI exit behavior is tied to deterministic ingestion results:
+
+- ingestion errors return non-zero
+- malformed JSON or JSONL returns non-zero
+- report write conflicts return non-zero unless `--overwrite` is used
+- warnings alone do not return non-zero
+
 ## Signal Types
 
 - Workflow runs: run identifiers, timestamps, status and produced artifacts.
@@ -73,8 +93,8 @@ LLM-generated recommendations.
 ## Current Non-Goals
 
 Project 3 does not yet implement storage, frontend dashboard views, alerting, a
-scheduler or a deployed AgentOps platform. Those will be introduced only if
-future milestones explicitly add them.
+scheduler, external integrations or a deployed AgentOps platform. Those will be
+introduced only if future milestones explicitly add them.
 
 ## Auditability Goals
 

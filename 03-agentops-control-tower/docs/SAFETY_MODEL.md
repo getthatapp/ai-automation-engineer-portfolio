@@ -16,6 +16,9 @@ business actions or bypass approval flows.
 - Malformed source files are reported as typed ingestion errors.
 - Missing optional source files are reported as warnings.
 - Secret-like keys and inline credential values are conservatively redacted.
+- CLI summary and timeline commands print deterministic local JSON only.
+- CLI report export writes only to an explicit `--output` path and refuses to
+  overwrite existing files unless `--overwrite` is passed.
 
 ## Planned Safety Principles
 
@@ -32,5 +35,6 @@ The scaffold is not a complete security system, policy engine or deployed
 AgentOps platform. Future guardrails should be documented as local controls
 unless a real external enforcement layer is implemented.
 
-The ingestion layer does not call LLMs, infer missing metrics, send
-notifications, create tasks, delete runtime artifacts or mutate source files.
+The ingestion, CLI and reporting layers do not call LLMs, infer missing metrics,
+send notifications, create tasks, delete runtime artifacts or mutate source
+files.

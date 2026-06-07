@@ -1,10 +1,10 @@
 # Codex Handoff: AI Automation Engineer Portfolio
 
-Last updated: 2026-06-04
+Last updated: 2026-06-07
 Repository: `ai-automation-engineer-portfolio`  
 Current project: `03-agentops-control-tower`
-Current status: Project 1 complete / portfolio-ready. Project 2 complete / portfolio-ready. Project 3 local summaries and timeline ready.
-Next step: Project 3 Milestone 4 — local report export or dashboard-ready CLI.
+Current status: Project 1 complete / portfolio-ready. Project 2 complete / portfolio-ready. Project 3 local CLI and deterministic report export ready.
+Next step: Project 3 Milestone 5 — deeper local AgentOps analysis.
 
 ---
 
@@ -112,6 +112,10 @@ Project 3 now includes:
 - deterministic local AgentOps summary models and builders
 - deterministic local AgentOps timeline models and builders
 - combined local control tower view with ingestion, summary and timeline
+- local `agentops-control-tower` CLI for summary, timeline and Markdown report
+  export
+- deterministic Markdown report renderer with overwrite protection for file
+  output
 - prompt history under `03-agentops-control-tower/docs/prompt-history/`
 - example documentation for future Project 1 run-history evidence
 - example documentation for future Project 2 tool and guardrail evidence
@@ -121,6 +125,8 @@ Project 3 now includes:
   `03-agentops-control-tower/scripts/run_ingestion_demo.sh`
 - local summary demo script under
   `03-agentops-control-tower/scripts/run_summary_demo.sh`
+- local CLI demo script under
+  `03-agentops-control-tower/scripts/run_cli_demo.sh`
 
 Project 3 purpose:
 
@@ -131,9 +137,10 @@ AgentOps Control Tower is a local observability and governance layer for AI auto
 Project 3 will focus on workflow run history, approval states, failure records,
 retry and cadence metadata, notification status, LLM and token usage metadata
 when available, guardrail outcomes and local auditability. It is local-first and
-deterministic. It now implements local ingestion models, parsers, summaries and
-timeline events, but does not yet implement dashboards, UI, database
-persistence, schedulers or external AgentOps integrations.
+deterministic. It now implements local ingestion models, parsers, summaries,
+timeline events, a reviewer-friendly CLI and deterministic Markdown report
+export, but does not yet implement dashboards, UI, database persistence,
+schedulers or external AgentOps integrations.
 
 Current verified Project 1 status after Milestone 13:
 
@@ -279,6 +286,20 @@ local ingestion demo passed
 local summary demo passed
 ```
 
+Current verified Project 3 status after Milestone 4:
+
+```text
+Project 3 CLI/report export checks passed
+48 tests passing
+ruff clean
+mypy clean
+bash script syntax clean
+git diff --check clean
+local ingestion demo passed
+local summary demo passed
+local CLI demo passed
+```
+
 ---
 
 ## 3. Current Pipeline
@@ -313,7 +334,8 @@ Project 3 relationship to earlier projects:
 
 - Project 1 produces workflow artifacts.
 - Project 2 provides local tools and guardrails.
-- Project 3 will aggregate and observe these signals.
+- Project 3 aggregates and observes these signals through local ingestion,
+  summary, timeline, CLI and Markdown report export views.
 
 Project 3 does not yet have:
 
@@ -1127,5 +1149,5 @@ uv run agent-toolkit-mcp generate-demo-brief ../../01-ai-marketing-ops-agent --p
 Project 1     — Portfolio-ready / case-study-ready
 Project 2     — Portfolio-ready / case-study-ready
 Project 3     — AgentOps Control Tower
-Next          — Project 3 Milestone 4: local report export or dashboard-ready CLI
+Next          — Project 3 Milestone 5: deeper local AgentOps analysis
 ```

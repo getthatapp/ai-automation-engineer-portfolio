@@ -392,3 +392,4 @@ class AgentOpsControlTowerView(BaseModel):
     ingestion_result: IngestionResult
     summary: AgentOpsSummary
     timeline: AgentOpsTimeline
+    input_paths: dict[IngestionSourceType, Path] = Field(default_factory=dict)

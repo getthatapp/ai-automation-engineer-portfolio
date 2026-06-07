@@ -16,6 +16,7 @@ from agentops_control_tower.models import (
     GuardrailStatus,
     GuardrailSummary,
     IngestionResult,
+    IngestionSourceType,
     ReportHealthSummary,
     ReportSummaryRecord,
     SummarySeverity,
@@ -113,7 +114,50 @@ def build_agentops_control_tower_view(
         ingestion_result=resolved_ingestion,
         summary=build_agentops_summary(resolved_ingestion),
         timeline=build_agentops_timeline(resolved_ingestion),
+        input_paths=_input_paths(
+            run_history_path=run_history_path,
+            approval_requests_path=approval_requests_path,
+            markdown_report_path=markdown_report_path,
+            tool_evidence_json_path=tool_evidence_json_path,
+            guardrail_output_text_path=guardrail_output_text_path,
+        )
+        if ingestion_result is None
+        else {},
     )
+
+
+def _input_paths(
+    *,
+    run_history_path: str | Path | None,
+    approval_requests_path: str | Path | None,
+    markdown_report_path: str | Path | None,
+    tool_evidence_json_path: str | Path | None,
+    guardrail_output_text_path: str | Path | None,
+) -> dict[IngestionSourceType, Path]:
+    """Build a stable source path map for a generated control tower view.
+
+    Args:
+        run_history_path: Optional Project 1 run-history JSONL path.
+        approval_requests_path: Optional Project 1 approval requests JSONL path.
+        markdown_report_path: Optional Project 1 Markdown report path.
+        tool_evidence_json_path: Optional saved Project 2 CLI JSON evidence path.
+        guardrail_output_text_path: Optional saved Project 2 guardrail output path.
+
+    Returns:
+        Mapping of source type to provided local path.
+    """
+    paths: dict[IngestionSourceType, Path] = {}
+    if run_history_path is not None:
+        paths[IngestionSourceType.RUN_HISTORY] = Path(run_history_path)
+    if approval_requests_path is not None:
+        paths[IngestionSourceType.APPROVAL_REQUESTS] = Path(approval_requests_path)
+    if markdown_report_path is not None:
+        paths[IngestionSourceType.MARKDOWN_REPORT] = Path(markdown_report_path)
+    if tool_evidence_json_path is not None:
+        paths[IngestionSourceType.TOOL_EVIDENCE] = Path(tool_evidence_json_path)
+    if guardrail_output_text_path is not None:
+        paths[IngestionSourceType.GUARDRAIL_OUTPUT] = Path(guardrail_output_text_path)
+    return paths
 
 
 def _workflow_summary(records: tuple[WorkflowRunRecord, ...]) -> WorkflowRunSummary:
