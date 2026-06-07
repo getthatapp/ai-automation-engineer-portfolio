@@ -13,12 +13,14 @@ from agentops_control_tower.models import (
     IngestionResult,
     IngestionSourceType,
     ReportSummaryRecord,
+    ToolEvidenceRecord,
     WorkflowRunRecord,
     WorkflowStatus,
 )
 from agentops_control_tower.reporting import render_agentops_markdown_report
 from agentops_control_tower.summaries import build_agentops_control_tower_view
 
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 REFERENCE_TIME = datetime(2026, 5, 28, 12, 0, tzinfo=UTC)
 
 
@@ -116,3 +118,58 @@ def test_report_uses_source_timestamp_without_wall_clock() -> None:
     report = render_agentops_markdown_report(view)
 
     assert "Generated timestamp: 2026-05-28T12:00:00+00:00" in report
+
+
+def test_report_uses_project_relative_source_paths() -> None:
+    """Render project-local source paths relative to the Project 3 root."""
+    report_path = PROJECT_ROOT / "exports/reviewer-demo/input/daily-marketing-report-review.md"
+    tool_path = PROJECT_ROOT / "exports/reviewer-demo/input/tool-evidence-not-ready.json"
+    guardrail_path = PROJECT_ROOT / "exports/reviewer-demo/input/guardrail-blocked.txt"
+    view = build_agentops_control_tower_view(
+        ingestion_result=IngestionResult(
+            source_type=IngestionSourceType.COMBINED,
+            records=(
+                ReportSummaryRecord(path=report_path, generated_timestamp=REFERENCE_TIME),
+                ToolEvidenceRecord(path=tool_path, tool_name="generate_demo_brief", ready=False),
+                GuardrailEvidenceRecord(
+                    path=guardrail_path,
+                    status=GuardrailStatus.BLOCKED,
+                    matched_signals=("blocked",),
+                    line_count=1,
+                ),
+            ),
+        )
+    ).model_copy(
+        update={
+            "input_paths": {
+                IngestionSourceType.RUN_HISTORY: PROJECT_ROOT
+                / "exports/reviewer-demo/input/workflow-runs.jsonl",
+                IngestionSourceType.APPROVAL_REQUESTS: PROJECT_ROOT
+                / "exports/reviewer-demo/input/approval-requests.jsonl",
+            }
+        }
+    )
+
+    report = render_agentops_markdown_report(view)
+
+    assert str(PROJECT_ROOT) not in report
+    assert "`exports/reviewer-demo/input/workflow-runs.jsonl`" in report
+    assert "`exports/reviewer-demo/input/approval-requests.jsonl`" in report
+    assert "`exports/reviewer-demo/input/daily-marketing-report-review.md`" in report
+    assert "`exports/reviewer-demo/input/tool-evidence-not-ready.json`" in report
+    assert "`exports/reviewer-demo/input/guardrail-blocked.txt`" in report
+
+
+def test_report_keeps_outside_project_paths_readable() -> None:
+    """Render paths outside the project root without raising errors."""
+    outside_path = Path("/tmp/outside-agentops-report.md")
+    view = build_agentops_control_tower_view(
+        ingestion_result=IngestionResult(
+            source_type=IngestionSourceType.COMBINED,
+            records=(ReportSummaryRecord(path=outside_path),),
+        )
+    )
+
+    report = render_agentops_markdown_report(view)
+
+    assert "`/tmp/outside-agentops-report.md`" in report

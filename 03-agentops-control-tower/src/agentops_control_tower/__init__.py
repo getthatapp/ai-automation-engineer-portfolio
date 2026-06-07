@@ -1,5 +1,6 @@
 """Local AgentOps ingestion, summary and timeline APIs."""
 
+from agentops_control_tower.html_reporting import render_agentops_html_report
 from agentops_control_tower.ingestion import ingest_local_agentops_sources
 from agentops_control_tower.parsers import (
     parse_approval_requests_jsonl,
@@ -25,5 +26,6 @@ __all__ = [
     "parse_markdown_report",
     "parse_run_history_jsonl",
     "parse_tool_evidence_json",
+    "render_agentops_html_report",
     "render_agentops_markdown_report",
 ]

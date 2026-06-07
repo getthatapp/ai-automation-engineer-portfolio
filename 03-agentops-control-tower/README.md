@@ -1,6 +1,6 @@
 # AgentOps Control Tower
 
-Status: **Local CLI and deterministic report export ready**
+Status: **Static HTML and Markdown report export ready**
 
 AgentOps Control Tower is a local observability and governance layer for AI
 automation workflows.
@@ -30,8 +30,8 @@ Project 3 will focus on:
 
 ## Current Milestone
 
-Milestone 4 adds a reviewer-friendly local CLI and deterministic Markdown
-report export.
+Milestone 5 adds deterministic static HTML report export for a local visual
+report artifact.
 
 Project 3 can now parse local evidence into typed records:
 
@@ -49,6 +49,7 @@ It can also convert ingested records into:
 - deterministic local follow-up actions
 - compact or pretty JSON for summaries and timelines
 - deterministic Markdown reports for stdout or local files
+- deterministic static HTML reports for stdout or local files
 
 Missing optional files are reported as warnings. Malformed files are reported as
 explicit ingestion errors. Parsed payloads are sanitized with conservative
@@ -63,6 +64,7 @@ uv run agentops-control-tower --help
 uv run agentops-control-tower summary --pretty
 uv run agentops-control-tower timeline --pretty
 uv run agentops-control-tower export-report
+uv run agentops-control-tower export-report --format html --output agentops-report.html
 ```
 
 All commands accept optional local source paths:
@@ -84,8 +86,13 @@ Commands:
 - `timeline`: prints `AgentOpsTimeline`-compatible JSON. Compact JSON is the
   default; `--pretty` prints indented JSON.
 - `export-report`: prints deterministic Markdown to stdout by default.
-  `--output PATH` writes the report locally and creates parent directories.
-  Existing files are not overwritten unless `--overwrite` is passed.
+  `--format html` renders a self-contained static HTML report. `--output PATH`
+  writes the report locally and creates parent directories. Existing files are
+  not overwritten unless `--overwrite` is passed.
+
+The HTML report is a local file artifact, not a hosted dashboard. It does not
+require a web server and does not load external CSS, JavaScript, fonts, images
+or CDN assets.
 
 Exit behavior:
 
@@ -98,8 +105,10 @@ Exit behavior:
 Project 3 still does not implement:
 
 - database persistence
-- dashboards
+- hosted dashboards
+- web server
 - frontend UI
+- frontend framework
 - external integrations
 - notification providers
 - deployed AgentOps services
@@ -110,9 +119,10 @@ Project 3 is planned as local-first and deterministic. The initial scaffold does
 not require secrets, call external APIs, mutate Project 1 artifacts or mutate
 Project 2 artifacts.
 
-The Milestone 4 CLI and report export layer remains local-only and read-only
+The Milestone 5 CLI and report export layer remains local-only and read-only
 except when writing an explicitly requested local report file. It does not call
-LLMs, send notifications, create tasks or modify source artifacts.
+LLMs, send notifications, create tasks, load external frontend assets or modify
+source artifacts.
 
 ## Repository Structure
 
@@ -155,7 +165,30 @@ Run the local CLI demo:
 03-agentops-control-tower/scripts/run_cli_demo.sh
 ```
 
+Run the local static HTML report demo:
+
+```bash
+03-agentops-control-tower/scripts/run_html_report_demo.sh
+```
+
+Run the reviewer-friendly end-to-end demo:
+
+```bash
+cd 03-agentops-control-tower
+./scripts/run_reviewer_demo.sh
+```
+
+The demo scripts generate deterministic temporary evidence with multiple
+workflow states, approval states, report states, tool evidence states and
+guardrail outcomes. They do not require Project 1 runtime artifacts and do not
+mutate Project 1 or Project 2 files. The reviewer demo writes stable generated
+artifacts under `exports/reviewer-demo/`, which is ignored by git:
+
+```bash
+open exports/reviewer-demo/agentops-report.html
+```
+
 ## Next Milestone
 
-Project 3 Milestone 5: deepen local AgentOps analysis, such as retry, failure,
+Project 3 Milestone 6: deepen local AgentOps analysis, such as retry, failure,
 approval-state, token or cost summaries when those signals are available.

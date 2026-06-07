@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from pathlib import Path
 
+from agentops_control_tower.display_paths import format_display_path
 from agentops_control_tower.models import (
     AgentOpsControlTowerView,
     AgentOpsTimelineEvent,
@@ -124,24 +125,24 @@ def _source_path_lines(view: AgentOpsControlTowerView) -> list[str]:
     """
     paths: set[tuple[str, str]] = set()
     for source_type, path in view.input_paths.items():
-        paths.add((source_type.value, str(path)))
+        paths.add((source_type.value, format_display_path(path)))
 
     for record in view.ingestion_result.records:
         if isinstance(record, WorkflowRunRecord) and record.report_path is not None:
-            paths.add(("workflow_report_reference", str(record.report_path)))
+            paths.add(("workflow_report_reference", format_display_path(record.report_path)))
         elif isinstance(record, ReportSummaryRecord):
-            paths.add(("markdown_report", str(record.path)))
+            paths.add(("markdown_report", format_display_path(record.path)))
         elif isinstance(record, ToolEvidenceRecord):
-            paths.add(("tool_evidence", str(record.path)))
+            paths.add(("tool_evidence", format_display_path(record.path)))
         elif isinstance(record, GuardrailEvidenceRecord):
-            paths.add(("guardrail_output", str(record.path)))
+            paths.add(("guardrail_output", format_display_path(record.path)))
 
     for warning in view.ingestion_result.warnings:
         if warning.path is not None:
-            paths.add((warning.source_type.value, str(warning.path)))
+            paths.add((warning.source_type.value, format_display_path(warning.path)))
     for error in view.ingestion_result.errors:
         if error.path is not None:
-            paths.add((error.source_type.value, str(error.path)))
+            paths.add((error.source_type.value, format_display_path(error.path)))
 
     if not paths:
         return ["- No local source paths were provided."]
@@ -221,7 +222,7 @@ def _timeline_lines(events: tuple[AgentOpsTimelineEvent, ...]) -> list[str]:
     return [
         (
             f"- `{_datetime_text(event.timestamp)}` `{event.event_type.value}` "
-            f"`{event.severity.value}` {event.title} (`{event.identifier}`)"
+            f"`{event.severity.value}` {event.title} (`{_event_identifier(event)}`)"
         )
         for event in events
     ]
@@ -283,6 +284,25 @@ def _datetime_text(value: datetime | None) -> str:
     return value.isoformat()
 
 
+def _event_identifier(event: AgentOpsTimelineEvent) -> str:
+    """Return display text for a timeline event identifier.
+
+    Args:
+        event: Timeline event.
+
+    Returns:
+        Project-relative identifier for local file-backed events, otherwise the
+        original identifier.
+    """
+    if event.source_type.value in {
+        "markdown_report",
+        "tool_evidence",
+        "guardrail_output",
+    }:
+        return format_display_path(event.identifier)
+    return event.identifier
+
+
 def _path_text(path: Path | None) -> str:
     """Return stable text for an optional path.
 
@@ -292,4 +312,4 @@ def _path_text(path: Path | None) -> str:
     Returns:
         Path text or `Unavailable`.
     """
-    return "Unavailable" if path is None else str(path)
+    return "Unavailable" if path is None else format_display_path(path)

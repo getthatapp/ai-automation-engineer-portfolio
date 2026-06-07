@@ -30,11 +30,20 @@ Expose the local AgentOps summary and timeline through a reviewer-friendly CLI
 and static Markdown export format without adding a frontend UI, database or
 service.
 
+## Milestone 5 - Static HTML AgentOps Report
+
+Status: **Complete**
+
+Add deterministic static HTML report export as a local file artifact. The HTML
+report can be opened directly in a browser and does not require a web server,
+frontend framework, JavaScript or external assets.
+
 ## Future Milestones
 
 - Retry, failure and approval state summaries.
 - Token and cost metadata summaries when available.
-- Local dashboard surface if explicitly scoped.
+- Local dashboard surface only if explicitly scoped as a future hosted or
+  service-backed feature.
 - CI checks for Project 3.
 - Final recruiter demo package and case study.
 

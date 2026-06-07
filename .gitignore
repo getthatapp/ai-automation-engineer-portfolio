@@ -44,6 +44,7 @@ logs/
 reports/*.md
 reports/*.html
 reports/*.json
+03-agentops-control-tower/exports/
 **/run-history/*.jsonl
 **/run-history/*.json
 !**/run-history/.gitkeep

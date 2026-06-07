@@ -36,11 +36,12 @@ It will eventually aggregate local workflow signals from Project 1 and Project 2
 
 ## Current Scope
 
-Milestone 4 adds a local reviewer-friendly CLI and deterministic Markdown
-report export over the existing ingestion, summary and timeline views.
+Milestone 5 adds deterministic static HTML report export over the existing
+ingestion, summary, timeline and CLI report views.
 
-Do not implement dashboards, UI, database persistence, schedulers, external
-integrations or notification providers in this milestone.
+Do not implement a web server, frontend framework, hosted dashboard, database
+persistence, schedulers, external integrations or notification providers in this
+milestone.
 
 ## Safety Boundaries
 

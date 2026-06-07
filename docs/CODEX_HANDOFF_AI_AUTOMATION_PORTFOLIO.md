@@ -3,8 +3,8 @@
 Last updated: 2026-06-07
 Repository: `ai-automation-engineer-portfolio`  
 Current project: `03-agentops-control-tower`
-Current status: Project 1 complete / portfolio-ready. Project 2 complete / portfolio-ready. Project 3 local CLI and deterministic report export ready.
-Next step: Project 3 Milestone 5 — deeper local AgentOps analysis.
+Current status: Project 1 complete / portfolio-ready. Project 2 complete / portfolio-ready. Project 3 static HTML and CLI report export ready.
+Next step: Project 3 Milestone 6 — deeper local AgentOps analysis.
 
 ---
 
@@ -112,10 +112,10 @@ Project 3 now includes:
 - deterministic local AgentOps summary models and builders
 - deterministic local AgentOps timeline models and builders
 - combined local control tower view with ingestion, summary and timeline
-- local `agentops-control-tower` CLI for summary, timeline and Markdown report
-  export
-- deterministic Markdown report renderer with overwrite protection for file
-  output
+- local `agentops-control-tower` CLI for summary, timeline and Markdown/HTML
+  report export
+- deterministic Markdown and static HTML report renderers with overwrite
+  protection for file output
 - prompt history under `03-agentops-control-tower/docs/prompt-history/`
 - example documentation for future Project 1 run-history evidence
 - example documentation for future Project 2 tool and guardrail evidence
@@ -127,6 +127,12 @@ Project 3 now includes:
   `03-agentops-control-tower/scripts/run_summary_demo.sh`
 - local CLI demo script under
   `03-agentops-control-tower/scripts/run_cli_demo.sh`
+- local static HTML report demo script under
+  `03-agentops-control-tower/scripts/run_html_report_demo.sh`
+- shared deterministic demo dataset helper under
+  `03-agentops-control-tower/scripts/demo_dataset.sh`
+- reviewer demo script that writes generated JSON, Markdown and static HTML
+  artifacts under `03-agentops-control-tower/exports/reviewer-demo/`
 
 Project 3 purpose:
 
@@ -138,9 +144,10 @@ Project 3 will focus on workflow run history, approval states, failure records,
 retry and cadence metadata, notification status, LLM and token usage metadata
 when available, guardrail outcomes and local auditability. It is local-first and
 deterministic. It now implements local ingestion models, parsers, summaries,
-timeline events, a reviewer-friendly CLI and deterministic Markdown report
-export, but does not yet implement dashboards, UI, database persistence,
-schedulers or external AgentOps integrations.
+timeline events, a reviewer-friendly CLI and deterministic Markdown/static HTML
+report export, but does not yet implement hosted dashboards, a web server,
+frontend framework, database persistence, schedulers or external AgentOps
+integrations.
 
 Current verified Project 1 status after Milestone 13:
 
@@ -300,6 +307,21 @@ local summary demo passed
 local CLI demo passed
 ```
 
+Current verified Project 3 status after Milestone 5:
+
+```text
+Project 3 static HTML report checks passed
+58 tests passing
+ruff clean
+mypy clean
+bash script syntax clean
+git diff --check clean
+local ingestion demo passed
+local summary demo passed
+local CLI demo passed
+local HTML report demo passed
+```
+
 ---
 
 ## 3. Current Pipeline
@@ -335,12 +357,13 @@ Project 3 relationship to earlier projects:
 - Project 1 produces workflow artifacts.
 - Project 2 provides local tools and guardrails.
 - Project 3 aggregates and observes these signals through local ingestion,
-  summary, timeline, CLI and Markdown report export views.
+  summary, timeline, CLI and Markdown/static HTML report export views.
 
 Project 3 does not yet have:
 
-- dashboards
-- frontend UI
+- hosted dashboards
+- web server
+- frontend framework
 - database persistence
 - scheduler
 - external integrations
@@ -1149,5 +1172,5 @@ uv run agent-toolkit-mcp generate-demo-brief ../../01-ai-marketing-ops-agent --p
 Project 1     — Portfolio-ready / case-study-ready
 Project 2     — Portfolio-ready / case-study-ready
 Project 3     — AgentOps Control Tower
-Next          — Project 3 Milestone 5: deeper local AgentOps analysis
+Next          — Project 3 Milestone 6: deeper local AgentOps analysis
 ```

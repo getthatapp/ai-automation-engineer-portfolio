@@ -54,6 +54,11 @@ These options map directly to the same local source parameters accepted by
 `ingest_local_agentops_sources`. Project 3 reads saved local evidence only; it
 does not invoke Project 1 workflows or Project 2 tools during CLI ingestion.
 
+`agentops-control-tower export-report` can render the same ingested local
+sources as Markdown or static HTML with `--format markdown|html`. The format
+option changes only the local export representation, not the source ingestion
+behavior.
+
 ## Source Boundaries
 
 Project 3 should read local files and command outputs only unless a future

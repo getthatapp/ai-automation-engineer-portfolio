@@ -4,100 +4,56 @@ set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${PROJECT_ROOT}"
 
-echo "Running local AgentOps summary demo with temporary sample files..."
+# shellcheck source=scripts/demo_dataset.sh
+source "${PROJECT_ROOT}/scripts/demo_dataset.sh"
 
-uv run python - <<'PY'
-import json
-import tempfile
+echo "Running local AgentOps summary demo with richer temporary sample files..."
+
+temp_dir="$(mktemp -d "${TMPDIR:-/tmp}/agentops-control-tower-summary-demo.XXXXXX")"
+trap 'rm -rf "${temp_dir}"' EXIT
+
+create_agentops_demo_dataset "${temp_dir}"
+
+uv run python - \
+  "${AGENTOPS_DEMO_RUN_HISTORY}" \
+  "${AGENTOPS_DEMO_APPROVALS}" \
+  "${AGENTOPS_DEMO_REPORT_REVIEW}" \
+  "${AGENTOPS_DEMO_TOOL_NOT_READY}" \
+  "${AGENTOPS_DEMO_GUARDRAIL_BLOCKED}" <<'PY'
+import sys
 from pathlib import Path
 
 from agentops_control_tower import build_agentops_control_tower_view
 
-with tempfile.TemporaryDirectory(prefix="agentops-control-tower-summary-demo-") as temp_dir:
-    root = Path(temp_dir)
-    run_history = root / "workflow-runs.jsonl"
-    approvals = root / "approval-requests.jsonl"
-    report = root / "daily-marketing-report-demo.md"
-    guardrail = root / "guardrail.txt"
+run_history, approvals, report, tool_evidence, guardrail = map(Path, sys.argv[1:])
 
-    run_history.write_text(
-        json.dumps(
-            {
-                "run_id": "daily-marketing-report-demo",
-                "workflow_name": "daily_marketing_report",
-                "status": "succeeded",
-                "started_at": "2026-05-28T12:00:00+00:00",
-                "finished_at": "2026-05-28T12:00:03+00:00",
-                "duration_seconds": 3.0,
-                "snapshot_count": 2,
-                "finding_count": 1,
-                "critical_finding_count": 0,
-                "human_review_required": False,
-                "task_error_count": 0,
-            },
-            sort_keys=True,
-        )
-        + "\n",
-        encoding="utf-8",
-    )
-    approvals.write_text(
-        json.dumps(
-            {
-                "approval_id": "approval-demo",
-                "run_id": "daily-marketing-report-demo",
-                "status": "pending",
-                "source": "deterministic_finding",
-                "source_reference": "cmp-demo:negative_roi",
-                "risk_level": "high",
-                "title": "Review campaign",
-                "rationale": "Demo approval request.",
-                "created_at": "2026-05-28T12:00:00+00:00",
-            },
-            sort_keys=True,
-        )
-        + "\n",
-        encoding="utf-8",
-    )
-    report.write_text(
-        """# Daily Marketing Operations Report
+view = build_agentops_control_tower_view(
+    run_history_path=run_history,
+    approval_requests_path=approvals,
+    markdown_report_path=report,
+    tool_evidence_json_path=tool_evidence,
+    guardrail_output_text_path=guardrail,
+)
+summary = view.summary
 
-Generated timestamp: 2026-05-28T12:00:00+00:00
-
-## Executive Summary
-- Campaigns processed: 2.
-- Critical findings: 0.
-- Warning findings: 1.
-- Campaigns requiring human review: 1.
-
-## Campaign Health Overview
-## Critical Anomalies
-## Warning Anomalies
-## Data Quality Issues
-## Human Review Required
-## Campaign Snapshot Table
-## Deterministic Recommended Actions
-## Limitations
-""",
-        encoding="utf-8",
-    )
-    guardrail.write_text("guardrail checks passed clean\n", encoding="utf-8")
-
-    view = build_agentops_control_tower_view(
-        run_history_path=run_history,
-        approval_requests_path=approvals,
-        markdown_report_path=report,
-        guardrail_output_text_path=guardrail,
-    )
-    summary = view.summary
-
-    print(f"overall_status={summary.overall_status.value}")
-    print(f"workflow_runs={summary.workflow_runs.total}")
-    print(f"approvals={summary.approvals.total}")
-    print(f"reports={summary.reports.total}")
-    print(f"tools={summary.tools.total}")
-    print(f"guardrails={summary.guardrails.total}")
-    print(f"timeline_events={view.timeline.event_count}")
-    print("recommended_actions:")
-    for action in summary.recommended_actions:
-        print(f"- {action}")
+print(f"overall_status={summary.overall_status.value}")
+print(f"workflow_runs={summary.workflow_runs.total}")
+print(f"workflow_failed={summary.workflow_runs.failed_count}")
+print(f"workflow_human_review_required={summary.workflow_runs.human_review_required_count}")
+print(f"approvals={summary.approvals.total}")
+print(f"approvals_pending={summary.approvals.pending_count}")
+print(f"reports={summary.reports.total}")
+print(f"reports_requiring_human_review={summary.reports.requiring_human_review_count}")
+print(f"tools={summary.tools.total}")
+print(f"tools_ready={summary.tools.ready_count}")
+print(f"tools_not_ready={summary.tools.not_ready_count}")
+print(f"guardrails={summary.guardrails.total}")
+print(f"guardrails_failed_or_blocked={summary.guardrails.failed_or_blocked_count}")
+print(f"timeline_events={view.timeline.event_count}")
+print("recommended_actions:")
+for action in summary.recommended_actions:
+    print(f"- {action}")
 PY
+
+echo "comparison_report_available=$(basename "${AGENTOPS_DEMO_REPORT_HEALTHY}")"
+echo "note=CLI accepts one Markdown report path per command; richer reviewer demo uses the review-focused report."
