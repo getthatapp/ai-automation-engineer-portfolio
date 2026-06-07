@@ -24,7 +24,7 @@ Project 3 local ingestion models and parsers
         ↓
 deterministic summaries and timeline generation
         ↓
-local CLI JSON output and deterministic Markdown report export
+local CLI JSON output and deterministic Markdown/HTML report export
 ```
 
 ## Current Implementation
@@ -34,6 +34,8 @@ for selected Project 1 and Project 2 artifacts. Milestone 3 adds deterministic
 summary and timeline generation over typed `IngestionResult` objects.
 Milestone 4 exposes those views through a local command-line interface and a
 deterministic Markdown report renderer.
+Milestone 5 adds a deterministic static HTML report renderer for local visual
+inspection without a web server or frontend framework.
 
 Implemented parser inputs:
 
@@ -43,8 +45,8 @@ Implemented parser inputs:
 - saved Project 2 CLI JSON evidence
 - saved Project 2 guardrail output text
 
-The project still does not implement persistence, dashboards, UI, schedulers or
-external integrations.
+The project still does not implement persistence, hosted dashboards, a web
+server, frontend framework, schedulers or external integrations.
 
 Implemented derived views:
 
@@ -62,9 +64,13 @@ Implemented local reviewer interfaces:
 - `agentops-control-tower export-report`
 
 The CLI reads optional local source paths, prints compact JSON by default for
-summary and timeline commands, supports `--pretty`, and writes Markdown reports
-only when `--output` is explicitly supplied. Existing report files are protected
-unless `--overwrite` is passed.
+summary and timeline commands, supports `--pretty`, and writes Markdown or HTML
+reports only when `--output` is explicitly supplied. Existing report files are
+protected unless `--overwrite` is passed.
+
+The static HTML report is a self-contained local file artifact. It uses inline
+CSS only, escapes dynamic text and does not load external CSS, JavaScript,
+fonts, images or CDN assets.
 
 ## Design Principles
 
@@ -80,6 +86,8 @@ unless `--overwrite` is passed.
   generated from local typed records only.
 - Export safety: report output is deterministic, avoids raw payload dumps and
   does not expose secrets beyond the existing sanitized typed records.
+- Static artifact boundary: HTML export is not a deployed dashboard and does
+  not require a running service.
 
 ## Relationship to Earlier Projects
 

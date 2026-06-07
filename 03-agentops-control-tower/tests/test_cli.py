@@ -8,6 +8,17 @@ from pathlib import Path
 import pytest
 
 from agentops_control_tower.cli import EXIT_INGESTION_ERROR, EXIT_SUCCESS, EXIT_USAGE_ERROR, main
+from agentops_control_tower.models import (
+    GuardrailEvidenceRecord,
+    GuardrailStatus,
+    IngestionResult,
+    IngestionSourceType,
+    ReportSummaryRecord,
+    ToolEvidenceRecord,
+)
+from agentops_control_tower.summaries import build_agentops_control_tower_view
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_cli_help_lists_commands(capsys: pytest.CaptureFixture[str]) -> None:
@@ -62,6 +73,49 @@ def test_timeline_json_output(tmp_path: Path, capsys: pytest.CaptureFixture[str]
     assert payload["events"][0]["event_type"] == "workflow_run"
 
 
+def test_timeline_json_uses_project_relative_file_identifiers(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Print project-relative identifiers for Project 3 file-backed events."""
+    report_path = PROJECT_ROOT / "exports/reviewer-demo/input/daily-marketing-report-review.md"
+    tool_path = PROJECT_ROOT / "exports/reviewer-demo/input/tool-evidence-not-ready.json"
+    guardrail_path = PROJECT_ROOT / "exports/reviewer-demo/input/guardrail-blocked.txt"
+    view = build_agentops_control_tower_view(
+        ingestion_result=IngestionResult(
+            source_type=IngestionSourceType.COMBINED,
+            records=(
+                ReportSummaryRecord(path=report_path),
+                ToolEvidenceRecord(path=tool_path, tool_name="check_demo_readiness", ready=False),
+                GuardrailEvidenceRecord(
+                    path=guardrail_path,
+                    status=GuardrailStatus.BLOCKED,
+                    matched_signals=("blocked",),
+                    line_count=1,
+                ),
+            ),
+        )
+    )
+
+    monkeypatch.setattr("agentops_control_tower.cli._build_view_from_args", lambda _args: view)
+
+    exit_code = main(["timeline", "--pretty"])
+
+    captured = capsys.readouterr()
+    payload = json.loads(captured.out)
+    identifiers = [event["identifier"] for event in payload["events"]]
+    assert exit_code == EXIT_SUCCESS
+    assert str(PROJECT_ROOT) not in captured.out
+    assert "exports/reviewer-demo/input/daily-marketing-report-review.md" in identifiers
+    assert "exports/reviewer-demo/input/tool-evidence-not-ready.json" in identifiers
+    assert "exports/reviewer-demo/input/guardrail-blocked.txt" in identifiers
+    assert [event["event_type"] for event in payload["events"]] == [
+        "report_summary",
+        "tool_evidence",
+        "guardrail_evidence",
+    ]
+
+
 def test_export_report_stdout_markdown(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """Print deterministic Markdown report to stdout by default."""
     sources = _write_sources(tmp_path)
@@ -88,6 +142,32 @@ def test_export_report_output_writes_file(tmp_path: Path) -> None:
     assert output.read_text(encoding="utf-8").startswith("# AgentOps Control Tower Report")
 
 
+def test_export_report_html_stdout(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    """Print deterministic HTML report to stdout when requested."""
+    sources = _write_sources(tmp_path)
+
+    exit_code = main(["export-report", "--format", "html", *sources.args])
+
+    output = capsys.readouterr().out
+    assert exit_code == EXIT_SUCCESS
+    assert output.startswith("<!doctype html>")
+    assert "<h1>AgentOps Control Tower Report</h1>" in output
+    assert "<h2>Timeline</h2>" in output
+
+
+def test_export_report_html_output_writes_file(tmp_path: Path) -> None:
+    """Write deterministic HTML report to a requested output path."""
+    sources = _write_sources(tmp_path)
+    output = tmp_path / "nested" / "report.html"
+
+    exit_code = main(
+        ["export-report", "--format", "html", *sources.args, "--output", str(output)]
+    )
+
+    assert exit_code == EXIT_SUCCESS
+    assert output.read_text(encoding="utf-8").startswith("<!doctype html>")
+
+
 def test_export_report_refuses_overwrite_by_default(tmp_path: Path) -> None:
     """Return non-zero when an output file already exists."""
     sources = _write_sources(tmp_path)
@@ -95,6 +175,20 @@ def test_export_report_refuses_overwrite_by_default(tmp_path: Path) -> None:
     output.write_text("existing\n", encoding="utf-8")
 
     exit_code = main(["export-report", *sources.args, "--output", str(output)])
+
+    assert exit_code == EXIT_USAGE_ERROR
+    assert output.read_text(encoding="utf-8") == "existing\n"
+
+
+def test_export_report_html_refuses_overwrite_by_default(tmp_path: Path) -> None:
+    """Return non-zero when an HTML output file already exists."""
+    sources = _write_sources(tmp_path)
+    output = tmp_path / "report.html"
+    output.write_text("existing\n", encoding="utf-8")
+
+    exit_code = main(
+        ["export-report", "--format", "html", *sources.args, "--output", str(output)]
+    )
 
     assert exit_code == EXIT_USAGE_ERROR
     assert output.read_text(encoding="utf-8") == "existing\n"
@@ -110,6 +204,28 @@ def test_export_report_overwrites_with_flag(tmp_path: Path) -> None:
 
     assert exit_code == EXIT_SUCCESS
     assert output.read_text(encoding="utf-8").startswith("# AgentOps Control Tower Report")
+
+
+def test_export_report_html_overwrites_with_flag(tmp_path: Path) -> None:
+    """Overwrite an existing HTML report file when explicitly requested."""
+    sources = _write_sources(tmp_path)
+    output = tmp_path / "report.html"
+    output.write_text("existing\n", encoding="utf-8")
+
+    exit_code = main(
+        [
+            "export-report",
+            "--format",
+            "html",
+            *sources.args,
+            "--output",
+            str(output),
+            "--overwrite",
+        ]
+    )
+
+    assert exit_code == EXIT_SUCCESS
+    assert output.read_text(encoding="utf-8").startswith("<!doctype html>")
 
 
 def test_malformed_jsonl_returns_non_zero(
@@ -149,7 +265,10 @@ def test_cli_uses_no_external_api_or_llm_imports() -> None:
     """Keep CLI/reporting implementation free of external API and LLM imports."""
     cli_source = Path("src/agentops_control_tower/cli.py").read_text(encoding="utf-8")
     reporting_source = Path("src/agentops_control_tower/reporting.py").read_text(encoding="utf-8")
-    combined = f"{cli_source}\n{reporting_source}"
+    html_reporting_source = Path("src/agentops_control_tower/html_reporting.py").read_text(
+        encoding="utf-8"
+    )
+    combined = f"{cli_source}\n{reporting_source}\n{html_reporting_source}"
 
     forbidden = (
         "import openai",

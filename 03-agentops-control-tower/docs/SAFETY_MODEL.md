@@ -19,6 +19,9 @@ business actions or bypass approval flows.
 - CLI summary and timeline commands print deterministic local JSON only.
 - CLI report export writes only to an explicit `--output` path and refuses to
   overwrite existing files unless `--overwrite` is passed.
+- Static HTML export is a local file artifact, not a hosted dashboard.
+- Static HTML export uses inline CSS only and does not load external scripts,
+  stylesheets, fonts, images or CDN assets.
 
 ## Planned Safety Principles
 
@@ -36,5 +39,5 @@ AgentOps platform. Future guardrails should be documented as local controls
 unless a real external enforcement layer is implemented.
 
 The ingestion, CLI and reporting layers do not call LLMs, infer missing metrics,
-send notifications, create tasks, delete runtime artifacts or mutate source
-files.
+send notifications, create tasks, start a web server, delete runtime artifacts
+or mutate source files.

@@ -64,10 +64,16 @@ Milestone 4 exposes the derived views through a local CLI:
 - `timeline` prints `AgentOpsTimeline`-compatible JSON.
 - `export-report` renders a deterministic Markdown report over the combined
   local control tower view.
+- `export-report --format html` renders a deterministic static HTML report over
+  the same local control tower view.
 
-The Markdown report includes local source paths, overall health, summary
-sections, ingestion warnings and errors, timeline events, deterministic
-recommended actions and clear limitations or missing-data notes.
+The Markdown and HTML reports include local source paths, overall health,
+summary sections, ingestion warnings and errors, timeline events,
+deterministic recommended actions and clear limitations or missing-data notes.
+
+The HTML report is a static local file artifact. It uses inline CSS only,
+escapes dynamic text and does not load external scripts, stylesheets, fonts,
+images or CDN assets.
 
 CLI exit behavior is tied to deterministic ingestion results:
 
@@ -92,9 +98,9 @@ CLI exit behavior is tied to deterministic ingestion results:
 
 ## Current Non-Goals
 
-Project 3 does not yet implement storage, frontend dashboard views, alerting, a
-scheduler, external integrations or a deployed AgentOps platform. Those will be
-introduced only if future milestones explicitly add them.
+Project 3 does not yet implement storage, hosted dashboard views, a web server,
+alerting, a scheduler, external integrations or a deployed AgentOps platform.
+Those will be introduced only if future milestones explicitly add them.
 
 ## Auditability Goals
 

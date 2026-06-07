@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import TextIO, cast
+from typing import Any, TextIO, cast
 
+from agentops_control_tower.display_paths import format_display_path
+from agentops_control_tower.html_reporting import render_agentops_html_report
 from agentops_control_tower.models import AgentOpsControlTowerView, IngestionError
 from agentops_control_tower.reporting import render_agentops_markdown_report
 from agentops_control_tower.summaries import build_agentops_control_tower_view
@@ -59,10 +62,16 @@ def _build_parser() -> argparse.ArgumentParser:
 
     report_parser = subcommands.add_parser(
         "export-report",
-        help="Render a deterministic local AgentOps Markdown report.",
+        help="Render a deterministic local AgentOps report.",
     )
     _add_source_options(report_parser)
-    report_parser.add_argument("--output", type=Path, help="Optional Markdown output path.")
+    report_parser.add_argument("--output", type=Path, help="Optional report output path.")
+    report_parser.add_argument(
+        "--format",
+        choices=("markdown", "html"),
+        default="markdown",
+        help="Report output format. Defaults to markdown.",
+    )
     report_parser.add_argument(
         "--overwrite",
         action="store_true",
@@ -136,28 +145,77 @@ def _handle_timeline(args: argparse.Namespace, *, stdout: TextIO, stderr: TextIO
         Process exit code.
     """
     view = _build_view_from_args(args)
-    print(view.timeline.model_dump_json(indent=2 if args.pretty else None), file=stdout)
+    print(_timeline_json(view, pretty=args.pretty), file=stdout)
     return _exit_code_for_view_errors(view.ingestion_result.errors, stderr)
 
 
 def _handle_export_report(args: argparse.Namespace, *, stdout: TextIO, stderr: TextIO) -> int:
-    """Render or write a deterministic local AgentOps Markdown report.
+    """Render or write a deterministic local AgentOps report.
 
     Args:
         args: Parsed export-report arguments.
-        stdout: Stream for Markdown output when no output path is supplied.
+        stdout: Stream for report output when no output path is supplied.
         stderr: Stream for user-facing errors.
 
     Returns:
         Process exit code.
     """
     view = _build_view_from_args(args)
-    report = render_agentops_markdown_report(view)
+    report = _render_report(view, output_format=args.format)
     if args.output is None:
         print(report, file=stdout, end="")
     else:
         _write_report(args.output, report, overwrite=args.overwrite)
     return _exit_code_for_view_errors(view.ingestion_result.errors, stderr)
+
+
+def _render_report(view: AgentOpsControlTowerView, *, output_format: str) -> str:
+    """Render a control tower report in the requested format.
+
+    Args:
+        view: Combined local AgentOps control tower view.
+        output_format: Requested report format from CLI choices.
+
+    Returns:
+        Rendered report text.
+    """
+    if output_format == "html":
+        return render_agentops_html_report(view)
+    return render_agentops_markdown_report(view)
+
+
+def _timeline_json(view: AgentOpsControlTowerView, *, pretty: bool) -> str:
+    """Serialize timeline JSON with reviewer-friendly display identifiers.
+
+    Args:
+        view: Combined local AgentOps control tower view.
+        pretty: Whether to render indented JSON.
+
+    Returns:
+        Timeline JSON text with project-local file identifiers formatted as
+        project-relative paths.
+    """
+    payload = view.timeline.model_dump(mode="json")
+    for event in payload["events"]:
+        _format_timeline_event_identifier(event)
+
+    if pretty:
+        return json.dumps(payload, indent=2)
+    return json.dumps(payload, separators=(",", ":"))
+
+
+def _format_timeline_event_identifier(event: dict[str, Any]) -> None:
+    """Format one serialized timeline event identifier for display.
+
+    Args:
+        event: Mutable serialized timeline event payload.
+    """
+    if event["source_type"] in {
+        "markdown_report",
+        "tool_evidence",
+        "guardrail_output",
+    }:
+        event["identifier"] = format_display_path(cast(str, event["identifier"]))
 
 
 def _build_view_from_args(args: argparse.Namespace) -> AgentOpsControlTowerView:
