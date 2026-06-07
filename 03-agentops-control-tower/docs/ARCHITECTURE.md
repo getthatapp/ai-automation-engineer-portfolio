@@ -24,7 +24,7 @@ Project 3 local ingestion models and parsers
         ↓
 deterministic summaries and timeline generation
         ↓
-control tower views, summaries and audit records
+local CLI JSON output and deterministic Markdown report export
 ```
 
 ## Current Implementation
@@ -32,6 +32,8 @@ control tower views, summaries and audit records
 Milestone 2 implemented typed local ingestion records and deterministic parsers
 for selected Project 1 and Project 2 artifacts. Milestone 3 adds deterministic
 summary and timeline generation over typed `IngestionResult` objects.
+Milestone 4 exposes those views through a local command-line interface and a
+deterministic Markdown report renderer.
 
 Implemented parser inputs:
 
@@ -53,6 +55,17 @@ Implemented derived views:
 The control tower view combines ingestion records, summary counts and timeline
 events without persisting data or starting a service.
 
+Implemented local reviewer interfaces:
+
+- `agentops-control-tower summary`
+- `agentops-control-tower timeline`
+- `agentops-control-tower export-report`
+
+The CLI reads optional local source paths, prints compact JSON by default for
+summary and timeline commands, supports `--pretty`, and writes Markdown reports
+only when `--output` is explicitly supplied. Existing report files are protected
+unless `--overwrite` is passed.
+
 ## Design Principles
 
 - Local-first: read local artifacts before considering any external source.
@@ -65,6 +78,8 @@ events without persisting data or starting a service.
   instead of unhandled exceptions.
 - Deterministic derived views: health status and recommended actions are
   generated from local typed records only.
+- Export safety: report output is deterministic, avoids raw payload dumps and
+  does not expose secrets beyond the existing sanitized typed records.
 
 ## Relationship to Earlier Projects
 

@@ -39,6 +39,21 @@ it does not invoke Project 2 tools as part of ingestion.
   fail or block signals.
 - Secret-like keys and values are conservatively redacted.
 
+## CLI Source Options
+
+Milestone 4 exposes the supported local inputs through the
+`agentops-control-tower` CLI:
+
+- `--run-history PATH`
+- `--approval-requests PATH`
+- `--report PATH`
+- `--tool-evidence PATH`
+- `--guardrail-output PATH`
+
+These options map directly to the same local source parameters accepted by
+`ingest_local_agentops_sources`. Project 3 reads saved local evidence only; it
+does not invoke Project 1 workflows or Project 2 tools during CLI ingestion.
+
 ## Source Boundaries
 
 Project 3 should read local files and command outputs only unless a future

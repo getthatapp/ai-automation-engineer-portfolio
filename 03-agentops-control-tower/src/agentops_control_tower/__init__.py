@@ -8,6 +8,7 @@ from agentops_control_tower.parsers import (
     parse_run_history_jsonl,
     parse_tool_evidence_json,
 )
+from agentops_control_tower.reporting import render_agentops_markdown_report
 from agentops_control_tower.summaries import (
     build_agentops_control_tower_view,
     build_agentops_summary,
@@ -24,4 +25,5 @@ __all__ = [
     "parse_markdown_report",
     "parse_run_history_jsonl",
     "parse_tool_evidence_json",
+    "render_agentops_markdown_report",
 ]
